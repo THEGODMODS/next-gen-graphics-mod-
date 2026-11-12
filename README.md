@@ -23,7 +23,7 @@ The installer must never blindly delete files from a PES installation. It must i
 
 ## Development status
 
-Repository initialization. No game assets are bundled yet. Live-game compatibility and visual results must be tested against a real PES 2017 installation and a compatible Sider version.
+The desktop manager, transactional module installer, Sider synchronization, local package library and DDS audit tooling are under active development. No game replacement assets are bundled yet. The DDS audit is not a PES texture compatibility validator. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md) before authoring pitch or stadium assets.
 
 ## Licensing
 
