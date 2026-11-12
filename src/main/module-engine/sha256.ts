@@ -5,7 +5,7 @@ export function sha256File(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = createHash("sha256");
     const stream = createReadStream(filePath);
-    stream.on("data", (chunk: Buffer) => hash.update(chunk));
+    stream.on("data", (chunk: string | Buffer) => hash.update(chunk));
     stream.once("error", reject);
     stream.once("end", () => resolve(hash.digest("hex")));
   });
