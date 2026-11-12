@@ -175,7 +175,7 @@ function registerIpc() {
     return new JournalStore(stateDirectory()).read().then(journal => journal.modules.map(module => ({
       id: module.id, version: module.version, installedAt: module.installedAt,
       files: module.files.map(file => file.target),
-      luaModules: module.files.map(file => file.target.replace(/\\\\/g, "/"))
+      luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
         .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
         .map(target => target.slice(8)),
     })));
