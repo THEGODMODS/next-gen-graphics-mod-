@@ -48,7 +48,9 @@ function decodeBlock(format, block) {
   let alpha = null;
   if (isBc3) alpha = alphaPalette(block.subarray(0, 8));
   if (isBc2) {
-    alpha = Array.from({ length: 16 }, (_, i) => ((block.readUInt32LE(0) >> (i * 4)) & 15) * 17);
+    let bits = 0n;
+    for (let i = 0; i < 8; i++) bits |= BigInt(block[i]) << BigInt(i * 8);
+    alpha = Array.from({ length: 16 }, (_, i) => Number((bits >> BigInt(i * 4)) & 15n) * 17);
   }
   return {
     channels: [0, 1, 2].map(channel => Array.from({ length: 16 }, (_, i) => color.colors[(color.indices >>> (i * 2)) & 3][channel])),
