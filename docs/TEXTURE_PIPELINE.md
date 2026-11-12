@@ -42,3 +42,8 @@ Until the exact PES 2017 resource path and texture container requirements are ve
 ## Decoded DDS comparison
 
 Run `npm run compare:dds -- "<original.dds>" "<replacement.dds>"` to compare decoded base-mip pixels for matching BC1, BC2, BC3 or BC5_UNORM files. The report includes changed-pixel percentage and per-channel mean absolute error, root-mean-square error and maximum absolute error. Dimensions and exact compression format must match; incompatible inputs fail rather than producing a misleading score. BC5 compares stored R/G values only. This is a difference report, not a perceptual-quality score, image-similarity verdict, mip-chain comparison or PES compatibility test. Both inputs must be regular non-symlink files no larger than 512 MiB.
+
+
+## DDS PNG previews
+
+Run `npm run preview:dds -- "<input.dds>" "<output.png>"` to decode the supported base mip into a PNG without an additional runtime dependency. The output path must not already exist. BC1/BC2/BC3 are rendered as decoded RGBA; BC5_UNORM is shown as an explicitly labelled false-colour RG view (stored R in red, stored G in green, blue set to zero). The BC5 preview is not a reconstructed normal map and does not establish channel conventions. Only BC1/2/3 and unsigned BC5 are supported; BC5_SNORM and BC7 are rejected. Input files are limited to 512 MiB and decoded images to 16 megapixels. Higher mips are not rendered, and previews are not evidence of PES compatibility.
