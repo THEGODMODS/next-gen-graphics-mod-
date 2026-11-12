@@ -52,4 +52,13 @@ describe("module manifest validation", () => {
     expect(validateModuleManifest(unsafeName).valid).toBe(false);
   });
 
+  it("accepts a Lua-only Sider extension package", () => {
+    const luaOnly = {
+      ...validManifest,
+      files: [],
+      luaModules: [{ source: "payload/weather.lua", moduleName: "weather.lua", sha256: "e".repeat(64) }],
+    };
+    expect(validateModuleManifest(luaOnly).valid).toBe(true);
+  });
+
 });
