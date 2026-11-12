@@ -11,7 +11,8 @@
     "dist:win": "npm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release",
-    "test": "vitest run"
+    "test": "vitest run",
+    "audit:dds": "node tools/dds-audit.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
