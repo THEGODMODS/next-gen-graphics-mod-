@@ -1,15 +1,9 @@
 import { defineConfig } from "vitest/config";
 
-// These utilities are first-party ESM files, not installed dependencies.
-// Inline the complete module graph so Vitest's runner, rather than the
-// Windows worker's external-module loader, evaluates them.
+// Keep Vitest's runner isolated from Node-native .mjs utilities. Tests load
+// those utilities through tests/helpers/native-esm.ts using Node's ESM loader.
 export default defineConfig({
   test: {
-    pool: "forks",
-    server: {
-      deps: {
-        inline: true
-      }
-    }
+    pool: "forks"
   }
 });
