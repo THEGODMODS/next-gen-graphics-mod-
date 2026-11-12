@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { analyzeDds } from "../tools/dds-inspect.mjs";
 
 function dds(fourcc, block) {
-  const buffer = Buffer.alloc(128 + block.length);
+  const offset = fourcc === "DX10" ? 148 : 128;
+  const buffer = Buffer.alloc(offset + block.length);
   buffer.write("DDS ", 0, "ascii");
   buffer.writeUInt32LE(124, 4);
   buffer.writeUInt32LE(0x1007, 8);
@@ -11,7 +12,8 @@ function dds(fourcc, block) {
   buffer.writeUInt32LE(32, 76);
   buffer.writeUInt32LE(4, 80);
   buffer.write(fourcc, 84, "ascii");
-  block.copy(buffer, 128);
+  if (fourcc === "DX10") buffer.writeUInt32LE(98, 128);
+  block.copy(buffer, offset);
   return buffer;
 }
 function bc3Block(red565 = 0xf800) {
