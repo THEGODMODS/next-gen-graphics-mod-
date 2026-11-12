@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  Activity, AudioLines, BarChart3, ChevronRight, CircleHelp, CloudDownload,
+  Activity, AudioLines, BarChart3, ChevronRight, CloudDownload,
   Disc3, FolderOpen, Gamepad2, Gauge, HardDrive, LayoutDashboard, Monitor,
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
