@@ -14,6 +14,7 @@ describe("module path safety", () => {
   );
 
   it("resolves targets under the selected root", () => {
-    expect(resolveInsideRoot("/game/LiveCPK", "common/grass.dds")).toBe(path.join("/game/LiveCPK", "common", "grass.dds"));
+    const root = path.resolve("game", "LiveCPK");
+    expect(resolveInsideRoot(root, "common/grass.dds")).toBe(path.join(root, "common", "grass.dds"));
   });
 });
