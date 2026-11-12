@@ -91,11 +91,73 @@ export class ModuleInstaller {
     this.journal = new JournalStore(stateDirectory);
   }
 
+  /** Roll back an interrupted install before any new module operation is allowed. */
+  async recoverPendingTransaction(): Promise<string[]> {
+    return withInstallLock(this.stateDirectory, async () => {
+      const root = await fs.realpath(this.managedRoot);
+      const journal = await this.journal.read();
+      if (!journal.pendingTransaction) return [];
+      const recovered = await this.rollbackPending(root, journal);
+      return recovered;
+    });
+  }
+
+  private async rollbackPending(root: string, journal: Awaited<ReturnType<JournalStore["read"]>>): Promise<string[]> {
+    const pending = journal.pendingTransaction;
+    if (!pending) return [];
+    const recovered: string[] = [];
+    for (const item of [...pending.files].reverse()) {
+      const relative = normalizeSafeRelativePath(item.target);
+      await assertNoSymlinkPath(root, relative, true);
+      const target = resolveInsideRoot(root, relative);
+      const backup = item.backupPath;
+      const backupExists = backup ? await exists(backup) : false;
+      if (backup) {
+        const backupRelative = path.relative(this.stateDirectory, backup);
+        if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+          throw new Error("Pending transaction backup escapes the manager state directory; recovery is blocked.");
+        }
+        if (backupExists) {
+          const stat = await fs.lstat(backup);
+          if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Pending transaction backup is not a regular file.");
+          if (!item.backupSha256 || !(await verifySha256(backup, item.backupSha256))) {
+            throw new Error("Pending transaction backup integrity check failed; recovery is blocked.");
+          }
+        }
+      }
+
+      const targetExists = await exists(target);
+      if (targetExists) {
+        const stat = await fs.lstat(target);
+        if (stat.isSymbolicLink() || !stat.isFile()) continue;
+        if (!(await verifySha256(target, item.installedSha256))) continue;
+      }
+      if (backup && backupExists) {
+        await ensureSafeParents(root, relative);
+        const restoreTemp = target + `.nextgen-recovery-${pending.id}.tmp`;
+        await fs.copyFile(backup, restoreTemp);
+        if (!(await verifySha256(restoreTemp, item.backupSha256!))) {
+          await fs.rm(restoreTemp, { force: true });
+          throw new Error("Recovery restore verification failed.");
+        }
+        await fs.rename(restoreTemp, target);
+        recovered.push(relative);
+      } else if (!backup && targetExists) {
+        await fs.unlink(target);
+        recovered.push(relative);
+      }
+    }
+    journal.pendingTransaction = null;
+    await this.journal.write(journal);
+    return recovered;
+  }
+
   async install(packageDirectory: string, manifest: ModuleManifest, options: InstallOptions = {}): Promise<InstallResult> {
     return withInstallLock(this.stateDirectory, async () => {
       const root = await fs.realpath(this.managedRoot);
       const packageRoot = await fs.realpath(packageDirectory);
       const journal = await this.journal.read();
+      if (journal.pendingTransaction) await this.rollbackPending(root, journal);
 
       if (journal.modules.some((item) => item.id === manifest.id)) {
         throw new Error(`Module ${manifest.id} is already installed. Upgrade support is not enabled yet.`);
@@ -165,14 +227,32 @@ export class ModuleInstaller {
           staged.push({ path: stagedPath, target: item.target, hash: item.hash, existed: item.existed, backup: item.backup });
         }
 
+        // Preserve all approved originals before recording the durable recovery point.
+        const pendingFiles = [];
+        for (const item of staged) {
+          if (item.existed && item.backup) {
+            await fs.mkdir(path.dirname(item.backup), { recursive: true });
+            await fs.copyFile(item.target, item.backup);
+          }
+          pendingFiles.push({
+            target: path.relative(root, item.target).split(path.sep).join("/"),
+            installedSha256: item.hash,
+            backupPath: item.backup,
+            backupSha256: item.backup ? await sha256File(item.backup) : null,
+          });
+        }
+        journal.pendingTransaction = {
+          id: transactionId,
+          moduleId: manifest.id,
+          startedAt: new Date().toISOString(),
+          files: pendingFiles,
+        };
+        await this.journal.write(journal);
+
         for (const item of staged) {
           const relativeTarget = path.relative(root, item.target).split(path.sep).join("/");
           await assertNoSymlinkPath(root, relativeTarget, false);
           await ensureSafeParents(root, relativeTarget);
-          if (item.existed) {
-            await fs.mkdir(path.dirname(item.backup!), { recursive: true });
-            await fs.copyFile(item.target, item.backup!);
-          }
           const temporaryTarget = item.target + `.nextgen-${transactionId}.tmp`;
           await fs.copyFile(item.path, temporaryTarget);
           if (!(await verifySha256(temporaryTarget, item.hash))) {
@@ -195,6 +275,7 @@ export class ModuleInstaller {
           installedAt: new Date().toISOString(),
           files: records,
         });
+        journal.pendingTransaction = null;
         await this.journal.write(journal);
         return {
           moduleId: manifest.id,
@@ -202,17 +283,11 @@ export class ModuleInstaller {
           backups: records.flatMap((record) => record.backupPath ? [record.backupPath] : []),
         };
       } catch (error) {
-        // Restore only files changed by this transaction. Never touch unrelated files.
-        for (const item of applied.reverse()) {
-          try {
-            if (item.backup && await exists(item.backup)) {
-              await fs.copyFile(item.backup, item.target);
-            } else if (await exists(item.target)) {
-              const currentMatches = await verifySha256(item.target, item.installedHash);
-              if (currentMatches) await fs.unlink(item.target);
-            }
-          } catch { /* Preserve the original failure; recovery data remains on disk. */ }
-        }
+        // Use the same hash-guarded recovery path used after an application crash.
+        try {
+          const latest = await this.journal.read();
+          if (latest.pendingTransaction) await this.rollbackPending(root, latest);
+        } catch { /* Keep the pending journal and backups for a later recovery attempt. */ }
         throw error;
       } finally {
         await fs.rm(stagingRoot, { recursive: true, force: true });
@@ -224,6 +299,7 @@ export class ModuleInstaller {
     return withInstallLock(this.stateDirectory, async () => {
       const root = await fs.realpath(this.managedRoot);
       const journal = await this.journal.read();
+      if (journal.pendingTransaction) await this.rollbackPending(root, journal);
       const index = journal.modules.findIndex((item) => item.id === moduleId);
       if (index < 0) throw new Error(`Module is not installed: ${moduleId}`);
       const moduleRecord = journal.modules[index];
