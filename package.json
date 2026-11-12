@@ -5,9 +5,9 @@
   "description": "PES 2017 Next Gen desktop manager",
   "main": "dist-electron/electron/main.js",
   "scripts": {
-    "predev": "tsc -p electron",
+    "predev": "tsc -p electron && node tools/copy-electron-assets.mjs",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "tsc --noEmit && vite build && tsc -p electron/tsconfig.json",
+    "build": "tsc --noEmit && vite build && tsc -p electron/tsconfig.json && node tools/copy-electron-assets.mjs",
     "dist:win": "npm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release",
