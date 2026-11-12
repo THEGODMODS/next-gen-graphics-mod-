@@ -277,6 +277,7 @@ export class ModuleInstaller {
           id: manifest.id,
           version: manifest.version,
           installedAt: new Date().toISOString(),
+          dependencies: [...manifest.dependencies],
           files: records,
         });
         journal.pendingTransaction = null;
@@ -307,6 +308,11 @@ export class ModuleInstaller {
       const index = journal.modules.findIndex((item) => item.id === moduleId);
       if (index < 0) throw new Error(`Module is not installed: ${moduleId}`);
       const moduleRecord = journal.modules[index];
+      const dependents = journal.modules.filter(item => item.id !== moduleId && item.dependencies?.includes(moduleId));
+      if (dependents.length) {
+        throw new Error("Cannot uninstall this module while installed modules depend on it: " +
+          dependents.map(item => item.id).join(", ") + ". Remove those dependent modules first.");
+      }
       const removed: string[] = [];
       const restored: string[] = [];
       const preservedModified: string[] = [];
