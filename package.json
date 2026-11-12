@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release",
     "test": "vitest run",
-    "audit:dds": "node tools/dds-audit.mjs"
+    "audit:dds": "node tools/dds-audit.mjs",
+    "inventory:pitch": "node tools/pitch-inventory.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
