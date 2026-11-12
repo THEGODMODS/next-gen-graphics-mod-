@@ -48,3 +48,22 @@ Sider's modules directory, discover a compatible Sider version, back up and
 atomically update a real `sider.ini`, or expose module activation controls.
 Those steps remain gated until the manifest explicitly defines LiveCPK root
 semantics and the filesystem transaction can track Sider configuration changes.
+
+
+## LiveCPK root synchronization in the desktop manager
+
+The manager now has an explicit **Register LiveCPK roots** action. It reads the
+installed-module journal and registers the game's `LiveCPK` directory only
+when at least one installed module owns files beneath `LiveCPK/`. It does not
+register roots for uninstalled package previews.
+
+Before changing `sider.ini`, the manager requires a regular, non-symlink file,
+creates a timestamped backup under its private manager-state directory, updates
+only its delimited block, writes through a temporary file, and verifies the
+result. Repeated synchronization is idempotent. If there are no installed
+LiveCPK payloads, it removes only the manager-owned block.
+
+This action currently manages LiveCPK roots only. Lua payload installation and
+registration, Sider version detection, and live-game verification remain
+separate unfinished tasks. The manager does not silently activate anything
+during package installation.
