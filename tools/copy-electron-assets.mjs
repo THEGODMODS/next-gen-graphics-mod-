@@ -1,11 +1,10 @@
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { copyFile as copyRuntimeFile } from "node:fs/promises";
 const root = process.cwd();
 const destination = path.join(root, "dist-electron", "electron");
 await mkdir(destination, { recursive: true });
 await Promise.all(["dds-service.cjs", "pitch-workflow.cjs"].map(name => copyFile(path.join(root, "electron", name), path.join(destination, name))));
 const toolDestination = path.join(root, "dist-electron", "tools");
 await mkdir(toolDestination, { recursive: true });
-await copyRuntimeFile(path.join(root, "tools", "sider-pitch-log.mjs"), path.join(toolDestination, "sider-pitch-log.mjs"));
+await copyFile(path.join(root, "tools", "sider-pitch-log.mjs"), path.join(toolDestination, "sider-pitch-log.mjs"));
 console.log("Copied Electron runtime service and pitch-log analyzer assets.");
