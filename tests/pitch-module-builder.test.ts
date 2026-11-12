@@ -43,7 +43,7 @@ describe("pitch module builder",()=>{
    await writeFile(path.join(root,"source","replacement.dds"),"fake");
    await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[]}));
    await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"test",redistributionAllowed:true},replacements:[{inventoryPath:"../evil.dds",originalSha256:"a".repeat(64),replacementFile:"source/replacement.dds"}]}));
-   await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/safe relative/);
+   await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/unsafe path segment/);
   }finally{await rm(root,{recursive:true,force:true});}
  });
  it("preserves private-use license restrictions in the generated manifest",async()=>{
