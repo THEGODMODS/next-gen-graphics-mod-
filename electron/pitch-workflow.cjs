@@ -4,6 +4,7 @@ const path = require("node:path");
 const os = require("node:os");
 const { pathToFileURL } = require("node:url");
 const ID = /^[a-z0-9]+(?:[.-][a-z0-9]+)+$/;
+const MAX_REPLACEMENT_BYTES = 512 * 1024 * 1024;
 async function loadTools(root) {
   const dir = path.join(root, "tools");
   const [inventory, builder] = await Promise.all([
@@ -25,6 +26,7 @@ async function build({ stadiumFolder, inventory, inventoryPath, replacementPath,
   const replacement = path.resolve(replacementPath);
   const stat = await fs.lstat(replacement);
   if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Replacement must be a regular file, not a symbolic link.");
+  if (stat.size > MAX_REPLACEMENT_BYTES) throw new Error("Replacement exceeds the 512 MiB package input limit.");
   if (path.extname(replacement).toLowerCase() !== path.extname(record.path).toLowerCase()) throw new Error("Replacement extension must match the selected stadium resource.");
   const parent = await fs.realpath(outputParent);
   const parentStat = await fs.lstat(parent);
