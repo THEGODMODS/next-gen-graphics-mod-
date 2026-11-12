@@ -36,55 +36,6 @@ async function fixture() {
 
 afterEach(async () => {
   await Promise.all(roots.splice(0).map((root) => fs.rm(root, { recursive: true, force: true })));
-  it("recovers an interrupted install by restoring backups and removing newly placed files", async () => {
-    const f = await fixture();
-    const installer = new ModuleInstaller(f.game, f.state);
-    const replaced = "LiveCPK/common/grass.dds";
-    const added = "LiveCPK/common/new-grass.dds";
-    const replacedPath = path.join(f.game, ...replaced.split("/"));
-    const addedPath = path.join(f.game, ...added.split("/"));
-    const backupPath = path.join(f.state, "backups", "recovery", "original-grass.dds");
-    await fs.mkdir(path.dirname(replacedPath), { recursive: true });
-    await fs.mkdir(path.dirname(backupPath), { recursive: true });
-    await fs.writeFile(backupPath, "original grass");
-    await fs.writeFile(replacedPath, "new grass asset");
-    await fs.writeFile(addedPath, "new grass asset");
-    const digest = (value: string) => createHash("sha256").update(value).digest("hex");
-    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
-      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
-      pendingTransaction: {
-        id: "simulated-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
-        files: [
-          { target: replaced, installedSha256: digest("new grass asset"), backupPath, backupSha256: digest("original grass") },
-          { target: added, installedSha256: digest("new grass asset"), backupPath: null, backupSha256: null },
-        ],
-      },
-    }));
-    const recovered = await installer.recoverPendingTransaction();
-    expect(recovered).toEqual([added, replaced]);
-    expect(await fs.readFile(replacedPath, "utf8")).toBe("original grass");
-    await expect(fs.access(addedPath)).rejects.toThrow();
-    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
-    expect(journal.pendingTransaction).toBeNull();
-  });
-
-  it("preserves a target changed after an interrupted install", async () => {
-    const f = await fixture();
-    const relative = "LiveCPK/common/grass.dds";
-    const target = path.join(f.game, ...relative.split("/"));
-    await fs.mkdir(path.dirname(target), { recursive: true });
-    await fs.writeFile(target, "user's later edit");
-    const digest = createHash("sha256").update("new grass asset").digest("hex");
-    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
-      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
-      pendingTransaction: {
-        id: "simulated-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
-        files: [{ target: relative, installedSha256: digest, backupPath: null, backupSha256: null }],
-      },
-    }));
-    await new ModuleInstaller(f.game, f.state).recoverPendingTransaction();
-    expect(await fs.readFile(target, "utf8")).toBe("user's later edit");
-  });
 
 });
 
@@ -138,5 +89,54 @@ describe("transactional module installer", () => {
     const result = await installer.uninstall("studio.pitch-pack");
     expect(result.preservedModified).toEqual(["LiveCPK/common/grass.dds"]);
     expect(await fs.readFile(target, "utf8")).toBe("user modification");
+  });
+  it("recovers an interrupted install by restoring backups and removing newly placed files", async () => {
+    const f = await fixture();
+    const installer = new ModuleInstaller(f.game, f.state);
+    const replaced = "LiveCPK/common/grass.dds";
+    const added = "LiveCPK/common/new-grass.dds";
+    const replacedPath = path.join(f.game, ...replaced.split("/"));
+    const addedPath = path.join(f.game, ...added.split("/"));
+    const backupPath = path.join(f.state, "backups", "recovery", "original-grass.dds");
+    await fs.mkdir(path.dirname(replacedPath), { recursive: true });
+    await fs.mkdir(path.dirname(backupPath), { recursive: true });
+    await fs.writeFile(backupPath, "original grass");
+    await fs.writeFile(replacedPath, "new grass asset");
+    await fs.writeFile(addedPath, "new grass asset");
+    const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
+      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
+      pendingTransaction: {
+        id: "simulated-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
+        files: [
+          { target: replaced, installedSha256: digest("new grass asset"), backupPath, backupSha256: digest("original grass") },
+          { target: added, installedSha256: digest("new grass asset"), backupPath: null, backupSha256: null },
+        ],
+      },
+    }));
+    const recovered = await installer.recoverPendingTransaction();
+    expect(recovered).toEqual([added, replaced]);
+    expect(await fs.readFile(replacedPath, "utf8")).toBe("original grass");
+    await expect(fs.access(addedPath)).rejects.toThrow();
+    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
+    expect(journal.pendingTransaction).toBeNull();
+  });
+
+  it("preserves a target changed after an interrupted install", async () => {
+    const f = await fixture();
+    const relative = "LiveCPK/common/grass.dds";
+    const target = path.join(f.game, ...relative.split("/"));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, "user's later edit");
+    const digest = createHash("sha256").update("new grass asset").digest("hex");
+    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
+      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
+      pendingTransaction: {
+        id: "simulated-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
+        files: [{ target: relative, installedSha256: digest, backupPath: null, backupSha256: null }],
+      },
+    }));
+    await new ModuleInstaller(f.game, f.state).recoverPendingTransaction();
+    expect(await fs.readFile(target, "utf8")).toBe("user's later edit");
   });
 });
