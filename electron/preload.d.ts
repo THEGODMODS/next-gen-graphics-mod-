@@ -1,7 +1,9 @@
-import type { GameStatus, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
 declare global {
   interface Window {
     nextgen: {
+      chooseDds: (role: "original" | "replacement") => Promise<DdsTexture | null>;
+      compareDds: () => Promise<DdsComparison>;
       getStatus: () => Promise<GameStatus>;
       chooseGameDirectory: () => Promise<string | null>;
       scanModuleLibrary: () => Promise<LibraryPackage[]>;
