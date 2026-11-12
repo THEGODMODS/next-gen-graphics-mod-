@@ -90,6 +90,7 @@ function registerIpc() {
     const selected = result.filePaths[0];
     if (!findFirst(selected, ["PES2017.exe", "PES2017patched.exe"])) throw new Error("That folder does not contain a PES 2017 executable.");
     gameDirectory = selected;
+    pendingPackage = null;
     await persistGameDirectory(selected);
     await loadAndRecover();
     return gameDirectory;
@@ -97,6 +98,7 @@ function registerIpc() {
   ipcMain.handle("modules:preview", async event => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 folder before previewing a module.");
+    pendingPackage = null;
     const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a module package folder containing module.json", properties: ["openDirectory"] });
     if (picked.canceled || !picked.filePaths[0]) return null;
     const packageRoot = await fsp.realpath(picked.filePaths[0]);
