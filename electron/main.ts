@@ -173,7 +173,7 @@ function registerIpc() {
   ipcMain.handle("sider:sync-livecpk", async event => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
-    const result = await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledLiveCpkRoots();
+    const result = await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
     return result;
   });
   ipcMain.handle("sider:launch", event => {
