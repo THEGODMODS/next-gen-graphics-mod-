@@ -139,4 +139,22 @@ describe("transactional module installer", () => {
     await new ModuleInstaller(f.game, f.state).recoverPendingTransaction();
     expect(await fs.readFile(target, "utf8")).toBe("user's later edit");
   });
+  it("deploys Lua modules into Sider modules directory and journals their ownership", async () => {
+    const f = await fixture();
+    const luaSource = "payload/nextgen-weather.lua";
+    const luaTarget = "modules/nextgen-weather.lua";
+    const luaBytes = Buffer.from('return { name = "NextGen Weather" }');
+    await fs.writeFile(path.join(f.pkg, "payload", "nextgen-weather.lua"), luaBytes);
+    const luaHash = createHash("sha256").update(luaBytes).digest("hex");
+    const manifest: ModuleManifest = {
+      ...f.manifest,
+      luaModules: [{ source: luaSource, moduleName: "nextgen-weather.lua", sha256: luaHash }],
+    };
+    const result = await new ModuleInstaller(f.game, f.state).install(f.pkg, manifest);
+    expect(result.installedFiles).toContain(luaTarget);
+    expect(await fs.readFile(path.join(f.game, luaTarget), "utf8")).toContain("NextGen Weather");
+    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
+    expect(journal.modules[0].files.some((file: { target: string }) => file.target === luaTarget)).toBe(true);
+  });
+
 });
