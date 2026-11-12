@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { GameStatus, ModulePreview } from "../electron/preload";
+import type { GameStatus, InstalledModule, ModulePreview } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -43,9 +43,11 @@ export default function App() {
   const [siderSyncBusy, setSiderSyncBusy] = useState(false);
   const [notice, setNotice] = useState("Select your PES 2017 folder to begin.");
   const [modulePreview, setModulePreview] = useState<ModulePreview | null>(null);
+  const [installedModules, setInstalledModules] = useState<InstalledModule[]>([]);
+  const [moduleActionBusy, setModuleActionBusy] = useState<string | null>(null);
   const refresh = useCallback(async () => {
     setBusy(true);
-    try { const nextStatus = await window.nextgen.getStatus(); setStatus(nextStatus); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
+    try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
     catch { setNotice("Unable to read installation status."); }
     finally { setBusy(false); }
   }, []);
@@ -104,6 +106,19 @@ export default function App() {
     } finally {
       setSiderSyncBusy(false);
     }
+  };
+
+  const setLuaEnabled = async (moduleName: string, enabled: boolean) => {
+    if (moduleActionBusy) return;
+    setModuleActionBusy(moduleName);
+    try {
+      const result = await window.nextgen.setLuaModuleEnabled(moduleName, enabled);
+      setNotice(moduleName + (enabled ? " enabled" : " disabled") + " in Sider. " +
+        (result.changed ? "Sider configuration backed up and updated." : "Sider configuration already matched."));
+      await refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not change module activation.");
+    } finally { setModuleActionBusy(null); }
   };
 
   const launchSider = async () => {
@@ -190,6 +205,19 @@ export default function App() {
               <div className="integrity-note"><ShieldCheck size={15} /> Existing files will only be replaced after your confirmation. Backups are retained for uninstall and recovery.</div>
               <button className="primary-button" disabled={modulePreview.alreadyInstalled || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0} onClick={() => void installPreviewedModule()}><Package size={16} /> CONFIRM & INSTALL MODULE</button>
             </div>}
+            <div className="section-heading" style={{marginTop: 28}}><div><div className="eyebrow">LOCAL INSTALLATION</div><h2>Installed modules</h2></div><button className="text-button" disabled={busy} onClick={() => void refresh()}>REFRESH <RefreshCw size={14} /></button></div>
+            {installedModules.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>No managed modules yet</h3><p>Install a validated module package to see it listed here. Existing third-party mods are not automatically claimed or modified.</p></div></div> :
+              installedModules.map(module => <div className="panel" key={module.id} style={{marginTop: 10}}>
+                <div className="panel-heading"><div><div className="eyebrow">INSTALLED · {module.version}</div><h3>{module.id}</h3></div><span className="coming-tag">{module.files.length} FILES</span></div>
+                <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
+                <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
+                {module.luaModules.length > 0 ? module.luaModules.map(name => {
+                  const enabled = status?.luaModules.includes(name) ?? false;
+                  return <div className="action-row" key={name}><div className="action-icon"><Activity size={17} /></div><div className="action-copy"><strong>{name}</strong><span>{enabled ? "Registered in Sider configuration" : "Not currently registered"}</span></div><button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setLuaEnabled(name, !enabled)}>{moduleActionBusy === name ? "SAVING" : enabled ? "DISABLE" : "ENABLE"}</button></div>;
+                }) : <div className="integrity-note">This package contains no Lua extensions. Its LiveCPK assets are managed through the installed roots.</div>}
+                <details style={{marginTop: 12, color: "#91a0ad", fontSize: 10}}><summary>Show managed files</summary>{module.files.map(file => <div className="integrity-row" key={file}><span>{file}</span><b className="pill safe-pill">OWNED</b></div>)}</details>
+              </div>)
+            }
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
