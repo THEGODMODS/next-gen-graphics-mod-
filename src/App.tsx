@@ -125,7 +125,7 @@ export default function App() {
       <main className="main">
         <header className="topbar">
           <div className="breadcrumb">PES 2017 <span>/</span> {active.toUpperCase()}</div>
-          <div className="top-actions"><div className="connection"><span className={ready ? "status-dot" : "status-dot muted"} />{ready ? "GAME DETECTED" : "GAME NOT LINKED"}</div><button className="icon-button" title="Refresh status" onClick={() => void refresh()}><RefreshCw size={16} /></button><div className="avatar">NG</div></div>
+          <div className="top-actions"><div className="connection"><span className={ready ? "status-dot" : "status-dot muted"} />{ready ? "GAME DETECTED" : "GAME NOT LINKED"}</div><button className="icon-button" title="Refresh status" disabled={busy} onClick={() => void refresh()}><RefreshCw size={16} /></button><div className="avatar">NG</div></div>
         </header>
 
         <div className="content">
@@ -141,7 +141,7 @@ export default function App() {
               <div className="hero-footer"><span>BUILT FOR PES 2017</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
             </section>
 
-            <div className="section-heading"><div><div className="eyebrow">SYSTEM OVERVIEW</div><h2>Your setup</h2></div><button className="text-button" onClick={() => void refresh()}>REFRESH STATUS <RefreshCw size={14} /></button></div>
+            <div className="section-heading"><div><div className="eyebrow">SYSTEM OVERVIEW</div><h2>Your setup</h2></div><button className="text-button" disabled={busy} onClick={() => void refresh()}>REFRESH STATUS <RefreshCw size={14} /></button></div>
             <div className="stat-grid">
               <div className="stat-card"><div className="stat-top"><span>GAME INSTALLATION</span><Monitor size={17} /></div><div className={ready ? "stat-value good" : "stat-value"}>{ready ? "DETECTED" : "NOT LINKED"}</div><div className="stat-foot">{status?.gameExecutable ?? "Select your PES 2017 directory"}</div></div>
               <div className="stat-card"><div className="stat-top"><span>SIDER RUNTIME</span><Gauge size={17} /></div><div className={siderReady ? "stat-value good" : "stat-value"}>{siderReady ? "READY" : "NOT FOUND"}</div><div className="stat-foot">{status?.siderExecutable ?? "Sider executable and INI required"}</div></div>
