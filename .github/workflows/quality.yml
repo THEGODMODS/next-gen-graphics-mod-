@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
 
 jobs:
   validate:
@@ -22,3 +24,24 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
+
+  package-windows:
+    name: Build Windows test installer
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - name: Build NSIS installer
+        run: npm run dist:win
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: pes2017-nextgen-windows-${{ github.sha }}
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 14
