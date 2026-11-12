@@ -7,43 +7,34 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Keep only the newest pending main-branch quality run. This prevents a backlog
-# of superseded commits from consuming the repository's Actions queue.
+# This is a Windows Electron application. Keep the newest commit moving
+# through one Windows runner instead of waiting for a redundant Linux matrix.
 concurrency:
-  group: quality-${{ github.ref }}
-  cancel-in-progress: false
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  validate:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm install
-      - run: npm run typecheck
-      - run: npm run build
-      - run: npm test
-
-  package-windows:
-    name: Build Windows test installer
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: validate
+  windows-quality:
+    name: Windows validation and installer
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install
-      - name: Build NSIS installer
-        run: npm run dist:win
-      - name: Upload Windows installer
+      - name: Install dependencies
+        run: npm install
+      - name: TypeScript validation
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Build Windows NSIS installer
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: npx electron-builder --win nsis
+      - name: Upload Windows test installer
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: pes2017-nextgen-windows-${{ github.sha }}
