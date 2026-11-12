@@ -13,6 +13,7 @@ import { SiderConfigManager } from "../src/main/module-engine/sider-config";
 let mainWindow: BrowserWindow | null = null;
 let gameDirectory: string | null = null;
 let pendingPackage: { root: string; id: string; version: string } | null = null;
+let libraryPackages = new Map<string, string>();
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
@@ -98,13 +99,63 @@ function registerIpc() {
     await loadAndRecover();
     return gameDirectory;
   });
-  ipcMain.handle("modules:preview", async event => {
+  ipcMain.handle("modules:scan-library", async event => {
+    assertTrustedSender(event);
+    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a folder containing module packages", properties: ["openDirectory"] });
+    if (picked.canceled || !picked.filePaths[0]) return [];
+    const root = await fsp.realpath(picked.filePaths[0]);
+    const entries = await fsp.readdir(root, { withFileTypes: true });
+    const installed = await new JournalStore(stateDirectory()).read();
+    const installedIds = new Set(installed.modules.map(item => item.id));
+    const results: Array<{id:string;name:string;version:string;category:string;description:string;valid:boolean;errors:string[];files:number;missingDependencies:string[];conflicts:string[];alreadyInstalled:boolean}> = [];
+    const next = new Map<string,string>();
+    for (const entry of entries.filter(item => item.isDirectory() && !item.isSymbolicLink()).slice(0, 200)) {
+      const packageRoot = path.join(root, entry.name);
+      try {
+        const manifestPath = path.join(packageRoot, "module.json");
+        const stat = await fsp.lstat(manifestPath);
+        if (!stat.isFile() || stat.isSymbolicLink()) continue;
+        const validation = parseModuleManifest(await fsp.readFile(manifestPath, "utf8"));
+        if (!validation.valid || !validation.manifest) {
+          results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Manifest validation failed.", valid: false, errors: validation.errors, files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false });
+          continue;
+        }
+        const manifest = validation.manifest;
+        const errors: string[] = [];
+        const payloads = [...manifest.files, ...manifest.luaModules.map(item => ({ source: item.source, sha256: item.sha256 }))];
+        for (const file of payloads) {
+          try {
+            const source = resolveInsideRoot(packageRoot, normalizeSafeRelativePath(file.source));
+            const sourceStat = await fsp.lstat(source);
+            if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) throw new Error("Not a regular file.");
+            if (!(await verifySha256(source, file.sha256))) throw new Error("SHA-256 mismatch.");
+          } catch (error) { errors.push(file.source + ": " + (error instanceof Error ? error.message : "invalid payload")); }
+        }
+        const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
+        const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+        const alreadyInstalled = installedIds.has(manifest.id);
+        if (next.has(manifest.id)) errors.push("Duplicate module ID in library."); else next.set(manifest.id, packageRoot);
+        results.push({ id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category, description: manifest.description, valid: errors.length === 0, errors, files: payloads.length, missingDependencies, conflicts, alreadyInstalled });
+      } catch (error) {
+        results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Could not inspect package.", valid: false, errors: [error instanceof Error ? error.message : "Unknown package error."], files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false });
+      }
+    }
+    libraryPackages = next;
+    return results;
+  });
+  ipcMain.handle("modules:preview", async (event, packageId?: unknown) => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 folder before previewing a module.");
     pendingPackage = null;
-    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a module package folder containing module.json", properties: ["openDirectory"] });
-    if (picked.canceled || !picked.filePaths[0]) return null;
-    const packageRoot = await fsp.realpath(picked.filePaths[0]);
+    let packageRoot: string;
+    if (packageId !== undefined) {
+      if (typeof packageId !== "string" || !libraryPackages.has(packageId)) throw new Error("That library package is no longer available. Scan the library again.");
+      packageRoot = await fsp.realpath(libraryPackages.get(packageId)!);
+    } else {
+      const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a module package folder containing module.json", properties: ["openDirectory"] });
+      if (picked.canceled || !picked.filePaths[0]) return null;
+      packageRoot = await fsp.realpath(picked.filePaths[0]);
+    }
     const raw = await fsp.readFile(path.join(packageRoot, "module.json"), "utf8");
     const validation = parseModuleManifest(raw);
     if (!validation.valid || !validation.manifest) throw new Error(validation.errors.join("\n"));
