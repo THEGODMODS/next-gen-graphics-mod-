@@ -1,9 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { buildPitchModule } from "../tools/pitch-module-builder.mjs";
+
+let buildPitchModule: typeof import("../tools/pitch-module-builder.mjs").buildPitchModule;
+beforeAll(async () => {
+  ({ buildPitchModule } = await importNativeModule("../tools/pitch-module-builder.mjs"));
+});
 
 describe("pitch module original fingerprint revalidation", () => {
   it("rejects a source resource changed after the inventory was created", async () => {
