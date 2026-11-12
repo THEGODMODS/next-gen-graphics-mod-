@@ -1,13 +1,14 @@
 import { defineConfig } from "vitest/config";
 
-// Inline the native Node ESM utilities under tools/ into Vitest's SSR
-// transform. This avoids the Windows worker's external-module loading path.
+// These utilities are first-party ESM files, not installed dependencies.
+// Inline the complete module graph so Vitest's runner, rather than the
+// Windows worker's external-module loader, evaluates them.
 export default defineConfig({
   test: {
     pool: "forks",
     server: {
       deps: {
-        inline: [/tools.*\.mjs$/]
+        inline: true
       }
     }
   }
