@@ -37,3 +37,8 @@ This is a diagnostic aid for comparing candidate textures and spotting obvious c
 ## Compatibility gate
 
 Until the exact PES 2017 resource path and texture container requirements are verified, this repository intentionally ships no fabricated pitch replacement. The DDS audit is an asset-quality gate, not a substitute for a PES-aware Ftex/container inspector or in-game validation.
+
+
+## Decoded DDS comparison
+
+Run `npm run compare:dds -- "<original.dds>" "<replacement.dds>"` to compare decoded base-mip pixels for matching BC1, BC2, BC3 or BC5_UNORM files. The report includes changed-pixel percentage and per-channel mean absolute error, root-mean-square error and maximum absolute error. Dimensions and exact compression format must match; incompatible inputs fail rather than producing a misleading score. BC5 compares stored R/G values only. This is a difference report, not a perceptual-quality score, image-similarity verdict, mip-chain comparison or PES compatibility test. Both inputs must be regular non-symlink files no larger than 512 MiB.
