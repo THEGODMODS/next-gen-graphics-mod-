@@ -54,6 +54,21 @@ function getStatus() {
     ...readSiderSettings(siderIni), startupRecovery
   };
 }
+async function assertNoSymlinkParents(root: string, relativePath: string) {
+  const segments = normalizeSafeRelativePath(relativePath).split("/");
+  let current = root;
+  for (let index = 0; index < segments.length; index++) {
+    current = path.join(current, segments[index]);
+    try {
+      const stat = await fsp.lstat(current);
+      if (stat.isSymbolicLink()) throw new Error("Package payload path contains a symbolic link: " + relativePath);
+      if (index < segments.length - 1 && !stat.isDirectory()) throw new Error("Package payload parent is not a directory: " + relativePath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") throw new Error("Package payload is missing: " + relativePath);
+      throw error;
+    }
+  }
+}
 function assertTrustedSender(event: Electron.IpcMainInvokeEvent) {
   const url = event.senderFrame?.url ?? "";
   const trusted = app.isPackaged ? url.startsWith("file://") : url.startsWith("http://127.0.0.1:5173");
@@ -125,7 +140,9 @@ function registerIpc() {
         const payloads = [...manifest.files, ...manifest.luaModules.map(item => ({ source: item.source, sha256: item.sha256 }))];
         for (const file of payloads) {
           try {
-            const source = resolveInsideRoot(packageRoot, normalizeSafeRelativePath(file.source));
+            const safeSource = normalizeSafeRelativePath(file.source);
+            await assertNoSymlinkParents(packageRoot, safeSource);
+            const source = resolveInsideRoot(packageRoot, safeSource);
             const sourceStat = await fsp.lstat(source);
             if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) throw new Error("Not a regular file.");
             if (!(await verifySha256(source, file.sha256))) throw new Error("SHA-256 mismatch.");
