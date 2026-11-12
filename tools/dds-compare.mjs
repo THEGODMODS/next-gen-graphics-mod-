@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { readFile, lstat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";

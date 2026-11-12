@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { createHash, randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { constants } from "node:fs";
