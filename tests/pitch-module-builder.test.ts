@@ -45,13 +45,16 @@ describe("pitch module builder",()=>{
    await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/safe relative/);
   }finally{await rm(root,{recursive:true,force:true});}
  });
- it("refuses assets whose declared license does not permit redistribution",async()=>{
+ it("preserves private-use license restrictions in the generated manifest",async()=>{
   const root=await mkdtemp(path.join(os.tmpdir(),"pitch-builder-"));
   try{
-   await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[]}));
-   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"restricted",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.dds",originalSha256:"a".repeat(64),replacementFile:"replacement.dds"}]}));
-   await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/does not permit redistribution/);
+   await mkdir(path.join(root,"source"));
+   await writeFile(path.join(root,"source","replacement.bin"),"private asset");
+   const digest="a".repeat(64);
+   await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[{path:"pitch.bin",sha256:digest}]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"restricted",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.bin",originalSha256:digest,replacementFile:"source/replacement.bin"}]}));
+   const result=await buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")});
+   expect(result.manifest.license.redistributionAllowed).toBe(false);
   }finally{await rm(root,{recursive:true,force:true});}
  });
-
 });
