@@ -11,10 +11,14 @@ const root=path.resolve(input);
 const rootStat=await lstat(root);
 if(!rootStat.isDirectory()||rootStat.isSymbolicLink()) throw new Error("Stadium path must be a real directory, not a symlink.");
 const relativeSubtree=path.join("common","bg","model","bg","pitch");
-const pitchRoot=path.join(root,relativeSubtree);
-let pitchStat;
-try{pitchStat=await lstat(pitchRoot);}catch{throw new Error(`Pitch subtree not found: ${relativeSubtree}`);}
-if(!pitchStat.isDirectory()||pitchStat.isSymbolicLink()) throw new Error("Pitch subtree must be a real directory, not a symlink.");
+const pitchParts=["common","bg","model","bg","pitch"];
+let pitchRoot=root;
+for(const part of pitchParts){
+ pitchRoot=path.join(pitchRoot,part);
+ let partStat;
+ try{partStat=await lstat(pitchRoot);}catch(error){if(error.code==="ENOENT")throw new Error(`Pitch subtree not found: ${relativeSubtree}`);throw error;}
+ if(!partStat.isDirectory()||partStat.isSymbolicLink())throw new Error("Pitch subtree contains a non-directory or symbolic link: "+part);
+}
 const records=[];
 async function hashFile(full){
  const hash=createHash("sha256");
