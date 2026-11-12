@@ -24,7 +24,7 @@ describe("Sider configuration sync", () => {
     data.modules.push({ id: "studio.pitch-pack", version: "1.0.0", installedAt: new Date().toISOString(),
       files: [{ target: "LiveCPK/common/pitch.dds", sha256: "a".repeat(64), backupPath: null, backupSha256: null }] });
     await journal.write(data);
-    const result = await new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots();
+    const result = await new SiderConfigManager(f.root, f.state).syncInstalledModules();
     const ini = await fs.readFile(f.ini, "utf8");
     expect(result.changed).toBe(true);
     expect(result.registeredRoots).toEqual([".\\LiveCPK"]);
@@ -41,8 +41,8 @@ describe("Sider configuration sync", () => {
       files: [{ target: "LiveCPK/pitch.dds", sha256: "a".repeat(64), backupPath: null, backupSha256: null }] });
     await journal.write(data);
     const manager = new SiderConfigManager(f.root, f.state);
-    await manager.syncInstalledLiveCpkRoots();
-    const second = await manager.syncInstalledLiveCpkRoots();
+    await manager.syncInstalledModules();
+    const second = await manager.syncInstalledModules();
     expect(second.changed).toBe(false);
     expect(second.backupPath).toBeNull();
   });
@@ -50,7 +50,7 @@ describe("Sider configuration sync", () => {
   it("removes only the manager block when no installed module needs LiveCPK", async () => {
     const f = await fixture();
     const manager = new SiderConfigManager(f.root, f.state);
-    await manager.syncInstalledLiveCpkRoots();
+    await manager.syncInstalledModules();
     const before = await fs.readFile(f.ini, "utf8");
     expect(before).toContain("user config");
     expect(before).not.toContain("NEXTGEN MANAGED CONFIG");
@@ -60,7 +60,7 @@ describe("Sider configuration sync", () => {
     const f = await fixture();
     await fs.rm(f.ini);
     await fs.symlink(path.join(f.root, "missing.ini"), f.ini);
-    await expect(new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots()).rejects.toThrow("regular file");
+    await expect(new SiderConfigManager(f.root, f.state).syncInstalledModules()).rejects.toThrow("regular file");
   });
   it("registers only installed Lua module files with Sider", async () => {
     const f = await fixture();
@@ -69,7 +69,7 @@ describe("Sider configuration sync", () => {
     data.modules.push({ id: "studio.weather", version: "1.0.0", installedAt: new Date().toISOString(),
       files: [{ target: "modules/nextgen-weather.lua", sha256: "b".repeat(64), backupPath: null, backupSha256: null }] });
     await journal.write(data);
-    const result = await new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots();
+    const result = await new SiderConfigManager(f.root, f.state).syncInstalledModules();
     const ini = await fs.readFile(f.ini, "utf8");
     expect(result.registeredLuaModules).toEqual(["nextgen-weather.lua"]);
     expect(ini).toContain("lua.enabled = 1");
