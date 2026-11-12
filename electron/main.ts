@@ -133,6 +133,23 @@ function registerIpc() {
       }
       files.push({ source: entry.source, target: targetRelative, action });
     }
+    for (const entry of manifest.luaModules) {
+      const source = resolveInsideRoot(packageRoot, normalizeSafeRelativePath(entry.source));
+      const sourceStat = await fsp.lstat(source);
+      if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) throw new Error(`Unsafe Lua payload: ${entry.source}`);
+      if (!(await verifySha256(source, entry.sha256))) throw new Error(`Lua payload hash mismatch: ${entry.source}`);
+      const targetRelative = normalizeSafeRelativePath("modules/" + entry.moduleName);
+      const target = resolveInsideRoot(gameRoot, targetRelative);
+      let action: "add" | "replace" = "add";
+      try {
+        const targetStat = await fsp.lstat(target);
+        if (!targetStat.isFile() || targetStat.isSymbolicLink()) throw new Error(`Unsafe existing Lua target: ${targetRelative}`);
+        action = "replace";
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+      files.push({ source: entry.source, target: targetRelative, action });
+    }
     pendingPackage = { root: packageRoot, id: manifest.id, version: manifest.version };
     return { id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category,
       description: manifest.description, license: manifest.license, dependencies: manifest.dependencies,
