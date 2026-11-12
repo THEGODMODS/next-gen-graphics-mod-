@@ -54,18 +54,23 @@ export class SiderConfigManager {
 
   async setLuaModuleEnabled(moduleName: string, enabled: boolean): Promise<SiderSyncResult> {
     if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(moduleName) || moduleName.includes("..")) throw new Error("Invalid Lua module filename.");
-    await withSiderLock(this.stateDirectory, async () => {
-      const installed = await this.listLuaModules();
-      if (!installed.some(module => module.moduleName === moduleName)) throw new Error("That Lua module is not installed or is not managed by this manager.");
-      const names = new Set(installed.filter(module => module.enabled).map(module => module.moduleName));
-      if (enabled) names.add(moduleName); else names.delete(moduleName);
-      await fs.mkdir(this.stateDirectory, { recursive: true });
-      const target = path.join(this.stateDirectory, "sider-enabled-lua.json");
-      const temporary = target + ".tmp";
-      await fs.writeFile(temporary, JSON.stringify([...names].sort(), null, 2), { encoding: "utf8", flag: "w" });
-      await fs.rename(temporary, target);
-    });
-    return this.syncInstalledModules();
+    const installed = await this.listLuaModules();
+    if (!installed.some(module => module.moduleName === moduleName)) throw new Error("That Lua module is not installed or is not managed by this manager.");
+    const activationPath = path.join(this.stateDirectory, "sider-enabled-lua.json");
+    const previous = installed.filter(module => module.enabled).map(module => module.moduleName);
+    const names = new Set(previous);
+    if (enabled) names.add(moduleName); else names.delete(moduleName);
+    await fs.mkdir(this.stateDirectory, { recursive: true });
+    const temporary = activationPath + ".tmp";
+    await fs.writeFile(temporary, JSON.stringify([...names].sort(), null, 2), { encoding: "utf8", flag: "w" });
+    await fs.rename(temporary, activationPath);
+    try { return await this.syncInstalledModules(); }
+    catch (error) {
+      const rollback = activationPath + ".rollback.tmp";
+      await fs.writeFile(rollback, JSON.stringify(previous.sort(), null, 2), { encoding: "utf8", flag: "w" });
+      await fs.rename(rollback, activationPath);
+      throw error;
+    }
   }
   async syncInstalledModules(): Promise<SiderSyncResult> {
     return withSiderLock(this.stateDirectory, async () => {
