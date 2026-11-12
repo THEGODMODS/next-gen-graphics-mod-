@@ -174,11 +174,22 @@ function registerIpc() {
     assertTrustedSender(event);
     return new JournalStore(stateDirectory()).read().then(journal => journal.modules.map(module => ({
       id: module.id, version: module.version, installedAt: module.installedAt,
+      dependencies: module.dependencies ?? [],
       files: module.files.map(file => file.target),
       luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
         .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
         .map(target => target.slice(8)),
     })));
+  });
+  ipcMain.handle("modules:uninstall", async (event, moduleId: unknown) => {
+    assertTrustedSender(event);
+    if (typeof moduleId !== "string" || !/^[a-z0-9][a-z0-9._-]*$/.test(moduleId)) throw new Error("Invalid module ID.");
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    const result = await new ModuleInstaller(gameDirectory, stateDirectory()).uninstall(moduleId);
+    let siderSyncWarning: string | null = null;
+    try { await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules(); }
+    catch (error) { siderSyncWarning = error instanceof Error ? error.message : "Sider synchronization failed."; }
+    return { ...result, siderSyncWarning };
   });
   ipcMain.handle("modules:set-lua-enabled", async (event, moduleName: unknown, enabled: unknown) => {
     assertTrustedSender(event);
