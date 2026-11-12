@@ -2,6 +2,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const MAX_FILE_BYTES = 512 * 1024 * 1024;
+const MAX_PREVIEW_BYTES = 24 * 1024 * 1024;
 async function readSafe(filePath) {
   const resolved = path.resolve(filePath), stat = await fs.lstat(resolved);
   if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("DDS input must be a regular file, not a symbolic link.");
@@ -20,6 +21,7 @@ async function loadTools(root) {
 async function inspect(filePath, root) {
   const source = await readSafe(filePath), tools = await loadTools(root);
   const analysis = tools.inspect.analyzeDds(source.buffer), preview = tools.preview.ddsToPng(source.buffer);
+  if (preview.png.length > MAX_PREVIEW_BYTES) throw new Error("Decoded PNG preview exceeds the 24 MiB desktop transfer limit. Use a smaller texture for in-app preview.");
   return { ...analysis, file: source.file, previewMode: preview.previewMode, previewBase64: preview.png.toString("base64") };
 }
 async function compare(originalPath, replacementPath, root) {
