@@ -26,7 +26,13 @@ Each module package contains a UTF-8 `module.json` at its root and a `payload/` 
       "sha256": "REPLACE_WITH_REAL_SHA256"
     }
   ],
-  "luaModules": [],
+  "luaModules": [
+    {
+      "source": "payload/nextgen-weather.lua",
+      "moduleName": "nextgen-weather.lua",
+      "sha256": "REPLACE_WITH_REAL_SHA256"
+    }
+  ],
   "license": {
     "id": "SEE-LICENSE-FILE",
     "redistributionAllowed": false
@@ -41,7 +47,9 @@ Each module package contains a UTF-8 `module.json` at its root and a `payload/` 
 - Verify every payload file against its SHA-256 before installation.
 - Reject duplicate targets within one package.
 - Check dependencies and conflicts against the selected profile before modifying the game.
-- A Lua module entry must refer to a packaged Lua file and must be explicitly enabled by the user.
+- Every Lua module entry must include a safe `.lua` filename and SHA-256 digest.
+- Lua payloads are installed transactionally to `modules/<moduleName>` beside `sider.exe`; their ownership is journaled and uninstall follows the same hash-guarded restore/preserve rules as other files.
+- Lua modules are not registered automatically during installation. The user explicitly runs Sider synchronization, which registers only installed Lua files in the manager-owned INI block.
 - License metadata is mandatory. The manager must not assume redistribution rights.
 
 This schema is a draft and must be implemented with runtime validation and tests before third-party packages are accepted.
