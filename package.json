@@ -5,6 +5,7 @@
   "description": "PES 2017 Next Gen desktop manager",
   "main": "dist-electron/main.js",
   "scripts": {
+    "predev": "tsc -p electron",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "tsc -b && vite build && tsc -p electron/tsconfig.json",
     "dist:win": "npm run build && electron-builder --win nsis",
