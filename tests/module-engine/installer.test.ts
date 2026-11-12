@@ -1,0 +1,84 @@
+import { afterEach, describe, expect, it } from "vitest";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
+import { createHash } from "node:crypto";
+import { ModuleInstaller } from "../../src/main/module-engine/installer";
+import type { ModuleManifest } from "../../src/shared/module-types";
+
+const roots: string[] = [];
+async function fixture() {
+  const base = await fs.mkdtemp(path.join(os.tmpdir(), "nextgen-engine-"));
+  roots.push(base);
+  const game = path.join(base, "game");
+  const state = path.join(base, "manager-state");
+  const pkg = path.join(base, "package");
+  await Promise.all([fs.mkdir(game), fs.mkdir(state), fs.mkdir(path.join(pkg, "payload"), { recursive: true })]);
+  const bytes = Buffer.from("new grass asset");
+  await fs.writeFile(path.join(pkg, "payload", "grass.dds"), bytes);
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  const manifest: ModuleManifest = {
+    schemaVersion: 1,
+    id: "studio.pitch-pack",
+    name: "Pitch Pack",
+    version: "1.0.0",
+    description: "Test module",
+    category: "graphics",
+    game: { title: "PES 2017", executable: ["PES2017.exe"], sider: ">=3.5.0 <4.0.0" },
+    dependencies: [],
+    conflicts: [],
+    files: [{ source: "payload/grass.dds", target: "LiveCPK/common/grass.dds", sha256: hash }],
+    luaModules: [],
+    license: { id: "test-only", redistributionAllowed: false },
+  };
+  return { base, game, state, pkg, manifest };
+}
+
+afterEach(async () => {
+  await Promise.all(roots.splice(0).map((root) => fs.rm(root, { recursive: true, force: true })));
+});
+
+describe("transactional module installer", () => {
+  it("installs verified files and records ownership", async () => {
+    const f = await fixture();
+    const result = await new ModuleInstaller(f.game, f.state).install(f.pkg, f.manifest);
+    expect(result.installedFiles).toEqual(["LiveCPK/common/grass.dds"]);
+    expect(await fs.readFile(path.join(f.game, "LiveCPK/common/grass.dds"), "utf8")).toBe("new grass asset");
+    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
+    expect(journal.modules[0].id).toBe("studio.pitch-pack");
+  });
+
+  it("refuses to overwrite existing files without explicit approval", async () => {
+    const f = await fixture();
+    const target = path.join(f.game, "LiveCPK/common/grass.dds");
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, "user's existing file");
+    await expect(new ModuleInstaller(f.game, f.state).install(f.pkg, f.manifest)).rejects.toThrow("not approved");
+    expect(await fs.readFile(target, "utf8")).toBe("user's existing file");
+  });
+
+  it("backs up an approved replacement and restores it on uninstall", async () => {
+    const f = await fixture();
+    const relative = "LiveCPK/common/grass.dds";
+    const target = path.join(f.game, ...relative.split("/"));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, "original user file");
+    const installer = new ModuleInstaller(f.game, f.state);
+    await installer.install(f.pkg, f.manifest, { approvedOverwriteTargets: [relative] });
+    expect(await fs.readFile(target, "utf8")).toBe("new grass asset");
+    const result = await installer.uninstall("studio.pitch-pack");
+    expect(result.restored).toEqual([relative]);
+    expect(await fs.readFile(target, "utf8")).toBe("original user file");
+  });
+
+  it("preserves a managed file that the user modified after installation", async () => {
+    const f = await fixture();
+    const installer = new ModuleInstaller(f.game, f.state);
+    await installer.install(f.pkg, f.manifest);
+    const target = path.join(f.game, "LiveCPK/common/grass.dds");
+    await fs.writeFile(target, "user modification");
+    const result = await installer.uninstall("studio.pitch-pack");
+    expect(result.preservedModified).toEqual(["LiveCPK/common/grass.dds"]);
+    expect(await fs.readFile(target, "utf8")).toBe("user modification");
+  });
+});
