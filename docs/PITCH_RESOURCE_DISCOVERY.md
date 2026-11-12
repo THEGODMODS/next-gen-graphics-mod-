@@ -43,3 +43,11 @@ The documented Stadium Server layout gives a concrete stadium-specific content t
 - PES 2017 stadium/pitch resource notes: https://implyingrigged.info/wiki/Pro_Evolution_Soccer_2017/Stadiums
 
 Third-party mod packages and texture sets are references only. Do not copy or redistribute them without permission.
+
+## Sider pitch log evidence analyzer
+
+The desktop Diagnostics screen can inspect a user-selected Sider `sider.log` (or another text log). It extracts lines containing the Stadium Server pitch subtree `common/bg/model/bg/pitch`, groups repeated resource path strings, and retains a bounded sample of the raw matching lines. The parser labels lines as positive-keyword, issue-keyword, or unclassified using simple text heuristics.
+
+These labels are not a Sider protocol parser and do not prove a resource was rendered. A matching path is evidence that the path appeared in that log text only. A missing path is not proof that PES did not load it: logging levels, alternate paths, containers, and other logs can hide resource activity. For useful comparisons, preserve a clean log for a known stadium, make one controlled change, then compare a second log. Do not infer resource role from filename alone.
+
+The desktop app limits selected logs to 32 MiB, scans at most 100,000 lines, returns at most 1,000 distinct paths and 500 raw evidence lines, and reads the file without modifying it.
