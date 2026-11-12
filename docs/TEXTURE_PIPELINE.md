@@ -10,6 +10,19 @@ Run \`npm run audit:dds -- <folder>\` to recursively inspect DDS files before co
 
 See [PES 2017 pitch resource discovery](PITCH_RESOURCE_DISCOVERY.md) for the verified stadium-server pitch subtree and the one-stadium-at-a-time discovery process.
 
+
+## Pixel-level DDS inspection
+
+Run `npm run inspect:dds -- "<texture.dds>"` to decode the base mip of BC1, BC2, BC3 or BC5 textures and emit machine-readable statistics:
+
+- dimensions, format and analyzed pixel count;
+- per-channel means, minima and maxima;
+- alpha mean and percentage below 128;
+- RGB luminance mean and standard deviation for BC1/2/3;
+- approximate reconstructed normal-vector length statistics for BC5.
+
+This is a diagnostic aid for comparing candidate textures and spotting obvious channel/alpha problems. It does not render an image, infer whether RGB is albedo or another material channel, inspect higher mip pixel content, support BC7 pixel decoding, or establish PES-specific channel conventions. The BC5 Z reconstruction assumes a positive hemisphere and is explicitly not a compatibility verdict. Analysis reads the whole DDS into memory and refuses files larger than 512 MiB.
+
 ## Required workflow for the first pitch pack
 
 1. Capture a clean baseline screenshot in a known stadium, weather, time-of-day, camera, resolution and graphics configuration.
