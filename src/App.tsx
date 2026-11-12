@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { GameStatus, InstalledModule, LibraryPackage, ModulePreview } from "../electron/preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -49,6 +49,10 @@ export default function App() {
   const [librarySearch, setLibrarySearch] = useState("");
   const [libraryCategory, setLibraryCategory] = useState("all");
   const [moduleActionBusy, setModuleActionBusy] = useState<string | null>(null);
+  const [originalDds, setOriginalDds] = useState<DdsTexture | null>(null);
+  const [replacementDds, setReplacementDds] = useState<DdsTexture | null>(null);
+  const [ddsComparison, setDdsComparison] = useState<DdsComparison | null>(null);
+  const [ddsBusy, setDdsBusy] = useState(false);
   const refresh = useCallback(async () => {
     setBusy(true);
     try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
@@ -216,7 +220,23 @@ export default function App() {
               <section className="panel system-panel"><div className="panel-heading"><div><div className="eyebrow">INSTALLATION REPORT</div><h3>System integrity</h3></div><ShieldCheck size={18} /></div><div className="integrity-row"><span>Game executable</span><b className={ready ? "pill good-pill" : "pill"}>{ready ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Sider configuration</span><b className={siderReady ? "pill good-pill" : "pill"}>{siderReady ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Automatic file cleanup</span><b className="pill safe-pill">DISABLED</b></div><div className="integrity-note"><ShieldCheck size={15} /> Unknown files and personal game data are never deleted automatically.</div></section>
             </div>
             <div className="notice"><span className="notice-mark">i</span>{notice}</div>
-          </> : active === "Modules" ? <section className="page-placeholder">
+          </> : active === "Graphics" ? <section className="page-placeholder">
+            <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
+            <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
+            <div className="dds-toolbar">
+              <button className="primary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("original"); if (result) { setOriginalDds(result); setDdsComparison(null); setNotice("Original DDS inspected. Choose a replacement to compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect original DDS."); } finally { setDdsBusy(false); } }}><FolderOpen size={15}/> CHOOSE ORIGINAL DDS</button>
+              <button className="secondary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("replacement"); if (result) { setReplacementDds(result); setDdsComparison(null); setNotice("Replacement DDS inspected. Review the preview and compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect replacement DDS."); } finally { setDdsBusy(false); } }}>{ddsBusy ? "INSPECTING..." : "CHOOSE REPLACEMENT DDS"}</button>
+              <button className="secondary-button" disabled={ddsBusy || !originalDds || !replacementDds} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.compareDds(); setDdsComparison(result); setNotice("DDS base-mip pixel comparison complete. This is not a PES compatibility verdict."); } catch (error) { setDdsComparison(null); setNotice(error instanceof Error ? error.message : "DDS comparison failed."); } finally { setDdsBusy(false); } }}>COMPARE TEXTURES</button>
+            </div>
+            <div className="dds-grid">
+              {([{label:"ORIGINAL TEXTURE",value:originalDds},{label:"REPLACEMENT TEXTURE",value:replacementDds}] as const).map(item => <div className="panel dds-card" key={item.label}>
+                <div className="panel-heading"><div><div className="eyebrow">{item.label}</div><h3>{item.value ? item.value.format : "No texture selected"}</h3></div><span className="coming-tag">{item.value ? item.value.width+" × "+item.value.height : "AWAITING FILE"}</span></div>
+                {item.value ? <><div className="dds-image-wrap"><img src={"data:image/png;base64,"+item.value.previewBase64} alt={item.label+" decoded DDS preview"}/></div><div className="dds-filepath">{item.value.file}</div><div className="integrity-row"><span>Compression / mipmaps</span><b>{item.value.format} · {item.value.mipCount} mip(s)</b></div><div className="integrity-row"><span>Channels</span><b>{item.value.channels}</b></div><div className="integrity-row"><span>Channel mean</span><b>{item.value.channelMean.map(v=>v.toFixed(1)).join(" / ")}</b></div><div className="integrity-row"><span>Alpha mean / below 128</span><b>{item.value.alpha.mean.toFixed(1)} / {item.value.alpha.below128Percent}%</b></div>{item.value.luminance && <div className="integrity-row"><span>Luminance mean / deviation</span><b>{item.value.luminance.mean.toFixed(1)} / {item.value.luminance.standardDeviation.toFixed(1)}</b></div>}<div className="dds-note">{item.value.previewMode}. Base mip only.</div></> : <div className="dds-empty">Choose a DDS file to generate a decoded preview and channel report.</div>}
+              </div>)}
+            </div>
+            {ddsComparison && <div className="panel dds-results"><div className="panel-heading"><div><div className="eyebrow">BASE-MIP PIXEL ANALYSIS</div><h3>Texture comparison</h3></div><span className="coming-tag">{ddsComparison.changedPixelPercent}% PIXELS CHANGED</span></div><div className="integrity-row"><span>Compared texture</span><b>{ddsComparison.width} × {ddsComparison.height} · {ddsComparison.format}</b></div><div className="integrity-row"><span>Pixels analyzed</span><b>{ddsComparison.pixelsCompared.toLocaleString()}</b></div>{Object.entries(ddsComparison.channels).map(([channel,metrics])=><div className="integrity-row" key={channel}><span>{channel} · MAE / RMSE / MAX</span><b>{metrics.meanAbsoluteError} / {metrics.rootMeanSquareError} / {metrics.maximumAbsoluteError}</b></div>)}{ddsComparison.limitations.map(item=><div className="dds-note" key={item}>{item}</div>)}</div>}
+            <div className="notice"><span className="notice-mark">i</span>Only BC1, BC2, BC3 and BC5_UNORM are decoded for preview/comparison. BC5 previews show stored R/G channels in false colour. DDS validity and pixel differences do not establish PES 2017 compatibility or visual quality.</div>
+          </section> : active === "Modules" ? <section className="page-placeholder">
             <div className="eyebrow">DISCOVER · VALIDATE · INSTALL</div><h1>MODULE LIBRARY</h1>
             <p>Scan a local collection of PES 2017 packages. Every manifest and payload hash is checked before preview.</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Local package library</h3><p>Choose a folder whose immediate subfolders contain module.json and payload folders. Scanning is read-only.</p><button className="primary-button" disabled={libraryBusy} onClick={() => void scanLibrary()}><FolderOpen size={16} /> {libraryBusy ? "SCANNING..." : "SCAN PACKAGE FOLDER"}</button></div></div>
