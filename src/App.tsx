@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory } from "../electron/preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -60,6 +60,8 @@ export default function App() {
   const [pitchName, setPitchName] = useState("Custom Pitch Replacement");
   const [pitchBusy, setPitchBusy] = useState(false);
   const [generatedPitch, setGeneratedPitch] = useState<{ id: string; output: string } | null>(null);
+  const [pitchLog, setPitchLog] = useState<{ fileName: string; report: PitchLogReport } | null>(null);
+  const [pitchLogBusy, setPitchLogBusy] = useState(false);
   const refresh = useCallback(async () => {
     setBusy(true);
     try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
@@ -162,6 +164,13 @@ export default function App() {
       await refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Module uninstall failed."); }
     finally { setModuleActionBusy(null); }
+  };
+  const analyzePitchLog = async () => {
+    if (pitchLogBusy) return;
+    setPitchLogBusy(true);
+    try { const result = await window.nextgen.analyzeSiderPitchLog(); if (result) { setPitchLog(result); setNotice("Analyzed "+result.fileName+": "+result.report.uniqueResources+" distinct pitch resource path(s) referenced in "+result.report.matchedLines+" log line(s). Review raw evidence; classifications are heuristic only."); } }
+    catch (error) { setNotice(error instanceof Error ? error.message : "Sider log analysis failed."); }
+    finally { setPitchLogBusy(false); }
   };
   const launchSider = async () => {
     const result = await window.nextgen.launchSider();
@@ -311,6 +320,32 @@ export default function App() {
               </div>)
             }
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
+          </section> : active === "Diagnostics" ? <section className="page-placeholder">
+            <div className="eyebrow">RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
+            <p>Inspect Sider log evidence for references to Stadium Server pitch resources. This is a log parser—not a claim that a texture rendered correctly in PES.</p>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">LIVECPK · RESOURCE OBSERVABILITY</div><h3>Analyze Sider log</h3></div><span className="coming-tag">{pitchLog ? "REPORT READY" : "AWAITING LOG"}</span></div>
+              <p>Select the <code>sider.log</code> created after launching Sider and playing a match in the stadium you want to inspect. Run a fresh log for each controlled test.</p>
+              <button className="primary-button" disabled={pitchLogBusy} onClick={() => void analyzePitchLog()}><FolderOpen size={15}/>{pitchLogBusy ? "ANALYZING LOG..." : "SELECT SIDER LOG & ANALYZE"}</button>
+            </div>
+            {pitchLog && <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">ANALYSIS · {pitchLog.fileName}</div><h3>Observed pitch references</h3></div><span className="coming-tag">{pitchLog.report.uniqueResources} PATHS</span></div>
+              <div className="stat-grid pitch-log-stats">
+                <div className="stat-card"><div className="stat-top">MATCHED LINES</div><div className="stat-value">{pitchLog.report.matchedLines}</div><div className="stat-foot">Lines containing pitch subtree</div></div>
+                <div className="stat-card"><div className="stat-top">DISTINCT PATHS</div><div className="stat-value">{pitchLog.report.uniqueResources}</div><div className="stat-foot">Unique resource strings</div></div>
+                <div className="stat-card"><div className="stat-top">POSITIVE KEYWORDS</div><div className="stat-value good">{pitchLog.report.positiveLines}</div><div className="stat-foot">Heuristic classification only</div></div>
+                <div className="stat-card"><div className="stat-top">ISSUE KEYWORDS</div><div className="stat-value">{pitchLog.report.issueLines}</div><div className="stat-foot">Heuristic classification only</div></div>
+              </div>
+              <div className="integrity-row"><span>Lines scanned</span><b>{pitchLog.report.scannedLines.toLocaleString()} / {pitchLog.report.totalLines.toLocaleString()}{pitchLog.report.truncated ? " · TRUNCATED" : ""}</b></div>
+              {pitchLog.report.references.length === 0 ? <div className="integrity-note">No matching pitch subtree references were found in this log. This does not prove that the stadium has no pitch resources.</div> : pitchLog.report.references.slice(0,100).map(item => <div className="integrity-row" key={item.path}><span>{item.path}</span><b>{item.occurrences} refs · {item.positiveOccurrences} positive-keyword · {item.issueOccurrences} issue-keyword</b></div>)}
+              <div className="eyebrow" style={{marginTop:18}}>RAW LOG EVIDENCE</div>
+              {pitchLog.report.evidence.slice(0,100).map(item => <div className="pitch-log-evidence" key={item.line}><span>#{item.line} · {item.classification.toUpperCase()}</span><code>{item.text}</code></div>)}
+              <div className="eyebrow" style={{marginTop:18}}>INTERPRETATION LIMITS</div>
+              {pitchLog.report.limitations.map(item => <div className="integrity-note" key={item}>{item}</div>)}
+              <button className="secondary-button" style={{marginTop:12}} onClick={() => setPitchLog(null)}>CLEAR REPORT</button>
+            </div>}
+            <div className="notice"><span className="notice-mark">i</span>For a meaningful capture: back up the stadium, start Sider, launch PES, enter one target stadium, play long enough to load the pitch, exit, then analyze the resulting log. Compare logs before and after a one-resource replacement. Keep the original log for audit.</div>
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Module system is being built</h3><p>This section will become operational as the package engine, validation, install transactions and rollback system are implemented. No fake install controls here.</p></div><span className="coming-tag">IN DEVELOPMENT</span></div>
