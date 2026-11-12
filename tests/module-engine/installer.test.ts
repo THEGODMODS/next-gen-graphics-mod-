@@ -48,6 +48,14 @@ describe("transactional module installer", () => {
     expect(journal.modules[0].id).toBe("studio.pitch-pack");
   });
 
+
+  it("rejects a payload changed after its manifest was created", async () => {
+    const f = await fixture();
+    await fs.writeFile(path.join(f.pkg, "payload", "grass.dds"), "tampered payload");
+    await expect(new ModuleInstaller(f.game, f.state).install(f.pkg, f.manifest)).rejects.toThrow("SHA-256 mismatch");
+    await expect(fs.access(path.join(f.game, "LiveCPK/common/grass.dds"))).rejects.toThrow();
+  });
+
   it("refuses to overwrite existing files without explicit approval", async () => {
     const f = await fixture();
     const target = path.join(f.game, "LiveCPK/common/grass.dds");
