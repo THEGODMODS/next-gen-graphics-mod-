@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import path from "node:path";
+import * as path from "node:path";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "../../src/main/module-engine/path-safety";
 
 describe("module path safety", () => {
