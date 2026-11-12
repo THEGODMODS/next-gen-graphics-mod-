@@ -3,7 +3,7 @@ import * as path from "node:path";
 import { randomUUID } from "node:crypto";
 import type { ModuleManifest } from "../../shared/module-types";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "./path-safety";
-import { verifySha256 } from "./sha256";
+import { sha256File, verifySha256 } from "./sha256";
 import { JournalStore, type ManagedFileRecord } from "./journal";
 
 export interface InstallOptions {
@@ -187,6 +187,7 @@ export class ModuleInstaller {
           target: path.relative(root, item.target).split(path.sep).join("/"),
           sha256: item.hash,
           backupPath: item.backup,
+          backupSha256: item.backup ? await sha256File(item.backup) : null,
         }));
         journal.modules.push({
           id: manifest.id,
@@ -234,7 +235,26 @@ export class ModuleInstaller {
         const relative = normalizeSafeRelativePath(record.target);
         await assertNoSymlinkPath(root, relative, true);
         const target = resolveInsideRoot(root, relative);
-        if (!(await exists(target))) continue;
+        const targetExists = await exists(target);
+        if (!targetExists) {
+          if (record.backupPath) {
+            const backupRelative = path.relative(this.stateDirectory, record.backupPath);
+            if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+              throw new Error("Journal backup path escapes the manager state directory.");
+            }
+            if (await exists(record.backupPath)) {
+              const backupStat = await fs.lstat(record.backupPath);
+              if (backupStat.isSymbolicLink() || !backupStat.isFile()) throw new Error("Journal backup is not a regular file.");
+              if (record.backupSha256 && !(await verifySha256(record.backupPath, record.backupSha256))) {
+                throw new Error("Backup integrity check failed; original file was not restored.");
+              }
+              await ensureSafeParents(root, relative);
+              await fs.copyFile(record.backupPath, target);
+              restored.push(relative);
+            }
+          }
+          continue;
+        }
         const stat = await fs.lstat(target);
         if (stat.isSymbolicLink() || !stat.isFile()) {
           preservedModified.push(relative);
@@ -245,6 +265,15 @@ export class ModuleInstaller {
           continue;
         }
         if (record.backupPath && await exists(record.backupPath)) {
+          const backupRelative = path.relative(this.stateDirectory, record.backupPath);
+          if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+            throw new Error("Journal backup path escapes the manager state directory.");
+          }
+          const backupStat = await fs.lstat(record.backupPath);
+          if (backupStat.isSymbolicLink() || !backupStat.isFile()) throw new Error("Journal backup is not a regular file.");
+          if (record.backupSha256 && !(await verifySha256(record.backupPath, record.backupSha256))) {
+            throw new Error("Backup integrity check failed; original file was not restored.");
+          }
           await fs.copyFile(record.backupPath, target);
           restored.push(relative);
         } else {
