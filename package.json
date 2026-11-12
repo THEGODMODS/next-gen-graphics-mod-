@@ -10,7 +10,8 @@
     "build": "tsc --noEmit && vite build && tsc -p electron/tsconfig.json",
     "dist:win": "npm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
-    "clean": "rimraf dist dist-electron release"
+    "clean": "rimraf dist dist-electron release",
+    "test": "vitest run"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -28,14 +29,34 @@
     "rimraf": "^6.0.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
-    "wait-on": "^8.0.1"
+    "wait-on": "^8.0.1",
+    "vitest": "^2.1.8"
   },
   "build": {
     "appId": "com.thegodmods.pes2017nextgen",
     "productName": "PES 2017 Next Gen",
-    "directories": { "output": "release" },
-    "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
-    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true }
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
   }
 }
