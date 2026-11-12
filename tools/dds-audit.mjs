@@ -4,7 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 const MAX_DIMENSION=16384;
 const DXGI=new Map([[71,"BC1_UNORM"],[72,"BC1_UNORM_SRGB"],[74,"BC2_UNORM"],[75,"BC2_UNORM_SRGB"],[77,"BC3_UNORM"],[78,"BC3_UNORM_SRGB"],[83,"BC5_UNORM"],[84,"BC5_SNORM"],[98,"BC7_UNORM"],[99,"BC7_UNORM_SRGB"]]);
-const FOURCC=new Map([["DXT1","BC1"],["DXT3","BC2"],["DXT5","BC3"],["ATI2","BC5"],["BC5U","BC5"],["BC5S","BC5"]]);
+const FOURCC=new Map([["DXT1","BC1"],["DXT3","BC2"],["DXT5","BC3"],["ATI2","BC5"],["BC5U","BC5"],["BC5S","BC5_SNORM"]]);
 function blockBytes(format){return format.startsWith("BC1")?8:format.startsWith("BC2")||format.startsWith("BC3")||format.startsWith("BC5")||format.startsWith("BC7")?16:0;}
 function expectedPayloadBytes(width,height,mipCount,format){
  const bytes=blockBytes(format);if(!bytes)return 0;let total=0,w=width,h=height;
