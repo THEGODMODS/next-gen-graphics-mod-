@@ -61,7 +61,7 @@ async function readDdsHeader(file, size) {
   }
 }
 
-export async function buildPitchModule({ descriptorPath, inventoryPath, outputPath, stadiumFolder }) {
+export async function buildPitchModule({ descriptorPath, inventoryPath, outputPath, stadiumFolder, refuseExistingOutput = false }) {
   const descriptorFile = path.resolve(descriptorPath);
   const inventoryFile = path.resolve(inventoryPath);
   const output = path.resolve(outputPath);
@@ -187,6 +187,7 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
   if (existing && (!existing.isDirectory() || existing.isSymbolicLink())) {
     throw new Error("Output path must be a real directory.");
   }
+  if (existing && refuseExistingOutput) throw new Error("Output directory already exists; refusing to replace it.");
   if (existing && (await readdir(output)).length) {
     throw new Error("Output directory must be empty; refusing to overwrite existing content.");
   }
