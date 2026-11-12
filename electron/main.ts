@@ -32,9 +32,11 @@ function findFirst(directory: string, names: string[]): string | null {
 function readSiderSettings(iniPath: string | null) {
   if (!iniPath || !exists(iniPath)) return { liveCpkEnabled: false, luaEnabled: false, luaModules: [] as string[] };
   const content = fs.readFileSync(iniPath, "utf8");
-  const values = (key: string) => content.split(/\r?\n/)
-    .filter(line => line.trim().toLowerCase().startsWith(key.toLowerCase() + "="))
-    .map(line => line.slice(line.indexOf("=") + 1).trim().replace(/^["']|["']$/g, ""));
+  const values = (key: string) => content.split(/\r?\n/).flatMap(line => {
+    const match = line.match(/^\s*([^=]+?)\s*=\s*(.*?)\s*$/);
+    if (!match || match[1].trim().toLowerCase() !== key.toLowerCase()) return [];
+    return [match[2].trim().replace(/^["']|["']$/g, "")];
+  });
   return {
     liveCpkEnabled: values("livecpk.enabled").some(value => value === "1"),
     luaEnabled: values("lua.enabled").some(value => value === "1"),
