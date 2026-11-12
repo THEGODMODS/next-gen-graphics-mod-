@@ -39,4 +39,17 @@ describe("module manifest validation", () => {
     ] };
     expect(validateModuleManifest(unsafe).valid).toBe(false);
   });
+  it("requires safe Lua filenames and SHA-256 payload hashes", () => {
+    const validLua = { ...validManifest, luaModules: [
+      { source: "payload/weather.lua", moduleName: "nextgen-weather.lua", sha256: "d".repeat(64) },
+    ] };
+    expect(validateModuleManifest(validLua).valid).toBe(true);
+    const missingHash = { ...validLua, luaModules: [{ source: "payload/weather.lua", moduleName: "nextgen-weather.lua" }] };
+    expect(validateModuleManifest(missingHash).errors.join(" ")).toContain("luaModules[0].sha256");
+    const unsafeName = { ...validLua, luaModules: [
+      { source: "payload/weather.lua", moduleName: "../weather.lua", sha256: "d".repeat(64) },
+    ] };
+    expect(validateModuleManifest(unsafeName).valid).toBe(false);
+  });
+
 });
