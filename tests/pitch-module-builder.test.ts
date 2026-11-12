@@ -1,14 +1,10 @@
-import { beforeAll, describe, it, expect } from "vitest";
-import { importNativeModule } from "./helpers/native-esm";
+import { buildPitchModule } from "../tools/pitch-module-builder.mjs";
+import { describe, it, expect } from "vitest";
 import { mkdtemp,mkdir,writeFile,readFile,rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
 
-let buildPitchModule: typeof import("../tools/pitch-module-builder.mjs").buildPitchModule;
-beforeAll(async () => {
-  ({ buildPitchModule } = await importNativeModule("../tools/pitch-module-builder.mjs"));
-});
 
 describe("pitch module builder",()=>{
  it("builds a LiveCPK module only from an inventory-verified resource mapping",async()=>{

@@ -1,10 +1,6 @@
-import { beforeAll, describe, it, expect } from "vitest";
-import { importNativeModule } from "./helpers/native-esm";
+import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.mjs";
+import { describe, it, expect } from "vitest";
 
-let analyzeSiderPitchLog: typeof import("../tools/sider-pitch-log.mjs").analyzeSiderPitchLog;
-beforeAll(async () => {
-  ({ analyzeSiderPitchLog } = await importNativeModule("../tools/sider-pitch-log.mjs"));
-});
 
 describe("Sider pitch log analyzer", () => {
   it("extracts pitch paths, counts occurrences and preserves raw evidence", () => {

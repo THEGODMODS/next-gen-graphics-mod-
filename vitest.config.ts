@@ -1,9 +1,13 @@
 import { defineConfig } from "vitest/config";
 
-// Keep Vitest's runner isolated from Node-native .mjs utilities. Tests load
-// those utilities through tests/helpers/native-esm.ts using Node's ESM loader.
+// Load first-party Node ESM tools with Node's native loader instead of Vite's VM.
 export default defineConfig({
   test: {
-    pool: "forks"
+    pool: "forks",
+    server: {
+      deps: {
+        external: [/\\.mjs$/]
+      }
+    }
   }
 });
