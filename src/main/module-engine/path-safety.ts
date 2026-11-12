@@ -1,4 +1,4 @@
-import path from "node:path";
+import * as path from "node:path";
 
 /**
  * Accepts package-relative or managed-root-relative paths only.
