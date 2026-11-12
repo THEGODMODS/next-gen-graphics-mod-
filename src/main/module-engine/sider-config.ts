@@ -30,7 +30,7 @@ export interface SiderSyncResult {
 export class SiderConfigManager {
   constructor(private readonly gameDirectory: string, private readonly stateDirectory: string) {}
 
-  async syncInstalledLiveCpkRoots(): Promise<SiderSyncResult> {
+  async syncInstalledModules(): Promise<SiderSyncResult> {
     return withSiderLock(this.stateDirectory, async () => {
       const gameRoot = await fs.realpath(this.gameDirectory);
       const iniPath = path.join(gameRoot, "sider.ini");
