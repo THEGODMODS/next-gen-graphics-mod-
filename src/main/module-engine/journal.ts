@@ -7,45 +7,36 @@ export interface ManagedFileRecord {
   backupPath: string | null;
   backupSha256: string | null;
 }
-
 export interface InstalledModuleRecord {
   id: string;
   version: string;
   installedAt: string;
   files: ManagedFileRecord[];
 }
-
 export interface PendingTransactionFile {
   target: string;
   installedSha256: string;
   backupPath: string | null;
   backupSha256: string | null;
 }
-
 export interface PendingTransactionRecord {
   id: string;
   moduleId: string;
   startedAt: string;
   files: PendingTransactionFile[];
 }
-
 export interface InstallJournal {
   schemaVersion: 1;
   updatedAt: string;
   modules: InstalledModuleRecord[];
   pendingTransaction: PendingTransactionRecord | null;
 }
-
 const emptyJournal = (): InstallJournal => ({
-  schemaVersion: 1,
-  updatedAt: new Date().toISOString(),
-  modules: [],
-  pendingTransaction: null,
+  schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [], pendingTransaction: null,
 });
 
 export class JournalStore {
   readonly filePath: string;
-
   constructor(readonly stateDirectory: string) {
     this.filePath = path.join(stateDirectory, "install-journal.json");
   }
@@ -56,10 +47,13 @@ export class JournalStore {
       const value: unknown = JSON.parse(raw);
       if (!value || typeof value !== "object") throw new Error("Journal root is invalid.");
       const journal = value as InstallJournal;
-      if (journal.schemaVersion !== 1 || !Array.isArray(journal.modules) ||\n          (journal.pendingTransaction !== null && journal.pendingTransaction !== undefined &&\n           (typeof journal.pendingTransaction !== "object" || !Array.isArray(journal.pendingTransaction.files)))) {
+      if (journal.schemaVersion !== 1 || !Array.isArray(journal.modules) ||
+          (journal.pendingTransaction !== null && journal.pendingTransaction !== undefined &&
+           (typeof journal.pendingTransaction !== "object" || !Array.isArray(journal.pendingTransaction.files)))) {
         throw new Error("Unsupported or damaged install journal. Installation is blocked.");
       }
-      // Older schema-v1 journals predate crash recovery. Normalize them safely.\n      if (journal.pendingTransaction === undefined) journal.pendingTransaction = null;\n      return journal;
+      if (journal.pendingTransaction === undefined) journal.pendingTransaction = null;
+      return journal;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") return emptyJournal();
       throw error;
