@@ -17,7 +17,7 @@ const api = {
   chooseGameDirectory: (): Promise<string | null> => ipcRenderer.invoke("game:choose-directory"),
   previewModule: (): Promise<ModulePreview | null> => ipcRenderer.invoke("modules:preview"),
   installPreviewedModule: (): Promise<{ moduleId: string; installedFiles: string[]; backups: string[] }> => ipcRenderer.invoke("modules:install-previewed"),
-  syncSiderLiveCpk: (): Promise<SiderSyncResult> => ipcRenderer.invoke("sider:sync-livecpk"),
+  syncSiderModules: (): Promise<SiderSyncResult> => ipcRenderer.invoke("sider:sync-installed-modules"),
   launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch")
 };
 contextBridge.exposeInMainWorld("nextgen", api);
