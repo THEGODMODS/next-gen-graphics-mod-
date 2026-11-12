@@ -66,6 +66,29 @@ export default function App() {
     } catch (error) { setNotice(error instanceof Error ? error.message : "Module preview failed."); }
   };
 
+  const installPreviewedModule = async () => {
+    if (!modulePreview || modulePreview.missingDependencies.length || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
+    const replacements = modulePreview.files.filter(file => file.action === "replace").map(file => file.target);
+    const summary = [
+      "Install " + modulePreview.name + " v" + modulePreview.version + "?",
+      "",
+      "Files to add: " + modulePreview.files.filter(file => file.action === "add").length,
+      "Existing files to replace: " + replacements.length,
+      ...replacements.map(file => "  • " + file),
+      "",
+      "Approved replacements will be backed up. Continue?"
+    ].join("\\n");
+    if (!window.confirm(summary)) return;
+    try {
+      const result = await window.nextgen.installPreviewedModule();
+      setModulePreview(null);
+      setNotice("Installed " + result.moduleId + ": " + result.installedFiles.length + " file(s). " + result.backups.length + " backup(s) created.");
+      await refresh();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Module installation failed. Check diagnostics before retrying.");
+    }
+  };
+
   const launchSider = async () => {
     const result = await window.nextgen.launchSider();
     setNotice(result.message);
@@ -141,9 +164,14 @@ export default function App() {
               <div className="integrity-row"><span>Module ID</span><b>{modulePreview.id}</b></div>
               <div className="integrity-row"><span>License</span><b>{modulePreview.license.id}</b></div>
               <div className="integrity-row"><span>Redistribution</span><b>{modulePreview.license.redistributionAllowed ? "ALLOWED BY MANIFEST" : "NOT ALLOWED"}</b></div>
+              <div className="integrity-row"><span>Dependencies</span><b>{modulePreview.dependencies.length ? modulePreview.dependencies.join(", ") : "NONE"}</b></div>
+              {modulePreview.alreadyInstalled && <div className="integrity-note">This module is already installed. Upgrade is not supported yet.</div>}
+              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {modulePreview.missingDependencies.join(", ")}. Install these first.</div>}
+              {modulePreview.conflicts.length > 0 && <div className="integrity-note">Conflicts with installed modules: {modulePreview.conflicts.join(", ")}. Installation is blocked.</div>}
               <h3 style={{marginTop: 20}}>File changes ({modulePreview.files.length})</h3>
               {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill good-pill"}>{file.action.toUpperCase()}</b></div>)}
-              <div className="integrity-note"><ShieldCheck size={15} /> Preview only. No files have been installed or replaced. Explicit approval and transactional installation are still being wired up.</div>
+              <div className="integrity-note"><ShieldCheck size={15} /> Existing files will only be replaced after your confirmation. Backups are retained for uninstall and recovery.</div>
+              <button className="primary-button" disabled={modulePreview.alreadyInstalled || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0} onClick={() => void installPreviewedModule()}><Package size={16} /> CONFIRM & INSTALL MODULE</button>
             </div>}
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
