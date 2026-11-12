@@ -47,7 +47,8 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "package.json"
+      "package.json",
+      "tools/**/*"
     ],
     "win": {
       "target": [
