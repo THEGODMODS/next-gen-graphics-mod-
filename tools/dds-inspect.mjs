@@ -64,7 +64,7 @@ export function analyzeDds(buffer) {
   if (!audit.valid) throw new Error("DDS audit failed: " + audit.errors.join("; "));
   const format = audit.format;
   if (!["BC1", "BC1_UNORM", "BC1_UNORM_SRGB", "BC2", "BC2_UNORM", "BC2_UNORM_SRGB",
-    "BC3", "BC3_UNORM", "BC3_UNORM_SRGB", "BC5", "BC5_UNORM", "BC5_SNORM"].includes(format)) {
+    "BC3", "BC3_UNORM", "BC3_UNORM_SRGB", "BC5", "BC5_UNORM"].includes(format)) {
     throw new Error("Pixel analysis currently supports BC1, BC2, BC3 and BC5 only; received " + format + ".");
   }
   const width = audit.width, height = audit.height;

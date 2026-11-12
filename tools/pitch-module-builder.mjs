@@ -86,7 +86,7 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
   if (descriptor.schemaVersion !== 1) throw new Error("Descriptor schemaVersion must be 1.");
   if (!ID.test(descriptor.id ?? "")) throw new Error("id must be lowercase and namespaced.");
   if (typeof descriptor.name !== "string" || !descriptor.name.trim() ||
-      typeof descriptor.version !== "string" || !/^\\d+\\.\\d+\\.\\d+$/.test(descriptor.version)) {
+      typeof descriptor.version !== "string" || !/^\d+\.\d+\.\d+$/.test(descriptor.version)) {
     throw new Error("A name and semantic version are required.");
   }
   if (!descriptor.license || typeof descriptor.license.id !== "string" ||
