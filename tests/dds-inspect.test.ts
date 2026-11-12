@@ -50,6 +50,9 @@ describe("DDS pixel inspector", () => {
     expect(result.channelMean).toEqual([128, 128]);
     expect(result.reconstructedNormalLength).toBeDefined();
   });
+  it("does not misread signed BC5 as unsigned channel data", () => {
+    expect(() => analyzeDds(dds("BC5S", Buffer.alloc(16)))).toThrow(/supports BC1/);
+  });
   it("rejects DDS formats without a supported pixel decoder", () => {
     const block = Buffer.alloc(16);
     expect(() => analyzeDds(dds("DX10", block))).toThrow(/supports BC1/);
