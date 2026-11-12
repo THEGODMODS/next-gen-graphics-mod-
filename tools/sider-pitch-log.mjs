@@ -1,13 +1,13 @@
-const PITCH_PATH = /common[\\/]+bg[\\/]+model[\\/]+bg[\\/]+pitch(?:[\\/]+[^\\s"'<>|,;)]*)?/ig;
+const PITCH_PATH = /common[\\/]+bg[\\/]+model[\\/]+bg[\\/]+pitch(?:[\\/]+[^\s"'<>|,;)]*)?/ig;
 const MAX_LINES = 100000;
 function classify(line) {
-  if (/\\b(not found|missing|failed|failure|error|cannot open|unable to|does not exist)\\b/i.test(line)) return "issue";
-  if (/\\b(loaded|opened|replaced|found|reading|read file|success)\\b/i.test(line)) return "positive";
+  if (/\b(not found|missing|failed|failure|error|cannot open|unable to|does not exist)\b/i.test(line)) return "issue";
+  if (/\b(loaded|opened|replaced|found|reading|read file|success)\b/i.test(line)) return "positive";
   return "unclassified";
 }
 export function analyzeSiderPitchLog(content) {
   if (typeof content !== "string") throw new TypeError("Sider log content must be text.");
-  const lines = content.split(/\\r?\\n/);
+  const lines = content.split(/\r?\n/);
   const references = new Map();
   const evidence = [];
   let matchedLines = 0, issueLines = 0, positiveLines = 0;
