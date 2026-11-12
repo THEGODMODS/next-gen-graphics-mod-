@@ -23,7 +23,7 @@ The installer must never blindly delete files from a PES installation. It must i
 
 ## Development status
 
-The desktop manager, transactional module installer, Sider synchronization, local package library and DDS audit tooling are under active development. No game replacement assets are bundled yet. The DDS audit is not a PES texture compatibility validator. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md) before authoring pitch or stadium assets.
+The desktop manager, transactional module installer, Sider synchronization, local package library and DDS audit tooling are under active development. No game replacement assets are bundled yet. The DDS audit checks a conservative set of DDS headers and block-compressed payload lengths; it is not a PES texture compatibility validator. The read-only pitch inventory records paths, sizes, and SHA-256 hashes under a Stadium Server stadium's `common/bg/model/bg/pitch` subtree. Run `npm run inventory:pitch -- "<stadium-folder>"` to create a local JSON inventory. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md), [pitch resource discovery](docs/PITCH_RESOURCE_DISCOVERY.md), and [pitch inventory](docs/PITCH_INVENTORY.md) before authoring pitch or stadium assets.
 
 ## Licensing
 
