@@ -33,10 +33,10 @@ The pitch module builder converts a manually reviewed inventory mapping and repl
    }
    ```
 
-3. Build into a new or empty output directory:
+3. Build into a new or empty output directory. For stronger protection against stale inventories, supply the current stadium folder as the optional fourth argument:
 
    ```bash
-   npm run build:pitch-module -- pitch-descriptor.json stadium-inventory.json ./dist-pitch-module
+   npm run build:pitch-module -- pitch-descriptor.json stadium-inventory.json ./dist-pitch-module "<stadium-folder>"
    ```
 
 4. Inspect the generated `module.json`, then use the manager's normal library scan, installation preview, and transactional installation flow.
@@ -50,3 +50,9 @@ The pitch module builder converts a manually reviewed inventory mapping and repl
 - The builder copies replacement assets into a unique staging folder, hashes and audits the staged bytes, then renames the completed package into place. A failed build cleans up its staging folder. It refuses a non-empty output folder.
 - License metadata is explicit and preserved in the manifest. `redistributionAllowed: false` permits a private/local package workflow but means the package must not be redistributed. The builder does not grant rights or publish assets.
 - A successful package build proves packaging and hash consistency only. It does not prove PES loads that resource, that the DDS encoding matches the game's expected channels/material, or that the result looks correct in-game. Confirm runtime requests with Sider logs and test one resource at a time on a backed-up game copy.
+
+## Desktop workflow
+
+The **Stadiums & Turf → Pitch Builder** screen performs the same workflow inside the Electron manager: select a Stadium Server folder, inventory its pitch subtree, choose one inventoried DDS resource, select a replacement DDS, and build a private-use package. The manager then revalidates the generated package and opens the normal installation preview. The builder re-hashes the original stadium resource immediately before packaging and refuses to proceed if it changed since the inventory. Generated packages are written to a parent folder selected by the user; an existing package folder is never overwritten.
+
+The current desktop builder intentionally handles one resource per package. This keeps the first in-game validation isolated: install one replacement, inspect Sider logs, compare the result in PES, then move on to another resource. It does not infer which resources the game actually requests.
