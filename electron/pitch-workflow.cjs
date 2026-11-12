@@ -30,7 +30,8 @@ async function build({ stadiumFolder, inventory, inventoryPath, replacementPath,
   const parentStat = await fs.lstat(parent);
   if (!parentStat.isDirectory() || parentStat.isSymbolicLink()) throw new Error("Package destination must be a real directory.");
   const outputPath = path.join(parent, moduleId);
-  if (await fs.lstat(outputPath).catch(() => null)) throw new Error("A package with this module ID already exists in the selected destination. Choose another destination; existing files are never overwritten.");
+  try { await fs.lstat(outputPath); throw new Error("A package with this module ID already exists in the selected destination. Choose another destination; existing files are never overwritten."); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
   const temp = await fs.mkdtemp(path.join(os.tmpdir(), "nextgen-pitch-"));
   try {
     const sourceDir = path.join(temp, "source");
