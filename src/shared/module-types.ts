@@ -11,6 +11,7 @@ export interface ModuleFileEntry {
 export interface LuaModuleEntry {
   source: string;
   moduleName: string;
+  sha256: string;
 }
 
 export interface ModuleManifest {
