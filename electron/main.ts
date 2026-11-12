@@ -107,9 +107,8 @@ async function loadAndRecover() {
   }
 }
 function registerIpc() {
-  ipcMain.handle("content:open-source", async event => {
+  ipcMain.handle("content:open-source", async (event, sourceId: unknown) => {
     assertTrustedSender(event);
-    const sourceId = arguments[1];
     const sources: Record<string, string> = {
       pesmodding: "https://www.pesmodding.com/p/pes-2017.html",
       moddingway: "https://www.moddingway.com/game/387/pro-evolution-soccer-2017/mods",
