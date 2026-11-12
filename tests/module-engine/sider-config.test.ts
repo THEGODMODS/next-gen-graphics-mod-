@@ -27,8 +27,8 @@ describe("Sider configuration sync", () => {
     const result = await new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots();
     const ini = await fs.readFile(f.ini, "utf8");
     expect(result.changed).toBe(true);
-    expect(result.registeredRoots).toEqual([".\\\\LiveCPK"]);
-    expect(ini).toContain('cpk.root = ".\\\\LiveCPK"');
+    expect(result.registeredRoots).toEqual([".\\LiveCPK"]);
+    expect(ini).toContain('cpk.root = ".\\LiveCPK"');
     expect(ini).toContain("user config");
     expect(result.backupPath).not.toBeNull();
   });
