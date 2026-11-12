@@ -1,10 +1,11 @@
-import type { GameStatus, InstalledModule, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
+import type { GameStatus, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
 declare global {
   interface Window {
     nextgen: {
       getStatus: () => Promise<GameStatus>;
       chooseGameDirectory: () => Promise<string | null>;
-      previewModule: () => Promise<ModulePreview | null>;
+      scanModuleLibrary: () => Promise<LibraryPackage[]>;
+      previewModule: (packageId?: string) => Promise<ModulePreview | null>;
       installPreviewedModule: () => Promise<{ moduleId: string; installedFiles: string[]; backups: string[] }>;
       listInstalledModules: () => Promise<InstalledModule[]>;
       uninstallModule: (moduleId: string) => Promise<UninstallResult>;
