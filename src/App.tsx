@@ -121,6 +121,21 @@ export default function App() {
     } finally { setModuleActionBusy(null); }
   };
 
+  const uninstallModule = async (module: InstalledModule) => {
+    if (moduleActionBusy) return;
+    const dependents = installedModules.filter(item => item.dependencies.includes(module.id));
+    if (dependents.length) { setNotice("Cannot remove " + module.id + " yet. Required by: " + dependents.map(item => item.id).join(", ")); return; }
+    const confirmed = window.confirm("Uninstall " + module.id + "?\n\nManager-owned unchanged files will be removed, approved originals restored, and modified files preserved. This cannot be undone automatically.");
+    if (!confirmed) return;
+    setModuleActionBusy(module.id);
+    try {
+      const result = await window.nextgen.uninstallModule(module.id);
+      const summary = "Uninstalled " + module.id + ". Removed: " + result.removed.length + "; restored: " + result.restored.length + "; preserved modified: " + result.preservedModified.length + ".";
+      setNotice(summary + (result.siderSyncWarning ? " Sider sync warning: " + result.siderSyncWarning : ""));
+      await refresh();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Module uninstall failed."); }
+    finally { setModuleActionBusy(null); }
+  };
   const launchSider = async () => {
     const result = await window.nextgen.launchSider();
     setNotice(result.message);
@@ -211,10 +226,12 @@ export default function App() {
                 <div className="panel-heading"><div><div className="eyebrow">INSTALLED · {module.version}</div><h3>{module.id}</h3></div><span className="coming-tag">{module.files.length} FILES</span></div>
                 <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
                 <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
+                <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
                   return <div className="action-row" key={name}><div className="action-icon"><Activity size={17} /></div><div className="action-copy"><strong>{name}</strong><span>{enabled ? "Registered in Sider configuration" : "Not currently registered"}</span></div><button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setLuaEnabled(name, !enabled)}>{moduleActionBusy === name ? "SAVING" : enabled ? "DISABLE" : "ENABLE"}</button></div>;
                 }) : <div className="integrity-note">This package contains no Lua extensions. Its LiveCPK assets are managed through the installed roots.</div>}
+                <button className="small-action" style={{marginTop: 14}} disabled={moduleActionBusy !== null || installedModules.some(item => item.dependencies.includes(module.id))} onClick={() => void uninstallModule(module)}>UNINSTALL MODULE</button>
                 <details style={{marginTop: 12, color: "#91a0ad", fontSize: 10}}><summary>Show managed files</summary>{module.files.map(file => <div className="integrity-row" key={file}><span>{file}</span><b className="pill safe-pill">OWNED</b></div>)}</details>
               </div>)
             }
