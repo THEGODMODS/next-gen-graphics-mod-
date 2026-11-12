@@ -9,12 +9,12 @@ import { inspectDds } from "./dds-audit.mjs";
 export async function inventoryPitch(input) {
 const root=path.resolve(input);
 const rootStat=await lstat(root);
-if(!rootStat.isDirectory()||rootStat.isSymbolicLink()){console.error("Stadium path must be a real directory, not a symlink.");process.exit(2);}
+if(!rootStat.isDirectory()||rootStat.isSymbolicLink()) throw new Error("Stadium path must be a real directory, not a symlink.");
 const relativeSubtree=path.join("common","bg","model","bg","pitch");
 const pitchRoot=path.join(root,relativeSubtree);
 let pitchStat;
-try{pitchStat=await lstat(pitchRoot);}catch{console.error(`Pitch subtree not found: ${relativeSubtree}`);process.exit(2);}
-if(!pitchStat.isDirectory()||pitchStat.isSymbolicLink()){console.error("Pitch subtree must be a real directory, not a symlink.");process.exit(2);}
+try{pitchStat=await lstat(pitchRoot);}catch{throw new Error(`Pitch subtree not found: ${relativeSubtree}`);}
+if(!pitchStat.isDirectory()||pitchStat.isSymbolicLink()) throw new Error("Pitch subtree must be a real directory, not a symlink.");
 const records=[];
 async function hashFile(full){
  const hash=createHash("sha256");
