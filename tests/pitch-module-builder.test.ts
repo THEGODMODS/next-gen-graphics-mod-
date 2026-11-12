@@ -15,7 +15,7 @@ describe("pitch module builder",()=>{
    await mkdir(path.join(root,"source"),{recursive:true});
    await writeFile(path.join(root,"source","replacement.bin"),payload);
    await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:stadium,records:[{path:original,sha256:digest}]}));
-   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"Original test asset",redistributionAllowed:false},replacements:[{inventoryPath:original,originalSha256:digest,replacementFile:"source/replacement.bin"}]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"Original test asset",redistributionAllowed:true},replacements:[{inventoryPath:original,originalSha256:digest,replacementFile:"source/replacement.bin"}]}));
    const out=path.join(root,"out");
    const result=await buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:out});
    expect(result.files).toBe(1);
@@ -30,7 +30,7 @@ describe("pitch module builder",()=>{
    await mkdir(path.join(root,"source"));
    await writeFile(path.join(root,"source","replacement.dds"),"fake");
    await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[{path:"pitch.dds",sha256:"a".repeat(64)}]}));
-   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"test",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.dds",originalSha256:"b".repeat(64),replacementFile:"source/replacement.dds"}]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"test",redistributionAllowed:true},replacements:[{inventoryPath:"pitch.dds",originalSha256:"b".repeat(64),replacementFile:"source/replacement.dds"}]}));
    const out=path.join(root,"out");
    await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:out})).rejects.toThrow(/fingerprint/);
   }finally{await rm(root,{recursive:true,force:true});}
@@ -41,8 +41,17 @@ describe("pitch module builder",()=>{
    await mkdir(path.join(root,"source"));
    await writeFile(path.join(root,"source","replacement.dds"),"fake");
    await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[]}));
-   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"test",redistributionAllowed:false},replacements:[{inventoryPath:"../evil.dds",originalSha256:"a".repeat(64),replacementFile:"source/replacement.dds"}]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"test",redistributionAllowed:true},replacements:[{inventoryPath:"../evil.dds",originalSha256:"a".repeat(64),replacementFile:"source/replacement.dds"}]}));
    await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/safe relative/);
   }finally{await rm(root,{recursive:true,force:true});}
  });
+ it("refuses assets whose declared license does not permit redistribution",async()=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pitch-builder-"));
+  try{
+   await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"restricted",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.dds",originalSha256:"a".repeat(64),replacementFile:"replacement.dds"}]}));
+   await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/does not permit redistribution/);
+  }finally{await rm(root,{recursive:true,force:true});}
+ });
+
 });
