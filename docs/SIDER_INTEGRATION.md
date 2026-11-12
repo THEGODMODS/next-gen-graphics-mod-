@@ -58,7 +58,4 @@ only its delimited block, writes through a temporary file, and verifies the
 result. Repeated synchronization is idempotent. If there are no installed
 LiveCPK payloads, it removes only the manager-owned block.
 
-This action currently manages LiveCPK roots only. Lua payload installation and
-registration, Sider version detection, and live-game verification remain
-separate unfinished tasks. The manager does not silently activate anything
-during package installation.
+The same explicit synchronization action now registers both installed LiveCPK roots and installed Lua modules. Lua modules are copied transactionally to the game-side `modules/` directory (beside `sider.ini` and `sider.exe`) and tracked in the install journal. The manager adds `lua.enabled = 1` and one `lua.module` line per installed module to its owned INI block. Installation itself does not register or activate Lua modules; the user must run synchronization. Lua module version compatibility and live-game behavior still require validation against the actual Sider runtime.
