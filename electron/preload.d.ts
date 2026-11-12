@@ -1,4 +1,4 @@
-import type { GameStatus, ModulePreview } from "./preload";
+import type { GameStatus, ModulePreview, SiderSyncResult } from "./preload";
 declare global {
   interface Window {
     nextgen: {
@@ -6,6 +6,7 @@ declare global {
       chooseGameDirectory: () => Promise<string | null>;
       previewModule: () => Promise<ModulePreview | null>;
       installPreviewedModule: () => Promise<{ moduleId: string; installedFiles: string[]; backups: string[] }>;
+      syncSiderLiveCpk: () => Promise<SiderSyncResult>;
       launchSider: () => Promise<{ ok: boolean; message: string }>;
     };
   }
