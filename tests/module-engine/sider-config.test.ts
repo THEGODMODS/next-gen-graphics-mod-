@@ -77,4 +77,35 @@ describe("Sider configuration sync", () => {
     expect(ini).toContain("user config");
   });
 
+  it("allows individual Lua modules to be disabled and re-enabled", async () => {
+    const f = await fixture();
+    const journal = new JournalStore(f.state);
+    const data = await journal.read();
+    data.modules.push({ id: "studio.lua-pack", version: "1.0.0", installedAt: new Date().toISOString(),
+      files: [
+        { target: "modules/weather.lua", sha256: "a".repeat(64), backupPath: null, backupSha256: null },
+        { target: "modules/lighting.lua", sha256: "b".repeat(64), backupPath: null, backupSha256: null },
+      ] });
+    await journal.write(data);
+    const manager = new SiderConfigManager(f.root, f.state);
+    const initial = await manager.listLuaModules();
+    expect(initial).toHaveLength(2);
+    expect(initial.every(module => module.enabled)).toBe(true);
+    await manager.syncInstalledModules();
+    await manager.setLuaModuleEnabled("weather.lua", false);
+    let ini = await fs.readFile(f.ini, "utf8");
+    expect(ini).not.toContain('lua.module = "weather.lua"');
+    expect(ini).toContain('lua.module = "lighting.lua"');
+    expect((await manager.listLuaModules()).find(module => module.moduleName === "weather.lua")?.enabled).toBe(false);
+    await manager.setLuaModuleEnabled("weather.lua", true);
+    ini = await fs.readFile(f.ini, "utf8");
+    expect(ini).toContain('lua.module = "weather.lua"');
+  });
+
+  it("refuses to toggle a Lua module not owned by the install journal", async () => {
+    const f = await fixture();
+    await expect(new SiderConfigManager(f.root, f.state).setLuaModuleEnabled("unmanaged.lua", false))
+      .rejects.toThrow("not installed");
+  });
+
 });
