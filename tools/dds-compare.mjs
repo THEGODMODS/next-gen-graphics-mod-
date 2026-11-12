@@ -3,7 +3,6 @@ import { readFile, lstat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { inspectDds } from "./dds-audit.mjs";
-import { analyzeDds } from "./dds-inspect.mjs";
 
 const MAX_FILE_BYTES = 512 * 1024 * 1024;
 
@@ -50,8 +49,6 @@ export function compareDds(originalBuffer, replacementBuffer) {
   if (!["BC1", "BC1_UNORM", "BC1_UNORM_SRGB", "BC2", "BC2_UNORM", "BC2_UNORM_SRGB", "BC3", "BC3_UNORM", "BC3_UNORM_SRGB", "BC5", "BC5_UNORM"].includes(format)) {
     throw new Error("Pixel comparison supports BC1, BC2, BC3 and BC5_UNORM only; received " + format + ".");
   }
-  // Reuse the inspector's audit/decoder support gate before doing the comparison.
-  analyzeDds(originalBuffer); analyzeDds(replacementBuffer);
   const blockBytes = format.startsWith("BC1") ? 8 : 16;
   const blocksX = Math.ceil(a.width / 4), blocksY = Math.ceil(a.height / 4);
   const channelCount = format.startsWith("BC5") ? 2 : 4;
