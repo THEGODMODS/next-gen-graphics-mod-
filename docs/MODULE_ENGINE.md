@@ -17,6 +17,9 @@ The module engine validates package metadata and paths before any game-directory
 - Existing files are protected by default. Replacing one requires its exact target path to be explicitly approved by the caller after an install preview.
 - Existing targets managed by another module are never replaced.
 - Backups for explicitly approved replacements.
+- Durable pending-transaction records are written before game files are replaced.
+- Startup recovery rolls back interrupted installs using verified backups and installed-file hashes.
+- Recovery preserves files that no longer match the transaction's expected hash, avoiding overwriting later user edits.
 - Best-effort transaction rollback on an install error.
 - Uninstall removes only files whose current SHA-256 still matches the manager's journal. Modified files are preserved and reported. Backups are restored when present.
 
@@ -25,5 +28,6 @@ The module engine validates package metadata and paths before any game-directory
 - Module upgrades and dependency removal planning are not enabled yet.
 - Lua module registration and Sider configuration edits are not part of this transaction yet.
 - The manager must call this engine only after showing the exact install preview and receiving explicit confirmation.
-- A crash or power loss during file placement is not yet automatically recovered at startup; persistent pending-transaction recovery is the next hardening step.
+- Crash recovery is implemented in the module engine but is not yet invoked by the desktop app at startup; the UI/IPC integration remains outstanding.
+- Recovery has automated unit-test coverage committed, but a passing CI run and Windows filesystem behavior have not yet been confirmed.
 - Filesystem operations must be tested on Windows with real PES directories before release. Reparse-point behavior differs by platform, so this implementation rejects detected symbolic links and rechecks target parents immediately before writes.
