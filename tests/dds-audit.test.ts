@@ -13,5 +13,6 @@ describe("DDS texture audit",()=>{
  it("rejects impossible mip counts",()=>expect(inspectDds(makeDds(8,8,20)).valid).toBe(false));
  it("rejects unreasonable dimensions",()=>expect(inspectDds(makeDds(32768,1024,16)).valid).toBe(false));
  it("recognizes DX10 BC7 and accounts for its header",()=>{const b=makeDds(16,16,5,"DX10");b.writeUInt32LE(98,128);expect(inspectDds(b).format).toBe("BC7_UNORM");expect(inspectDds(b).valid).toBe(true);});
- it("rejects a payload shorter than the declared mip chain",()=>expect(inspectDds(makeDds(64,64,7,"DXT5",32)).errors.some(x=>x.includes("payload is truncated"))).toBe(true));\n it("can audit a header against on-disk size without loading the payload",()=>{const b=makeDds();expect(inspectDds(b.subarray(0,128),b.length).valid).toBe(true);expect(inspectDds(b.subarray(0,128),128).valid).toBe(false);});
+ it("rejects a payload shorter than the declared mip chain",()=>expect(inspectDds(makeDds(64,64,7,"DXT5",32)).errors.some(x=>x.includes("payload is truncated"))).toBe(true));
+ it("can audit a header against on-disk size without loading the payload",()=>{const b=makeDds();expect(inspectDds(b.subarray(0,128),b.length).valid).toBe(true);expect(inspectDds(b.subarray(0,128),128).valid).toBe(false);});
 });
