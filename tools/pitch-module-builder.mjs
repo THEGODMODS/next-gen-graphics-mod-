@@ -61,7 +61,7 @@ async function readDdsHeader(file, size) {
   }
 }
 
-export async function buildPitchModule({ descriptorPath, inventoryPath, outputPath }) {
+export async function buildPitchModule({ descriptorPath, inventoryPath, outputPath, stadiumFolder }) {
   const descriptorFile = path.resolve(descriptorPath);
   const inventoryFile = path.resolve(inventoryPath);
   const output = path.resolve(outputPath);
@@ -69,6 +69,12 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
   await assertRegularFileNoLink(inventoryFile, "Inventory");
 
   const descriptorBase = path.dirname(descriptorFile);
+  const stadiumPitchRoot = stadiumFolder ? path.join(path.resolve(stadiumFolder), "common", "bg", "model", "bg", "pitch") : null;
+  if (stadiumPitchRoot) {
+    const rootStat = await lstat(path.resolve(stadiumFolder));
+    const pitchStat = await lstat(stadiumPitchRoot);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink() || !pitchStat.isDirectory() || pitchStat.isSymbolicLink()) throw new Error("Current Stadium Server pitch folder is not a safe directory.");
+  }
   const descriptor = JSON.parse(await readFile(descriptorFile, "utf8"));
   const inventory = JSON.parse(await readFile(inventoryFile, "utf8"));
 
@@ -114,6 +120,10 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
     if (!SHA.test(item.originalSha256 ?? "") ||
         item.originalSha256.toLowerCase() !== original.sha256.toLowerCase()) {
       throw new Error("Original resource fingerprint does not match inventory: " + originalPath);
+    }
+    if (stadiumPitchRoot) {
+      const currentOriginal = await regularFileNoLinks(stadiumPitchRoot, originalPath, "original pitch resource");
+      if ((await hashFile(currentOriginal)).toLowerCase() !== original.sha256.toLowerCase()) throw new Error("Stadium resource changed after inventory; scan again before building: " + originalPath);
     }
 
     const replacementPath = safeRelative(item.replacementFile, "replacements[" + index + "].replacementFile");
@@ -201,11 +211,11 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const [descriptorPath, inventoryPath, outputPath] = process.argv.slice(2);
   if (!descriptorPath || !inventoryPath || !outputPath) {
-    console.error("Usage: npm run build:pitch-module -- <descriptor.json> <inventory.json> <empty-output-folder>");
+    console.error("Usage: npm run build:pitch-module -- <descriptor.json> <inventory.json> <empty-output-folder> [stadium-folder]");
     process.exit(2);
   }
   try {
-    const result = await buildPitchModule({ descriptorPath, inventoryPath, outputPath });
+    const result = await buildPitchModule({ descriptorPath, inventoryPath, outputPath, stadiumFolder: process.argv[5] });
     console.log(JSON.stringify({ moduleId: result.moduleId, files: result.files, output: result.output }, null, 2));
   } catch (error) {
     console.error("Pitch module build failed: " + error.message);
