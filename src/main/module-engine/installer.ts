@@ -183,12 +183,12 @@ export class ModuleInstaller {
           applied.push({ target: item.target, backup: item.backup, installedHash: item.hash });
         }
 
-        const records: ManagedFileRecord[] = staged.map((item) => ({
+        const records: ManagedFileRecord[] = await Promise.all(staged.map(async (item) => ({
           target: path.relative(root, item.target).split(path.sep).join("/"),
           sha256: item.hash,
           backupPath: item.backup,
           backupSha256: item.backup ? await sha256File(item.backup) : null,
-        }));
+        })));
         journal.modules.push({
           id: manifest.id,
           version: manifest.version,
