@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { GameStatus } from "../electron/preload";
+import type { GameStatus, ModulePreview } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -41,6 +41,7 @@ export default function App() {
   const [status, setStatus] = useState<GameStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("Select your PES 2017 folder to begin.");
+  const [modulePreview, setModulePreview] = useState<ModulePreview | null>(null);
   const refresh = useCallback(async () => {
     setBusy(true);
     try { setStatus(await window.nextgen.getStatus()); }
@@ -56,6 +57,13 @@ export default function App() {
       await refresh();
       setNotice("Game folder selected. Review the detected components below.");
     }
+  };
+
+  const previewModule = async () => {
+    try {
+      const result = await window.nextgen.previewModule();
+      if (result) { setModulePreview(result); setNotice("Package validated. Review every target before any installation is approved."); }
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Module preview failed."); }
   };
 
   const launchSider = async () => {
@@ -123,7 +131,22 @@ export default function App() {
               <section className="panel system-panel"><div className="panel-heading"><div><div className="eyebrow">INSTALLATION REPORT</div><h3>System integrity</h3></div><ShieldCheck size={18} /></div><div className="integrity-row"><span>Game executable</span><b className={ready ? "pill good-pill" : "pill"}>{ready ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Sider configuration</span><b className={siderReady ? "pill good-pill" : "pill"}>{siderReady ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Automatic file cleanup</span><b className="pill safe-pill">DISABLED</b></div><div className="integrity-note"><ShieldCheck size={15} /> Unknown files and personal game data are never deleted automatically.</div></section>
             </div>
             <div className="notice"><span className="notice-mark">i</span>{notice}</div>
-          </> : <section className="page-placeholder">
+          </> : active === "Modules" ? <section className="page-placeholder">
+            <div className="eyebrow">PACKAGE VALIDATION & SAFETY</div><h1>MODULES</h1>
+            <p>Inspect a module package before installation. This preview does not modify your PES directory.</p>
+            <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Package preview</h3><p>Select a folder containing module.json. The manager validates its manifest and payload hashes, then shows every target file and whether it would be added or replaced.</p><button className="primary-button" disabled={!ready} onClick={() => void previewModule()}><FolderOpen size={16} /> SELECT PACKAGE TO PREVIEW</button></div></div>
+            {modulePreview && <div className="panel" style={{marginTop: 22, textAlign: "left"}}>
+              <div className="panel-heading"><div><div className="eyebrow">{modulePreview.category.toUpperCase()} · VERSION {modulePreview.version}</div><h3>{modulePreview.name}</h3></div><span className="coming-tag">VALIDATED</span></div>
+              <p>{modulePreview.description}</p>
+              <div className="integrity-row"><span>Module ID</span><b>{modulePreview.id}</b></div>
+              <div className="integrity-row"><span>License</span><b>{modulePreview.license.id}</b></div>
+              <div className="integrity-row"><span>Redistribution</span><b>{modulePreview.license.redistributionAllowed ? "ALLOWED BY MANIFEST" : "NOT ALLOWED"}</b></div>
+              <h3 style={{marginTop: 20}}>File changes ({modulePreview.files.length})</h3>
+              {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill good-pill"}>{file.action.toUpperCase()}</b></div>)}
+              <div className="integrity-note"><ShieldCheck size={15} /> Preview only. No files have been installed or replaced. Explicit approval and transactional installation are still being wired up.</div>
+            </div>}
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
+          </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Module system is being built</h3><p>This section will become operational as the package engine, validation, install transactions and rollback system are implemented. No fake install controls here.</p></div><span className="coming-tag">IN DEVELOPMENT</span></div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
