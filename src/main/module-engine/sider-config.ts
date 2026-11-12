@@ -43,7 +43,7 @@ export class SiderConfigManager {
       );
       const roots = hasLiveCpkFiles ? [".\\LiveCPK"] : [];
       const luaModules = [...new Set(journal.modules.flatMap(module =>
-        module.files.map(file => file.target.replace(/\\\\/g, "/"))
+        module.files.map(file => file.target.replace(/\\/g, "/"))
           .filter(target => /^modules\\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(target))
           .map(target => target.slice("modules/".length)),
       ))].sort((a, b) => a.localeCompare(b));
