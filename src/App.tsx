@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { GameStatus, InstalledModule, ModulePreview } from "../electron/preload";
+import type { GameStatus, InstalledModule, LibraryPackage, ModulePreview } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -44,6 +44,10 @@ export default function App() {
   const [notice, setNotice] = useState("Select your PES 2017 folder to begin.");
   const [modulePreview, setModulePreview] = useState<ModulePreview | null>(null);
   const [installedModules, setInstalledModules] = useState<InstalledModule[]>([]);
+  const [libraryPackages, setLibraryPackages] = useState<LibraryPackage[]>([]);
+  const [libraryBusy, setLibraryBusy] = useState(false);
+  const [librarySearch, setLibrarySearch] = useState("");
+  const [libraryCategory, setLibraryCategory] = useState("all");
   const [moduleActionBusy, setModuleActionBusy] = useState<string | null>(null);
   const refresh = useCallback(async () => {
     setBusy(true);
@@ -62,6 +66,17 @@ export default function App() {
     }
   };
 
+  const scanLibrary = async () => {
+    if (libraryBusy) return;
+    setLibraryBusy(true);
+    try { const packages = await window.nextgen.scanModuleLibrary(); setLibraryPackages(packages); setNotice("Library scan complete: " + packages.length + " package folder(s) inspected. Payload hashes were checked."); }
+    catch (error) { setNotice(error instanceof Error ? error.message : "Library scan failed."); }
+    finally { setLibraryBusy(false); }
+  };
+  const previewLibraryPackage = async (packageId: string) => {
+    try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setNotice("Library package revalidated. Review all target changes before installation."); } }
+    catch (error) { setNotice(error instanceof Error ? error.message : "Could not preview library package."); }
+  };
   const previewModule = async () => {
     try {
       const result = await window.nextgen.previewModule();
@@ -202,24 +217,20 @@ export default function App() {
             </div>
             <div className="notice"><span className="notice-mark">i</span>{notice}</div>
           </> : active === "Modules" ? <section className="page-placeholder">
-            <div className="eyebrow">PACKAGE VALIDATION & SAFETY</div><h1>MODULES</h1>
-            <p>Inspect a module package before installation. This preview does not modify your PES directory.</p>
-            <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Package preview</h3><p>Select a folder containing module.json. The manager validates its manifest and payload hashes, then shows every target file and whether it would be added or replaced.</p><button className="primary-button" disabled={!ready} onClick={() => void previewModule()}><FolderOpen size={16} /> SELECT PACKAGE TO PREVIEW</button></div></div>
-            {modulePreview && <div className="panel" style={{marginTop: 22, textAlign: "left"}}>
-              <div className="panel-heading"><div><div className="eyebrow">{modulePreview.category.toUpperCase()} · VERSION {modulePreview.version}</div><h3>{modulePreview.name}</h3></div><span className="coming-tag">VALIDATED</span></div>
-              <p>{modulePreview.description}</p>
-              <div className="integrity-row"><span>Module ID</span><b>{modulePreview.id}</b></div>
-              <div className="integrity-row"><span>License</span><b>{modulePreview.license.id}</b></div>
-              <div className="integrity-row"><span>Redistribution</span><b>{modulePreview.license.redistributionAllowed ? "ALLOWED BY MANIFEST" : "NOT ALLOWED"}</b></div>
-              <div className="integrity-row"><span>Dependencies</span><b>{modulePreview.dependencies.length ? modulePreview.dependencies.join(", ") : "NONE"}</b></div>
-              {modulePreview.alreadyInstalled && <div className="integrity-note">This module is already installed. Upgrade is not supported yet.</div>}
-              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {modulePreview.missingDependencies.join(", ")}. Install these first.</div>}
-              {modulePreview.conflicts.length > 0 && <div className="integrity-note">Conflicts with installed modules: {modulePreview.conflicts.join(", ")}. Installation is blocked.</div>}
-              <h3 style={{marginTop: 20}}>File changes ({modulePreview.files.length})</h3>
-              {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill good-pill"}>{file.action.toUpperCase()}</b></div>)}
-              <div className="integrity-note"><ShieldCheck size={15} /> Existing files will only be replaced after your confirmation. Backups are retained for uninstall and recovery.</div>
-              <button className="primary-button" disabled={modulePreview.alreadyInstalled || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0} onClick={() => void installPreviewedModule()}><Package size={16} /> CONFIRM & INSTALL MODULE</button>
-            </div>}
+            <div className="eyebrow">DISCOVER · VALIDATE · INSTALL</div><h1>MODULE LIBRARY</h1>
+            <p>Scan a local collection of PES 2017 packages. Every manifest and payload hash is checked before preview.</p>
+            <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Local package library</h3><p>Choose a folder whose immediate subfolders contain module.json and payload folders. Scanning is read-only.</p><button className="primary-button" disabled={libraryBusy} onClick={() => void scanLibrary()}><FolderOpen size={16} /> {libraryBusy ? "SCANNING..." : "SCAN PACKAGE FOLDER"}</button></div></div>
+            <div className="library-toolbar"><input value={librarySearch} onChange={event => setLibrarySearch(event.target.value)} placeholder="Search modules, descriptions or IDs..." /><select value={libraryCategory} onChange={event => setLibraryCategory(event.target.value)}><option value="all">All categories</option>{["graphics","stadiums","kits","players","gameplay","audio","scoreboards","tifos","patches","other"].map(category => <option key={category} value={category}>{category}</option>)}</select><span>{libraryPackages.length} PACKAGES</span></div>
+            {libraryPackages.filter(item => (libraryCategory === "all" || item.category === libraryCategory) && (item.name + " " + item.id + " " + item.description).toLowerCase().includes(librarySearch.toLowerCase())).length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>{libraryPackages.length ? "No matching packages" : "Your library is empty"}</h3><p>{libraryPackages.length ? "Try another search or category." : "No packages are bundled yet. Scan your own package collection."}</p></div></div> :
+              libraryPackages.filter(item => (libraryCategory === "all" || item.category === libraryCategory) && (item.name + " " + item.id + " " + item.description).toLowerCase().includes(librarySearch.toLowerCase())).map(item => <div className="panel library-card" key={item.id}>
+                <div className="panel-heading"><div><div className="eyebrow">{item.category.toUpperCase()} · VERSION {item.version}</div><h3>{item.name}</h3></div><span className="coming-tag">{!item.valid ? "INVALID" : item.alreadyInstalled ? "INSTALLED" : item.conflicts.length ? "CONFLICT" : item.missingDependencies.length ? "DEPENDENCIES MISSING" : "HASHES VERIFIED"}</span></div>
+                <p>{item.description}</p><div className="integrity-row"><span>Module ID</span><b>{item.id}</b></div><div className="integrity-row"><span>Payload files</span><b>{item.files}</b></div>
+                {item.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {item.missingDependencies.join(", ")}</div>}
+                {item.conflicts.length > 0 && <div className="integrity-note">Conflicts: {item.conflicts.join(", ")}</div>}
+                {item.errors.map(error => <div className="integrity-note" key={error}><ShieldCheck size={14}/>{error}</div>)}
+                <button className="small-action" disabled={!item.valid || item.alreadyInstalled || item.missingDependencies.length > 0 || item.conflicts.length > 0} onClick={() => void previewLibraryPackage(item.id)}>REVIEW INSTALLATION</button>
+              </div>)}
+            <div className="notice"><span className="notice-mark">i</span>Remote downloads are deliberately not enabled until package hosting, publisher identity and distribution permissions are established.</div>
             <div className="section-heading" style={{marginTop: 28}}><div><div className="eyebrow">LOCAL INSTALLATION</div><h2>Installed modules</h2></div><button className="text-button" disabled={busy} onClick={() => void refresh()}>REFRESH <RefreshCw size={14} /></button></div>
             {installedModules.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>No managed modules yet</h3><p>Install a validated module package to see it listed here. Existing third-party mods are not automatically claimed or modified.</p></div></div> :
               installedModules.map(module => <div className="panel" key={module.id} style={{marginTop: 10}}>
