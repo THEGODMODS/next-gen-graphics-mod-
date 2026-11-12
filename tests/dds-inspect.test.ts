@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { analyzeDds } from "../tools/dds-inspect.mjs";
+import { beforeAll, describe, expect, it } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 
 function dds(fourcc, block) {
   const offset = fourcc === "DX10" ? 148 : 128;
@@ -24,6 +24,11 @@ function bc3Block(red565 = 0xf800) {
   b.writeUInt32LE(0, 12);
   return b;
 }
+let analyzeDds: typeof import("../tools/dds-inspect.mjs").analyzeDds;
+beforeAll(async () => {
+  ({ analyzeDds } = await importNativeModule("../tools/dds-inspect.mjs"));
+});
+
 describe("DDS pixel inspector", () => {
   it("reports base-level dimensions and red-channel statistics for BC3", () => {
     const result = analyzeDds(dds("DXT5", bc3Block()));
