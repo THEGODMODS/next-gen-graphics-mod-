@@ -8,6 +8,8 @@ A valid DDS file is not automatically a valid PES 2017 replacement. PES 2017 use
 
 Run \`npm run audit:dds -- <folder>\` to recursively inspect DDS files before conversion or packaging. It checks DDS magic/header sizes, dimensions, mip-chain bounds, payload presence, and a conservative compression allowlist (BC1/BC2/BC3/BC5 and selected DXGI BC formats). It does not decode pixels, validate colour-space intent, verify game-specific swizzles, convert formats, or prove PES compatibility. Symlink entries are not followed. A failed audit exits non-zero.
 
+See [PES 2017 pitch resource discovery](PITCH_RESOURCE_DISCOVERY.md) for the verified stadium-server pitch subtree and the one-stadium-at-a-time discovery process.
+
 ## Required workflow for the first pitch pack
 
 1. Capture a clean baseline screenshot in a known stadium, weather, time-of-day, camera, resolution and graphics configuration.
