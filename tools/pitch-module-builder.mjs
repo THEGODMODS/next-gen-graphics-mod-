@@ -12,7 +12,7 @@ const ID = /^[a-z0-9]+(?:[.-][a-z0-9]+)+$/;
 const SHA = /^[a-f0-9]{64}$/i;
 
 function safeRelative(value, label) {
-  if (typeof value !== "string" || !value || value.includes("\\\\") || value.includes("\\0") ||
+  if (typeof value !== "string" || !value || value.includes("\\") || value.includes("\0") ||
       path.posix.isAbsolute(value) || /^[a-zA-Z]:/.test(value)) {
     throw new Error(label + " must be a safe relative POSIX path.");
   }
@@ -189,7 +189,7 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
       });
     }
 
-    await writeFile(path.join(stage, "module.json"), JSON.stringify(manifest, null, 2) + "\\n", { flag: "wx" });
+    await writeFile(path.join(stage, "module.json"), JSON.stringify(manifest, null, 2) + "\n", { flag: "wx" });
     // An existing empty destination is removed only after the complete package is staged.
     if (existing) await rmdir(output);
     await rename(stage, output);
