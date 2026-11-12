@@ -10,7 +10,7 @@ describe("pitch module builder",()=>{
   const root=await mkdtemp(path.join(os.tmpdir(),"pitch-builder-"));
   try{
    const stadium="common/bg/model/bg/pitch";
-   const original="pitch_diffuse.dds",payload=Buffer.from("original replacement texture");
+   const original="pitch_diffuse.bin",payload=Buffer.from("original replacement texture");
    const digest=createHash("sha256").update("original stadium resource").digest("hex");
    await mkdir(path.join(root,"source"),{recursive:true});
    await writeFile(path.join(root,"source","replacement.bin"),payload);
