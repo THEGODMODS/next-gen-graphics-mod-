@@ -5,7 +5,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import ddsService from "./dds-service.cjs";
 import pitchService from "./pitch-workflow.cjs";
-import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.mjs";
+import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.cjs";
 import { ModuleInstaller } from "../src/main/module-engine/installer";
 import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
