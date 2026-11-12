@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Keep only the newest pending main-branch quality run. This prevents a backlog
+# of superseded commits from consuming the repository's Actions queue.
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   validate:
