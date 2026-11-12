@@ -4,6 +4,7 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import ddsService from "./dds-service.cjs";
+import pitchService from "./pitch-workflow.cjs";
 import { ModuleInstaller } from "../src/main/module-engine/installer";
 import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
@@ -16,6 +17,8 @@ let gameDirectory: string | null = null;
 let pendingPackage: { root: string; id: string; version: string } | null = null;
 let libraryPackages = new Map<string, string>();
 let selectedDds: { original: string | null; replacement: string | null } = { original: null, replacement: null };
+let selectedPitchInventory: Awaited<ReturnType<typeof pitchService.scan>> | null = null;
+let selectedPitchReplacement: string | null = null;
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
@@ -103,6 +106,36 @@ async function loadAndRecover() {
   }
 }
 function registerIpc() {
+  ipcMain.handle("pitch:scan", async event => {
+    assertTrustedSender(event);
+    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select Stadium Server stadium folder", properties: ["openDirectory"] });
+    if (picked.canceled || !picked.filePaths[0]) return null;
+    const inventory = await pitchService.scan(picked.filePaths[0], app.getAppPath());
+    selectedPitchInventory = inventory;
+    selectedPitchReplacement = null;
+    return inventory;
+  });
+  ipcMain.handle("pitch:choose-replacement", async (event, inventoryPath: unknown) => {
+    assertTrustedSender(event);
+    if (!selectedPitchInventory || typeof inventoryPath !== "string") throw new Error("Scan a Stadium Server folder and select a pitch resource first.");
+    const record = selectedPitchInventory.records.find(item => item.path === inventoryPath && typeof item.sha256 === "string");
+    if (!record) throw new Error("Selected pitch resource is not part of the current inventory.");
+    const extension = path.extname(record.path).slice(1).toLowerCase();
+    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Choose replacement for " + record.path, properties: ["openFile"], filters: [{ name: extension.toUpperCase() + " replacement", extensions: [extension] }] });
+    if (picked.canceled || !picked.filePaths[0]) return null;
+    selectedPitchReplacement = picked.filePaths[0];
+    return path.basename(selectedPitchReplacement);
+  });
+  ipcMain.handle("pitch:build", async (event, args: { inventoryPath?: unknown; moduleId?: unknown; moduleName?: unknown }) => {
+    assertTrustedSender(event);
+    if (!selectedPitchInventory || !selectedPitchReplacement) throw new Error("Scan a stadium folder, select a resource and choose its replacement first.");
+    if (typeof args?.inventoryPath !== "string" || typeof args?.moduleId !== "string" || typeof args?.moduleName !== "string") throw new Error("Invalid pitch module details.");
+    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Choose parent folder for the generated module", properties: ["openDirectory", "createDirectory"] });
+    if (picked.canceled || !picked.filePaths[0]) return null;
+    const result = await pitchService.build({ stadiumFolder: selectedPitchInventory.stadiumRoot, inventory: selectedPitchInventory, inventoryPath: args.inventoryPath, replacementPath: selectedPitchReplacement, moduleId: args.moduleId, moduleName: args.moduleName, outputParent: picked.filePaths[0] }, app.getAppPath());
+    selectedPitchReplacement = null;
+    return result;
+  });
   ipcMain.handle("dds:choose", async (event, role: "original" | "replacement") => {
     assertTrustedSender(event);
     if (role !== "original" && role !== "replacement") throw new Error("Invalid DDS selection role.");
