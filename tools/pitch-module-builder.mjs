@@ -164,7 +164,9 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
 
   const parent = path.dirname(output);
   const stage = path.join(parent, "." + path.basename(output) + ".stage-" + randomUUID());
-  const existing = await lstat(output).catch(() => null);
+  let existing = null;
+  try { existing = await lstat(output); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
   if (existing && (!existing.isDirectory() || existing.isSymbolicLink())) {
     throw new Error("Output path must be a real directory.");
   }
