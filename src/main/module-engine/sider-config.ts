@@ -18,6 +18,7 @@ async function withSiderLock<T>(stateDirectory: string, action: () => Promise<T>
 
 export interface SiderSyncResult {
   registeredRoots: string[];
+  registeredLuaModules: string[];
   changed: boolean;
   backupPath: string | null;
 }
@@ -41,11 +42,16 @@ export class SiderConfigManager {
         module.files.some(file => file.target.replace(/\\/g, "/").toLowerCase().startsWith("livecpk/")),
       );
       const roots = hasLiveCpkFiles ? [".\\LiveCPK"] : [];
+      const luaModules = [...new Set(journal.modules.flatMap(module =>
+        module.files.map(file => file.target.replace(/\\\\/g, "/"))
+          .filter(target => /^modules\\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(target))
+          .map(target => target.slice("modules/".length)),
+      ))].sort((a, b) => a.localeCompare(b));
       const original = await fs.readFile(iniPath, "utf8");
-      const updated = roots.length
-        ? upsertManagedSiderBlock(original, { luaModules: [], liveCpkRoots: roots })
+      const updated = roots.length || luaModules.length
+        ? upsertManagedSiderBlock(original, { luaModules, liveCpkRoots: roots })
         : removeManagedSiderBlock(original);
-      if (updated === original) return { registeredRoots: roots, changed: false, backupPath: null };
+      if (updated === original) return { registeredRoots: roots, registeredLuaModules: luaModules, changed: false, backupPath: null };
 
       const backupDirectory = path.join(this.stateDirectory, "sider-backups");
       await fs.mkdir(backupDirectory, { recursive: true });
@@ -62,7 +68,7 @@ export class SiderConfigManager {
         try { await fs.copyFile(backupPath, iniPath); } catch { /* Keep backup for manual recovery. */ }
         throw error;
       }
-      return { registeredRoots: roots, changed: true, backupPath };
+      return { registeredRoots: roots, registeredLuaModules: luaModules, changed: true, backupPath };
     });
   }
 }
