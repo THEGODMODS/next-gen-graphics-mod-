@@ -13,7 +13,8 @@
     "clean": "rimraf dist dist-electron release",
     "test": "vitest run",
     "audit:dds": "node tools/dds-audit.mjs",
-    "inventory:pitch": "node tools/pitch-inventory.mjs"
+    "inventory:pitch": "node tools/pitch-inventory.mjs",
+    "build:pitch-module": "node tools/pitch-module-builder.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
