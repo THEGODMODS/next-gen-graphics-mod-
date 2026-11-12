@@ -22,10 +22,12 @@ The module engine validates package metadata and paths before any game-directory
 - Recovery preserves files that no longer match the transaction's expected hash, avoiding overwriting later user edits.
 - Best-effort transaction rollback on an install error.
 - Uninstall removes only files whose current SHA-256 still matches the manager's journal. Modified files are preserved and reported. Backups are restored when present.
+- Installed module dependency IDs are persisted for newly installed packages. Uninstall checks reverse dependencies before touching any target files.
+- The desktop Modules screen exposes individual uninstall with a confirmation step, and attempts to synchronize Sider registrations after removal. A Sider synchronization failure is reported separately from the completed file removal.
 
 ## Important limitations
 
-- Module upgrades and dependency removal planning are not enabled yet.
+- Module upgrades are not enabled yet. Uninstall is blocked when another journaled module declares a dependency on the selected module; older journals without dependency metadata remain readable.
 - Lua module registration and Sider configuration edits are not part of this transaction yet.
 - Electron exposes a package preview that validates the manifest and payload hashes, reports file additions/replacements and dependency/conflict status, and does not write to the game folder.\n- The Modules screen requires a separate confirmation before calling the transactional installer; the confirmation lists replacement targets, which are backed up before being replaced.\n- A package preview is invalidated when the selected game folder changes. The package manifest is re-read and revalidated at install time.
 - Lua module registration and Sider INI edits remain outside the install transaction; modules that require those changes are not fully activated yet.
@@ -43,3 +45,6 @@ Disabling a Lua module removes only its manager-owned `lua.module` entry; it
 does not delete the Lua file. Uninstall remains a separate operation and keeps
 the install journal's hash-guarded restore/preserve behavior. Modules not
 owned by the install journal cannot be toggled by this interface.
+
+
+Legacy journals remain compatible: missing dependency arrays are treated as having no recorded dependencies. This is necessarily less protective for packages installed before dependency metadata was stored; those modules should be reviewed before removal.
