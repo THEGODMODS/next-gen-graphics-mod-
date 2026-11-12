@@ -4,6 +4,7 @@ export type DdsTexture = { file: string; width: number; height: number; format: 
 export type DdsComparison = { compatibleForPixelComparison: true; width: number; height: number; format: string; analyzedMip: 0; pixelsCompared: number; changedPixelPercent: number; channels: Record<string, { meanAbsoluteError: number; rootMeanSquareError: number; maximumAbsoluteError: number }>; limitations: string[] };
 export type PitchInventoryRecord = { path: string; extension?: string; bytes?: number; sha256?: string; kind?: string; warning?: string; dds?: { valid: boolean; format?: string; width?: number; height?: number; errors?: string[] } };
 export type PitchInventory = { schemaVersion: 1; stadiumFolder: string; stadiumRoot: string; subtree: string; fileCount: number; records: PitchInventoryRecord[] };
+export type PitchLogReport = { schemaVersion: 1; totalLines: number; scannedLines: number; truncated: boolean; matchedLines: number; uniqueResources: number; issueLines: number; positiveLines: number; references: Array<{path:string;occurrences:number;issueOccurrences:number;positiveOccurrences:number}>; evidence: Array<{line:number;classification:"issue"|"positive"|"unclassified";text:string}>; limitations: string[] };
 export type RecoveryStatus = { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string };
 export type ModulePreview = {
   id: string; name: string; version: string; category: string; description: string;
@@ -20,6 +21,7 @@ export type GameStatus = {
   liveCpkEnabled: boolean; luaEnabled: boolean; luaModules: string[]; startupRecovery: RecoveryStatus;
 };
 const api = {
+  analyzeSiderPitchLog: (): Promise<{fileName:string;report:PitchLogReport} | null> => ipcRenderer.invoke("sider:analyze-pitch-log"),
   scanPitchFolder: (): Promise<PitchInventory | null> => ipcRenderer.invoke("pitch:scan"),
   choosePitchReplacement: (inventoryPath: string): Promise<string | null> => ipcRenderer.invoke("pitch:choose-replacement", inventoryPath),
   buildPitchModule: (args: { inventoryPath: string; moduleId: string; moduleName: string }): Promise<{ moduleId: string; files: number; output: string } | null> => ipcRenderer.invoke("pitch:build", args),
