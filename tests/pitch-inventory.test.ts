@@ -1,9 +1,14 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { inventoryPitch } from "../tools/pitch-inventory.mjs";
+
+let inventoryPitch: typeof import("../tools/pitch-inventory.mjs").inventoryPitch;
+beforeAll(async () => {
+  ({ inventoryPitch } = await importNativeModule("../tools/pitch-inventory.mjs"));
+});
 
 describe("pitch inventory API", () => {
   it("returns a stable relative resource path and SHA-256", async () => {
