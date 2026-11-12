@@ -31,3 +31,15 @@ The module engine validates package metadata and paths before any game-directory
 - Lua module registration and Sider INI edits remain outside the install transaction; modules that require those changes are not fully activated yet.
 - Recovery has automated unit-test coverage committed, but a passing CI run and Windows filesystem behavior have not yet been confirmed.
 - Filesystem operations must be tested on Windows with real PES directories before release. Reparse-point behavior differs by platform, so this implementation rejects detected symbolic links and rechecks target parents immediately before writes.
+
+
+## Installed module controls
+
+The Modules view lists journal-owned packages and their managed file targets.
+For each installed Lua payload, the user can enable or disable its Sider
+registration independently. Activation state is stored in manager state and
+the Sider INI is synchronized through the existing backup-and-verify flow.
+Disabling a Lua module removes only its manager-owned `lua.module` entry; it
+does not delete the Lua file. Uninstall remains a separate operation and keeps
+the install journal's hash-guarded restore/preserve behavior. Modules not
+owned by the install journal cannot be toggled by this interface.
