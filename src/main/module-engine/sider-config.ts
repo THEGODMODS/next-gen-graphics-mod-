@@ -38,9 +38,9 @@ export class SiderConfigManager {
 
       const journal = await new JournalStore(this.stateDirectory).read();
       const hasLiveCpkFiles = journal.modules.some(module =>
-        module.files.some(file => /^LiveCPK\\//i.test(file.target.replace(/\\\\/g, "/"))),
+        module.files.some(file => file.target.replace(/\\/g, "/").toLowerCase().startsWith("livecpk/")),
       );
-      const roots = hasLiveCpkFiles ? [".\\\\LiveCPK"] : [];
+      const roots = hasLiveCpkFiles ? [".\\LiveCPK"] : [];
       const original = await fs.readFile(iniPath, "utf8");
       const updated = roots.length
         ? upsertManagedSiderBlock(original, { luaModules: [], liveCpkRoots: roots })
