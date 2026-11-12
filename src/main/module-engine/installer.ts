@@ -182,7 +182,11 @@ export class ModuleInstaller {
       const plan: Array<{ source: string; target: string; hash: string; existed: boolean; backup: string | null }> = [];
 
       // Preflight the entire package before touching the game directory.
-      for (const entry of manifest.files) {
+      const packageEntries = [
+        ...manifest.files,
+        ...manifest.luaModules.map(module => ({ source: module.source, target: "modules/" + module.moduleName, sha256: module.sha256 })),
+      ];
+      for (const entry of packageEntries) {
         const sourceRelative = normalizeSafeRelativePath(entry.source);
         const targetRelative = normalizeSafeRelativePath(entry.target);
         const source = resolveInsideRoot(packageRoot, sourceRelative);
