@@ -11,6 +11,8 @@ export interface InstalledModuleRecord {
   id: string;
   version: string;
   installedAt: string;
+  /** Optional for journals created before dependency-aware removal. */
+  dependencies?: string[];
   files: ManagedFileRecord[];
 }
 export interface PendingTransactionFile {
