@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "PES 2017 Next Gen desktop manager",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/electron/main.js",
   "scripts": {
     "predev": "tsc -p electron",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
