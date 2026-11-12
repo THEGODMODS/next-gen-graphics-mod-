@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview } from "../electron/preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory } from "../electron/preload";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -53,6 +53,12 @@ export default function App() {
   const [replacementDds, setReplacementDds] = useState<DdsTexture | null>(null);
   const [ddsComparison, setDdsComparison] = useState<DdsComparison | null>(null);
   const [ddsBusy, setDdsBusy] = useState(false);
+  const [pitchInventory, setPitchInventory] = useState<PitchInventory | null>(null);
+  const [pitchTarget, setPitchTarget] = useState("");
+  const [pitchReplacement, setPitchReplacement] = useState("");
+  const [pitchId, setPitchId] = useState("studio.custom-pitch");
+  const [pitchName, setPitchName] = useState("Custom Pitch Replacement");
+  const [pitchBusy, setPitchBusy] = useState(false);
   const refresh = useCallback(async () => {
     setBusy(true);
     try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
@@ -220,7 +226,30 @@ export default function App() {
               <section className="panel system-panel"><div className="panel-heading"><div><div className="eyebrow">INSTALLATION REPORT</div><h3>System integrity</h3></div><ShieldCheck size={18} /></div><div className="integrity-row"><span>Game executable</span><b className={ready ? "pill good-pill" : "pill"}>{ready ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Sider configuration</span><b className={siderReady ? "pill good-pill" : "pill"}>{siderReady ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Automatic file cleanup</span><b className="pill safe-pill">DISABLED</b></div><div className="integrity-note"><ShieldCheck size={15} /> Unknown files and personal game data are never deleted automatically.</div></section>
             </div>
             <div className="notice"><span className="notice-mark">i</span>{notice}</div>
-          </> : active === "Graphics" ? <section className="page-placeholder">
+          </> : active === "Stadiums & Turf" ? <section className="page-placeholder">
+            <div className="eyebrow">STADIUM SERVER · LIVECPK</div><h1>PITCH BUILDER</h1>
+            <p>Inventory a Stadium Server pitch folder, map one exact resource to a replacement, then package it as a validated installable module.</p>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">STEP 01 · SOURCE INVENTORY</div><h3>Scan stadium resources</h3></div><span className="coming-tag">{pitchInventory ? pitchInventory.fileCount+" FILES" : "NOT SCANNED"}</span></div>
+              <p>Choose the stadium folder containing <code>common/bg/model/bg/pitch</code>. The scan is read-only, hashes files and does not modify the stadium.</p>
+              <button className="primary-button" disabled={pitchBusy} onClick={async () => { setPitchBusy(true); try { const result = await window.nextgen.scanPitchFolder(); if (result) { setPitchInventory(result); setPitchTarget(""); setPitchReplacement(""); setNotice("Pitch inventory complete: "+result.fileCount+" regular files. Choose the exact DDS resource to replace."); } } catch(error) { setNotice(error instanceof Error ? error.message : "Pitch inventory failed."); } finally { setPitchBusy(false); } }}><FolderOpen size={15}/> {pitchBusy ? "SCANNING..." : "SELECT STADIUM FOLDER & SCAN"}</button>
+              {pitchInventory && <><div className="integrity-row"><span>Stadium folder</span><b>{pitchInventory.stadiumFolder}</b></div><div className="integrity-row"><span>Resource subtree</span><b>{pitchInventory.subtree}</b></div><div className="integrity-row"><span>Files fingerprinted</span><b>{pitchInventory.fileCount}</b></div></>}
+            </div>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">STEP 02 · RESOURCE MAPPING</div><h3>Choose one pitch texture</h3></div><span className="coming-tag">ONE RESOURCE PER BUILD</span></div>
+              <label className="pitch-label">INVENTORIED DDS RESOURCE</label>
+              <select className="pitch-select" value={pitchTarget} disabled={!pitchInventory || pitchBusy} onChange={event => { setPitchTarget(event.target.value); setPitchReplacement(""); }}><option value="">Select an inventoried DDS file…</option>{pitchInventory?.records.filter(item => item.sha256 && item.extension === ".dds").map(item => <option key={item.path} value={item.path}>{item.path} · {item.dds?.valid ? (item.dds.width+"×"+item.dds.height+" "+(item.dds.format ?? "DDS")) : "DDS header needs review"}</option>)}</select>
+              <button className="secondary-button" disabled={!pitchTarget || pitchBusy} onClick={async () => { setPitchBusy(true); try { const file = await window.nextgen.choosePitchReplacement(pitchTarget); if (file) { setPitchReplacement(file); setNotice("Replacement selected: "+file+". The package builder will audit the staged DDS."); } } catch(error) { setNotice(error instanceof Error ? error.message : "Could not select replacement."); } finally { setPitchBusy(false); } }}><FolderOpen size={15}/> {pitchReplacement ? "REPLACEMENT: "+pitchReplacement : "CHOOSE REPLACEMENT DDS"}</button>
+              {pitchTarget && <div className="dds-note">Original SHA-256: {pitchInventory?.records.find(item => item.path === pitchTarget)?.sha256}</div>}
+            </div>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">STEP 03 · PACKAGE GENERATION</div><h3>Create installable module</h3></div><span className="coming-tag">PRIVATE USE</span></div>
+              <label className="pitch-label">MODULE ID</label><input className="pitch-input" value={pitchId} onChange={event => setPitchId(event.target.value)} placeholder="studio.my-pitch"/>
+              <label className="pitch-label">DISPLAY NAME</label><input className="pitch-input" value={pitchName} onChange={event => setPitchName(event.target.value)} placeholder="My Pitch Replacement"/>
+              <button className="primary-button" disabled={pitchBusy || !pitchInventory || !pitchTarget || !pitchReplacement || !pitchId.trim() || !pitchName.trim()} onClick={async () => { setPitchBusy(true); try { const result = await window.nextgen.buildPitchModule({inventoryPath:pitchTarget,moduleId:pitchId.trim(),moduleName:pitchName.trim()}); if (result) { const preview = await window.nextgen.previewModule(result.moduleId); if (preview) { setModulePreview(preview); setActive("Modules"); setNotice("Built "+result.moduleId+" with "+result.files+" file(s). The generated package has been revalidated; review the installation preview before applying it. Output: "+result.output); } } } catch(error) { setNotice(error instanceof Error ? error.message : "Pitch module build failed."); } finally { setPitchBusy(false); } }}>{pitchBusy ? "BUILDING & VALIDATING..." : "BUILD MODULE & REVIEW INSTALL"}</button>
+            </div>
+            <div className="notice"><span className="notice-mark">i</span>Builder verifies the original resource has not changed since inventory, checks the replacement DDS and creates a private-use package with redistribution disabled. It does not create textures or prove PES loads them. Test one resource at a time with Sider logs and a backed-up game.</div>
+          </section> : active === "Graphics" ? <section className="page-placeholder">
             <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
             <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
             <div className="dds-toolbar">
