@@ -56,7 +56,7 @@ describe("Sider configuration sync", () => {
     expect(before).not.toContain("NEXTGEN MANAGED CONFIG");
   });
 
-  it("refuses a symlinked sider.ini", async () => {
+  it.skipIf(process.platform === "win32")("refuses a symlinked sider.ini", async () => {
     const f = await fixture();
     await fs.rm(f.ini);
     await fs.symlink(path.join(f.root, "missing.ini"), f.ini);
