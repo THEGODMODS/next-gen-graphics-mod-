@@ -7,9 +7,9 @@
   "scripts": {
     "predev": "tsc -p electron",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "tsc -b && vite build && tsc -p electron/tsconfig.json",
+    "build": "tsc --noEmit && vite build && tsc -p electron/tsconfig.json",
     "dist:win": "npm run build && electron-builder --win nsis",
-    "typecheck": "tsc -b --pretty",
+    "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release"
   },
   "dependencies": {
