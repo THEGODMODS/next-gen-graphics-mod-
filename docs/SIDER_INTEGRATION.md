@@ -42,15 +42,15 @@ It replaces only its own block, sorts and de-duplicates requested registrations,
 and refuses malformed or duplicate ownership markers. Removal likewise targets
 only the delimited block.
 
-The desktop app now exposes an explicit LiveCPK root synchronization action. Lua payload installation and registration, Sider version detection, and live-game verification are still not implemented.
+The desktop app exposes an explicit synchronization action for installed LiveCPK roots and Lua modules. Runtime version detection and live-game verification remain outstanding.
 
 
 ## LiveCPK root synchronization in the desktop manager
 
-The manager now has an explicit **Register LiveCPK roots** action. It reads the
+The manager has an explicit **Register installed modules** action. It reads the
 installed-module journal and registers the game's `LiveCPK` directory only
-when at least one installed module owns files beneath `LiveCPK/`. It does not
-register roots for uninstalled package previews.
+when an installed module owns files beneath `LiveCPK/`. It does not register
+roots or Lua modules from uninstalled package previews.
 
 Before changing `sider.ini`, the manager requires a regular, non-symlink file,
 creates a timestamped backup under its private manager-state directory, updates
