@@ -8,8 +8,8 @@ export function normalizeSafeRelativePath(input: unknown): string {
   if (typeof input !== "string" || input.length === 0) {
     throw new Error("Path must be a non-empty string.");
   }
-  if (input.includes("\\0")) throw new Error("Path contains a null byte.");
-  if (input.includes("\\\\")) throw new Error("Use forward slashes in module paths.");
+  if (input.includes("\0")) throw new Error("Path contains a null byte.");
+  if (input.includes("\\")) throw new Error("Use forward slashes in module paths.");
   if (input.startsWith("/") || /^[a-zA-Z]:/.test(input) || input.startsWith("//")) {
     throw new Error("Absolute paths are not allowed.");
   }
