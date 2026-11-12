@@ -5,6 +5,7 @@ export interface ManagedFileRecord {
   target: string;
   sha256: string;
   backupPath: string | null;
+  backupSha256: string | null;
 }
 
 export interface InstalledModuleRecord {
