@@ -72,11 +72,11 @@ export function validateModuleManifest(input: unknown): ManifestValidation {
       try { normalizeSafeRelativePath(entry.source); } catch (error) {
         errors.push(`luaModules[${index}].source: ${(error as Error).message}`);
       }
-      add(typeof entry.moduleName === "string" && /^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(entry.moduleName) && !entry.moduleName.includes(".."),
+      add(typeof entry.moduleName === "string" && /^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(entry.moduleName) && !entry.moduleName.includes(".."),
         `luaModules[${index}].moduleName must be a safe Lua filename ending in .lua.`);
       add(typeof entry.sha256 === "string" && sha256Pattern.test(entry.sha256),
         `luaModules[${index}].sha256 must be a 64-character SHA-256 hex digest.`);
-      if (typeof entry.moduleName === "string" && /^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(entry.moduleName)) {
+      if (typeof entry.moduleName === "string" && /^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(entry.moduleName)) {
         const target = "modules/" + entry.moduleName;
         if (seenTargets.has(target.toLowerCase())) errors.push(`Duplicate target: ${target}`);
         seenTargets.add(target.toLowerCase());
