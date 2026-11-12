@@ -26,6 +26,16 @@ jobs:
         run: npm install
       - name: TypeScript validation
         run: npm run typecheck
+      - name: Native Node ESM smoke test
+        run: >-
+          node --input-type=module -e "await Promise.all([
+          './tools/dds-audit.mjs',
+          './tools/dds-compare.mjs',
+          './tools/dds-inspect.mjs',
+          './tools/dds-preview.mjs',
+          './tools/pitch-inventory.mjs',
+          './tools/pitch-module-builder.mjs'
+          ].map((file) => import(file)))"
       - name: Unit tests
         run: npm test
       - name: Production build
