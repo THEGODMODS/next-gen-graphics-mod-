@@ -62,4 +62,19 @@ describe("Sider configuration sync", () => {
     await fs.symlink(path.join(f.root, "missing.ini"), f.ini);
     await expect(new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots()).rejects.toThrow("regular file");
   });
+  it("registers only installed Lua module files with Sider", async () => {
+    const f = await fixture();
+    const journal = new JournalStore(f.state);
+    const data = await journal.read();
+    data.modules.push({ id: "studio.weather", version: "1.0.0", installedAt: new Date().toISOString(),
+      files: [{ target: "modules/nextgen-weather.lua", sha256: "b".repeat(64), backupPath: null, backupSha256: null }] });
+    await journal.write(data);
+    const result = await new SiderConfigManager(f.root, f.state).syncInstalledLiveCpkRoots();
+    const ini = await fs.readFile(f.ini, "utf8");
+    expect(result.registeredLuaModules).toEqual(["nextgen-weather.lua"]);
+    expect(ini).toContain("lua.enabled = 1");
+    expect(ini).toContain('lua.module = "nextgen-weather.lua"');
+    expect(ini).toContain("user config");
+  });
+
 });
