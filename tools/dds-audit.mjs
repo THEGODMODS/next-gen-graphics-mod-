@@ -24,8 +24,10 @@ export function inspectDds(buffer){
  if(flags&4){const code=buffer.toString("ascii",84,88);if(code==="DX10"){if(buffer.length<148)errors.push("Truncated DDS DX10 extension header.");else{const dxgi=buffer.readUInt32LE(128);format=DXGI.get(dxgi)??"UNSUPPORTED_DXGI_"+dxgi;dataOffset=148;}}else format=FOURCC.get(code)??"UNSUPPORTED_FOURCC_"+code;}
  else if(flags&0x40)format="UNSUPPORTED_UNCOMPRESSED_RGB";
  if(format.startsWith("UNSUPPORTED")||format==="UNKNOWN")errors.push("Texture format is not in the audited allowlist.");
- const required=expectedPayloadBytes(width,height,mipCount,format);
- if(buffer.length<dataOffset+required)errors.push(`Texture payload is truncated: expected at least ${required} bytes, found ${Math.max(0,buffer.length-dataOffset)}.`);
+ const dimensionsSane=width>0&&height>0&&width<=MAX_DIMENSION&&height<=MAX_DIMENSION;
+ const mipChainSane=mipCount<=maxMips;
+ const required=dimensionsSane&&mipChainSane?expectedPayloadBytes(width,height,mipCount,format):0;
+ if(required&&buffer.length<dataOffset+required)errors.push(`Texture payload is truncated: expected at least ${required} bytes, found ${Math.max(0,buffer.length-dataOffset)}.`);
  return{valid:errors.length===0,width,height,mipCount,format,dataOffset,requiredPayloadBytes:required,actualPayloadBytes:Math.max(0,buffer.length-dataOffset),bytes:buffer.length,errors};
 }
 async function walk(dir,results){for(const entry of await readdir(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isSymbolicLink()){results.push({file:full,valid:false,errors:["Symbolic links are not followed."]});continue;}if(entry.isDirectory())await walk(full,results);else if(entry.isFile()&&entry.name.toLowerCase().endsWith(".dds")){try{results.push({file:full,...inspectDds(await readFile(full))});}catch(error){results.push({file:full,valid:false,errors:[error.message]});}}}}
