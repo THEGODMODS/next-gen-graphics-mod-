@@ -82,9 +82,6 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
       !descriptor.license.id.trim() || typeof descriptor.license.redistributionAllowed !== "boolean") {
     throw new Error("Explicit license metadata is required.");
   }
-  if (descriptor.license.redistributionAllowed !== true) {
-    throw new Error("The declared license does not permit redistribution; refusing to package it.");
-  }
   if (inventory.schemaVersion !== 1 || inventory.subtree !== PITCH_SUBTREE) {
     throw new Error("Inventory is not a supported Stadium Server pitch inventory.");
   }
