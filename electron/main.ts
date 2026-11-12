@@ -8,6 +8,7 @@ import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "../src/main/module-engine/path-safety";
 import { verifySha256 } from "../src/main/module-engine/sha256";
+import { SiderConfigManager } from "../src/main/module-engine/sider-config";
 
 let mainWindow: BrowserWindow | null = null;
 let gameDirectory: string | null = null;
@@ -149,6 +150,12 @@ function registerIpc() {
     return installer.install(selected.root, manifest, {
       approvedOverwriteTargets: manifest.files.map(file => normalizeSafeRelativePath(file.target))
     });
+  });
+  ipcMain.handle("sider:sync-livecpk", async event => {
+    assertTrustedSender(event);
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    const result = await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledLiveCpkRoots();
+    return result;
   });
   ipcMain.handle("sider:launch", event => {
     assertTrustedSender(event);
