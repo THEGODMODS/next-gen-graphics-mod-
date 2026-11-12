@@ -11,3 +11,6 @@ The selected folder must contain `common/bg/model/bg/pitch`. The command recursi
 Save the JSON output with the stadium's name/ID and keep it private if it exposes locally installed third-party content. The inventory is a discovery artifact, not proof that every listed file is loaded by PES 2017. Use Sider logs and one-file-at-a-time tests to establish runtime requests before creating replacements.
 
 The inventory intentionally does not extract, convert, rewrite, or package any resource. It does not claim support for proprietary Ftex/container formats.
+
+
+Once an inventory and original replacement texture are available, use the [verified pitch module builder](PITCH_MODULE_BUILDER.md) to package an exact-path LiveCPK replacement. The builder rejects stale inventory fingerprints and does not infer runtime resource usage.
