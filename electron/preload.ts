@@ -4,6 +4,7 @@ export type RecoveryStatus = { status: "not-needed" | "recovered" | "blocked"; f
 export type ModulePreview = {
   id: string; name: string; version: string; category: string; description: string;
   license: { id: string; redistributionAllowed: boolean };
+  dependencies: string[]; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean;
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
 export type GameStatus = {
@@ -14,6 +15,7 @@ const api = {
   getStatus: (): Promise<GameStatus> => ipcRenderer.invoke("game:get-status"),
   chooseGameDirectory: (): Promise<string | null> => ipcRenderer.invoke("game:choose-directory"),
   previewModule: (): Promise<ModulePreview | null> => ipcRenderer.invoke("modules:preview"),
+  installPreviewedModule: (): Promise<{ moduleId: string; installedFiles: string[]; backups: string[] }> => ipcRenderer.invoke("modules:install-previewed"),
   launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch")
 };
 contextBridge.exposeInMainWorld("nextgen", api);
