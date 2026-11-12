@@ -18,6 +18,7 @@ declare global {
       setLuaModuleEnabled: (moduleName: string, enabled: boolean) => Promise<SiderSyncResult>;
       syncSiderModules: () => Promise<SiderSyncResult>;
       launchSider: () => Promise<{ ok: boolean; message: string }>;
+      openContentSource: (sourceId: string) => Promise<void>;
     };
   }
 }
