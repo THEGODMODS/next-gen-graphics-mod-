@@ -167,7 +167,7 @@ function registerIpc() {
     if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
     const installer = new ModuleInstaller(gameDirectory, stateDirectory());
     return installer.install(selected.root, manifest, {
-      approvedOverwriteTargets: manifest.files.map(file => normalizeSafeRelativePath(file.target))
+      approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
     });
   });
   ipcMain.handle("sider:sync-installed-modules", async event => {
