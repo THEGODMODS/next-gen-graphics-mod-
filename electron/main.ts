@@ -170,7 +170,7 @@ function registerIpc() {
       approvedOverwriteTargets: manifest.files.map(file => normalizeSafeRelativePath(file.target))
     });
   });
-  ipcMain.handle("sider:sync-livecpk", async event => {
+  ipcMain.handle("sider:sync-installed-modules", async event => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
     const result = await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
