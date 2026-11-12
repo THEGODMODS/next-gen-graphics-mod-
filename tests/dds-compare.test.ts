@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { compareDds } from "../tools/dds-compare.mjs";
+import { beforeAll, describe, expect, it } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 
 function dds(fourcc, block, width = 4) {
   const blocks = Math.ceil(width / 4);
@@ -13,6 +13,11 @@ function bc3(red565) {
   const block = Buffer.alloc(16); block[0] = 255; block[1] = 255;
   block.writeUInt16LE(red565, 8); block.writeUInt16LE(0, 10); return block;
 }
+let compareDds: typeof import("../tools/dds-compare.mjs").compareDds;
+beforeAll(async () => {
+  ({ compareDds } = await importNativeModule("../tools/dds-compare.mjs"));
+});
+
 describe("DDS decoded pixel comparison", () => {
   it("reports zero error for identical decoded pixels", () => {
     const file = dds("DXT5", bc3(0xf800));
