@@ -1,7 +1,8 @@
-import type { DdsComparison, DdsTexture, GameStatus, PitchInventory, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
+import type { DdsComparison, DdsTexture, GameStatus, PitchInventory, PitchLogReport, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
 declare global {
   interface Window {
     nextgen: {
+      analyzeSiderPitchLog: () => Promise<{ fileName: string; report: PitchLogReport } | null>;
       scanPitchFolder: () => Promise<PitchInventory | null>;
       choosePitchReplacement: (inventoryPath: string) => Promise<string | null>;
       buildPitchModule: (args: { inventoryPath: string; moduleId: string; moduleName: string }) => Promise<{ moduleId: string; files: number; output: string } | null>;
