@@ -6,5 +6,7 @@ await mkdir(destination, { recursive: true });
 await Promise.all(["dds-service.cjs", "pitch-workflow.cjs"].map(name => copyFile(path.join(root, "electron", name), path.join(destination, name))));
 const toolDestination = path.join(root, "dist-electron", "tools");
 await mkdir(toolDestination, { recursive: true });
-await copyFile(path.join(root, "tools", "sider-pitch-log.mjs"), path.join(toolDestination, "sider-pitch-log.mjs"));
-console.log("Copied Electron runtime service and pitch-log analyzer assets.");
+await Promise.all(["sider-pitch-log.cjs", "sider-pitch-log.mjs"].map(name =>
+  copyFile(path.join(root, "tools", name), path.join(toolDestination, name))
+));
+console.log("Copied Electron runtime services and pitch-log analyzer assets.");
