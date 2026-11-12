@@ -49,7 +49,7 @@ async function build({ stadiumFolder, inventory, inventoryPath, replacementPath,
     await fs.writeFile(descriptorPath, JSON.stringify(descriptor, null, 2), { flag: "wx" });
     await fs.writeFile(inventoryFile, JSON.stringify(inventory), { flag: "wx" });
     const tools = await loadTools(root);
-    return await tools.builder.buildPitchModule({ descriptorPath, inventoryPath: inventoryFile, outputPath, stadiumFolder });
+    return await tools.builder.buildPitchModule({ descriptorPath, inventoryPath: inventoryFile, outputPath, stadiumFolder, refuseExistingOutput: true });
   } finally {
     await fs.rm(temp, { recursive: true, force: true });
   }
