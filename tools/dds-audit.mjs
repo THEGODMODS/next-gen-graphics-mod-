@@ -15,7 +15,7 @@ export function inspectDds(buffer){
  if(mipCount>maxMips)errors.push("Mip count exceeds the complete mip chain.");
  const flags=buffer.readUInt32LE(80);let format="UNKNOWN",dataOffset=128;
  if(flags&4){const code=buffer.toString("ascii",84,88);if(code==="DX10"){if(buffer.length<148)errors.push("Truncated DDS DX10 extension header.");else{const dxgi=buffer.readUInt32LE(128);format=DXGI.get(dxgi)??"UNSUPPORTED_DXGI_"+dxgi;dataOffset=148;}}else format=FOURCC.get(code)??"UNSUPPORTED_FOURCC_"+code;}
- else if(flags&0x40)format="UNCOMPRESSED_RGB";
+ else if(flags&0x40)format="UNSUPPORTED_UNCOMPRESSED_RGB";
  if(format.startsWith("UNSUPPORTED")||format==="UNKNOWN")errors.push("Texture format is not in the audited allowlist.");
  if(buffer.length<=dataOffset)errors.push("DDS contains no texture payload.");
  return{valid:errors.length===0,width,height,mipCount,format,dataOffset,bytes:buffer.length,errors};
