@@ -1,18 +1,29 @@
-# Module engine implementation
+# Module engine
 
-The first engine layer is deliberately read-only: it validates package metadata and paths before any game-directory write is permitted.
+The module engine validates package metadata and paths before any game-directory write is permitted.
 
-## Current implementation
+## Implemented
 
 - Runtime validation for schema version 1 manifests.
 - Namespaced module IDs, semantic versions, supported categories, PES 2017 executable names, dependencies and conflicts.
 - Canonical relative-path validation for package sources and LiveCPK targets.
-- Duplicate target detection (case-insensitive to match Windows filesystem behavior).
-- SHA-256 digest format validation and streaming file hashing helpers.
+- Duplicate target detection (case-insensitive for Windows filesystem behavior).
+- SHA-256 digest validation and streaming file hashing.
 - Required license metadata; redistribution rights are never inferred.
+- Persistent ownership journal stored in the manager state directory.
+- Serialized install/uninstall operations using an exclusive lock directory.
+- Full package preflight and staging before target files are changed.
+- Payload hash verification before staging and immediately before final placement.
+- Existing files are protected by default. Replacing one requires its exact target path to be explicitly approved by the caller after an install preview.
+- Existing targets managed by another module are never replaced.
+- Backups for explicitly approved replacements.
+- Best-effort transaction rollback on an install error.
+- Uninstall removes only files whose current SHA-256 still matches the manager's journal. Modified files are preserved and reported. Backups are restored when present.
 
-## Install transaction requirements (next layer)
+## Important limitations
 
-The installer must stage files outside the game directory, verify every payload digest, produce a preview, and only then apply changes. Existing targets must be backed up before replacement. A durable journal must record only files created or replaced by this manager. On failure, restore backups and remove only files created by the failed transaction. Uninstall must preserve modified files and all untracked content.
-
-Path validation is not a substitute for filesystem checks: the installer must also reject symlink/reparse-point traversal and re-check resolved paths immediately before each operation.
+- Module upgrades and dependency removal planning are not enabled yet.
+- Lua module registration and Sider configuration edits are not part of this transaction yet.
+- The manager must call this engine only after showing the exact install preview and receiving explicit confirmation.
+- A crash or power loss during file placement is not yet automatically recovered at startup; persistent pending-transaction recovery is the next hardening step.
+- Filesystem operations must be tested on Windows with real PES directories before release. Reparse-point behavior differs by platform, so this implementation rejects detected symbolic links and rechecks target parents immediately before writes.
