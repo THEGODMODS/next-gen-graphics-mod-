@@ -10,7 +10,7 @@ on:
 # This is a Windows Electron application. Keep the newest commit moving
 # through one Windows runner instead of waiting for a redundant Linux matrix.
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: quality-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
