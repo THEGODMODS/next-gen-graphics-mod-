@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readdir, readFile, lstat } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 const MAX_DIMENSION=16384;
 const DXGI=new Map([[71,"BC1_UNORM"],[72,"BC1_UNORM_SRGB"],[74,"BC2_UNORM"],[75,"BC2_UNORM_SRGB"],[77,"BC3_UNORM"],[78,"BC3_UNORM_SRGB"],[83,"BC5_UNORM"],[84,"BC5_SNORM"],[98,"BC7_UNORM"],[99,"BC7_UNORM_SRGB"]]);
 const FOURCC=new Map([["DXT1","BC1"],["DXT3","BC2"],["DXT5","BC3"],["ATI2","BC5"],["BC5U","BC5"],["BC5S","BC5"]]);
@@ -28,10 +29,12 @@ export function inspectDds(buffer){
  return{valid:errors.length===0,width,height,mipCount,format,dataOffset,requiredPayloadBytes:required,actualPayloadBytes:Math.max(0,buffer.length-dataOffset),bytes:buffer.length,errors};
 }
 async function walk(dir,results){for(const entry of await readdir(dir,{withFileTypes:true})){const full=path.join(dir,entry.name);if(entry.isSymbolicLink()){results.push({file:full,valid:false,errors:["Symbolic links are not followed."]});continue;}if(entry.isDirectory())await walk(full,results);else if(entry.isFile()&&entry.name.toLowerCase().endsWith(".dds")){try{results.push({file:full,...inspectDds(await readFile(full))});}catch(error){results.push({file:full,valid:false,errors:[error.message]});}}}}
-const target=process.argv[2];
-if(!target){console.error("Usage: npm run audit:dds -- <texture-folder>");process.exit(2);}
-const stat=await lstat(target);
-if(!stat.isDirectory()||stat.isSymbolicLink()){console.error("Target must be a real directory, not a symlink.");process.exit(2);}
-const results=[];await walk(path.resolve(target),results);
-console.log(JSON.stringify({scanned:results.length,passed:results.filter(x=>x.valid).length,failed:results.filter(x=>!x.valid).length,results},null,2));
-if(!results.length||results.some(x=>!x.valid))process.exitCode=1;
+if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+ const target=process.argv[2];
+ if(!target){console.error("Usage: npm run audit:dds -- <texture-folder>");process.exit(2);}
+ const stat=await lstat(target);
+ if(!stat.isDirectory()||stat.isSymbolicLink()){console.error("Target must be a real directory, not a symlink.");process.exit(2);}
+ const results=[];await walk(path.resolve(target),results);
+ console.log(JSON.stringify({scanned:results.length,passed:results.filter(x=>x.valid).length,failed:results.filter(x=>!x.valid).length,results},null,2));
+ if(!results.length||results.some(x=>!x.valid))process.exitCode=1;
+}
