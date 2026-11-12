@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { readdir, lstat, open } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { inspectDds } from "./dds-audit.mjs";
 
-const input=process.argv[2];
-if(!input){console.error("Usage: npm run inventory:pitch -- <stadium-folder>");process.exit(2);}
+export async function inventoryPitch(input) {
 const root=path.resolve(input);
 const rootStat=await lstat(root);
 if(!rootStat.isDirectory()||rootStat.isSymbolicLink()){console.error("Stadium path must be a real directory, not a symlink.");process.exit(2);}
@@ -41,4 +41,12 @@ async function walk(dir){
 }
 await walk(pitchRoot);
 records.sort((a,b)=>a.path.localeCompare(b.path));
-console.log(JSON.stringify({schemaVersion:1,stadiumFolder:path.basename(root),subtree:relativeSubtree.replaceAll(path.sep,"/"),fileCount:records.filter(x=>x.sha256).length,records},null,2));
+return {schemaVersion:1,stadiumFolder:path.basename(root),stadiumRoot:root,subtree:relativeSubtree.replaceAll(path.sep,"/"),fileCount:records.filter(x=>x.sha256).length,records};
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+ const input=process.argv[2];
+ if(!input){console.error("Usage: npm run inventory:pitch -- <stadium-folder>");process.exit(2);}
+ try { const inventory=await inventoryPitch(input); delete inventory.stadiumRoot; console.log(JSON.stringify(inventory,null,2)); }
+ catch(error) { console.error(error instanceof Error ? error.message : "Pitch inventory failed."); process.exitCode=1; }
+}
