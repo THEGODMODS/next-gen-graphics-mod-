@@ -10,7 +10,7 @@ const categories = new Set<ModuleCategory>([
   "audio", "scoreboards", "tifos", "patches", "other",
 ]);
 const moduleIdPattern = /^[a-z0-9]+(?:[.-][a-z0-9]+)+$/;
-const semverPattern = /^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/;
+const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 const sha256Pattern = /^[a-fA-F0-9]{64}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -34,7 +34,7 @@ export function validateModuleManifest(input: unknown): ManifestValidation {
   if (isRecord(game)) {
     add(game.title === "PES 2017", "game.title must be PES 2017.");
     add(Array.isArray(game.executable) && game.executable.length > 0 &&
-      game.executable.every((v) => typeof v === "string" && /^[a-zA-Z0-9_.-]+\\.exe$/i.test(v)),
+      game.executable.every((v) => typeof v === "string" && /^[a-zA-Z0-9_.-]+\.exe$/i.test(v)),
       "game.executable must contain executable filenames only.");
     add(typeof game.sider === "string" && game.sider.trim().length > 0, "game.sider version range is required.");
   }
