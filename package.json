@@ -15,7 +15,8 @@
     "audit:dds": "node tools/dds-audit.mjs",
     "inventory:pitch": "node tools/pitch-inventory.mjs",
     "build:pitch-module": "node tools/pitch-module-builder.mjs",
-    "inspect:dds": "node tools/dds-inspect.mjs"
+    "inspect:dds": "node tools/dds-inspect.mjs",
+    "compare:dds": "node tools/dds-compare.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
