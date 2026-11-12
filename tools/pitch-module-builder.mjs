@@ -69,11 +69,17 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
   await assertRegularFileNoLink(inventoryFile, "Inventory");
 
   const descriptorBase = path.dirname(descriptorFile);
-  const stadiumPitchRoot = stadiumFolder ? path.join(path.resolve(stadiumFolder), "common", "bg", "model", "bg", "pitch") : null;
+  const stadiumRoot = stadiumFolder ? path.resolve(stadiumFolder) : null;
+  const stadiumPitchRoot = stadiumRoot ? path.join(stadiumRoot, "common", "bg", "model", "bg", "pitch") : null;
   if (stadiumPitchRoot) {
-    const rootStat = await lstat(path.resolve(stadiumFolder));
-    const pitchStat = await lstat(stadiumPitchRoot);
-    if (!rootStat.isDirectory() || rootStat.isSymbolicLink() || !pitchStat.isDirectory() || pitchStat.isSymbolicLink()) throw new Error("Current Stadium Server pitch folder is not a safe directory.");
+    const rootStat = await lstat(stadiumRoot);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error("Current Stadium Server folder is not a safe directory.");
+    let current = stadiumRoot;
+    for (const segment of ["common", "bg", "model", "bg", "pitch"]) {
+      current = path.join(current, segment);
+      const partStat = await lstat(current);
+      if (!partStat.isDirectory() || partStat.isSymbolicLink()) throw new Error("Current Stadium Server pitch path contains an unsafe directory: " + segment);
+    }
   }
   const descriptor = JSON.parse(await readFile(descriptorFile, "utf8"));
   const inventory = JSON.parse(await readFile(inventoryFile, "utf8"));
