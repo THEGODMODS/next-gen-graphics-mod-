@@ -36,6 +36,7 @@ const api = {
   uninstallModule: (moduleId: string): Promise<UninstallResult> => ipcRenderer.invoke("modules:uninstall", moduleId),
   setLuaModuleEnabled: (moduleName: string, enabled: boolean): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:set-lua-enabled", moduleName, enabled),
   syncSiderModules: (): Promise<SiderSyncResult> => ipcRenderer.invoke("sider:sync-installed-modules"),
-  launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch")
+  launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch"),
+  openContentSource: (sourceId: string): Promise<void> => ipcRenderer.invoke("content:open-source", sourceId)
 };
 contextBridge.exposeInMainWorld("nextgen", api);

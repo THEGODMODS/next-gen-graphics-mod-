@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -107,6 +107,20 @@ async function loadAndRecover() {
   }
 }
 function registerIpc() {
+  ipcMain.handle("content:open-source", async event => {
+    assertTrustedSender(event);
+    const sourceId = arguments[1];
+    const sources: Record<string, string> = {
+      pesmodding: "https://www.pesmodding.com/p/pes-2017.html",
+      moddingway: "https://www.moddingway.com/game/387/pro-evolution-soccer-2017/mods",
+      nexus: "https://www.nexusmods.com/pes2017/mods/top",
+      profacemods: "https://profacemods.com/"
+    };
+    if (typeof sourceId !== "string" || !Object.prototype.hasOwnProperty.call(sources, sourceId)) {
+      throw new Error("Unknown community content source.");
+    }
+    await shell.openExternal(sources[sourceId]);
+  });
   ipcMain.handle("sider:analyze-pitch-log", async event => {
     assertTrustedSender(event);
     const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select Sider log file (usually sider.log)", properties: ["openFile"], filters: [{ name: "Log files", extensions: ["log", "txt"] }] });
