@@ -36,8 +36,8 @@ export class SiderConfigManager {
     const journal = await new JournalStore(this.stateDirectory).read();
     const records = new Map<string, string>();
     for (const module of journal.modules) for (const file of module.files) {
-      const target = file.target.replace(/\\\\/g, "/");
-      if (/^modules\\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(target)) records.set(target.slice(8), file.sha256);
+      const target = file.target.replace(/\\/g, "/");
+      if (/^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target)) records.set(target.slice(8), file.sha256);
     }
     const activationPath = path.join(this.stateDirectory, "sider-enabled-lua.json");
     let enabled: Set<string>;
@@ -53,7 +53,7 @@ export class SiderConfigManager {
   }
 
   async setLuaModuleEnabled(moduleName: string, enabled: boolean): Promise<SiderSyncResult> {
-    if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(moduleName) || moduleName.includes("..")) throw new Error("Invalid Lua module filename.");
+    if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(moduleName) || moduleName.includes("..")) throw new Error("Invalid Lua module filename.");
     await withSiderLock(this.stateDirectory, async () => {
       const installed = await this.listLuaModules();
       if (!installed.some(module => module.moduleName === moduleName)) throw new Error("That Lua module is not installed or is not managed by this manager.");
