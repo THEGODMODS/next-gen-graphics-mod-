@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+export type DdsTexture = { file: string; width: number; height: number; format: string; mipCount: number; previewMode: string; previewBase64: string; channels: string; channelMean: number[]; channelMin: number[]; channelMax: number[]; alpha: { mean: number; below128Percent: number }; luminance?: { mean: number; standardDeviation: number }; reconstructedNormalLength?: { mean: number; standardDeviation: number; note: string } };
+export type DdsComparison = { compatibleForPixelComparison: true; width: number; height: number; format: string; analyzedMip: 0; pixelsCompared: number; changedPixelPercent: number; channels: Record<string, { meanAbsoluteError: number; rootMeanSquareError: number; maximumAbsoluteError: number }>; limitations: string[] };
 export type RecoveryStatus = { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string };
 export type ModulePreview = {
   id: string; name: string; version: string; category: string; description: string;
@@ -16,6 +18,8 @@ export type GameStatus = {
   liveCpkEnabled: boolean; luaEnabled: boolean; luaModules: string[]; startupRecovery: RecoveryStatus;
 };
 const api = {
+  chooseDds: (role: "original" | "replacement"): Promise<DdsTexture | null> => ipcRenderer.invoke("dds:choose", role),
+  compareDds: (): Promise<DdsComparison> => ipcRenderer.invoke("dds:compare"),
   getStatus: (): Promise<GameStatus> => ipcRenderer.invoke("game:get-status"),
   chooseGameDirectory: (): Promise<string | null> => ipcRenderer.invoke("game:choose-directory"),
   scanModuleLibrary: (): Promise<LibraryPackage[]> => ipcRenderer.invoke("modules:scan-library"),
