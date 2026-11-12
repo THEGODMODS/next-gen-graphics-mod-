@@ -42,12 +42,7 @@ It replaces only its own block, sorts and de-duplicates requested registrations,
 and refuses malformed or duplicate ownership markers. Removal likewise targets
 only the delimited block.
 
-This is currently a tested configuration-building layer, not yet an active
-write path in the desktop app. The app does not yet copy Lua payloads into
-Sider's modules directory, discover a compatible Sider version, back up and
-atomically update a real `sider.ini`, or expose module activation controls.
-Those steps remain gated until the manifest explicitly defines LiveCPK root
-semantics and the filesystem transaction can track Sider configuration changes.
+The desktop app now exposes an explicit LiveCPK root synchronization action. Lua payload installation and registration, Sider version detection, and live-game verification are still not implemented.
 
 
 ## LiveCPK root synchronization in the desktop manager
