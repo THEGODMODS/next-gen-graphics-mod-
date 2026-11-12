@@ -80,6 +80,18 @@ describe("transactional module installer", () => {
     expect(await fs.readFile(target, "utf8")).toBe("original user file");
   });
 
+  it("blocks uninstall while another installed module depends on it", async () => {
+    const f = await fixture();
+    const installer = new ModuleInstaller(f.game, f.state);
+    await installer.install(f.pkg, f.manifest);
+    const journalPath = path.join(f.state, "install-journal.json");
+    const journal = JSON.parse(await fs.readFile(journalPath, "utf8"));
+    journal.modules.push({ id: "studio.weather-addon", version: "1.0.0", installedAt: new Date().toISOString(),
+      dependencies: ["studio.pitch-pack"], files: [] });
+    await fs.writeFile(journalPath, JSON.stringify(journal));
+    await expect(installer.uninstall("studio.pitch-pack")).rejects.toThrow("studio.weather-addon");
+    expect(await fs.readFile(path.join(f.game, "LiveCPK/common/grass.dds"), "utf8")).toBe("new grass asset");
+  });
   it("preserves a managed file that the user modified after installation", async () => {
     const f = await fixture();
     const installer = new ModuleInstaller(f.game, f.state);
