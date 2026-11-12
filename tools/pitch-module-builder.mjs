@@ -132,6 +132,17 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
     if (targetExtension !== path.extname(source).toLowerCase()) {
       throw new Error("Replacement extension must match original resource: " + originalPath);
     }
+    if (targetExtension === ".dds") {
+      if (!original.dds || !original.dds.valid) throw new Error("Original stadium DDS did not pass inventory audit: " + originalPath);
+      const replacementStat = await lstat(source);
+      const replacementDds = await readDdsHeader(source, replacementStat.size);
+      if (!replacementDds.valid) throw new Error("Replacement DDS failed audit: " + replacementDds.errors.join("; "));
+      for (const field of ["width", "height", "format", "mipCount"]) {
+        if (replacementDds[field] !== original.dds[field]) {
+          throw new Error("Replacement DDS " + field + " does not match original stadium resource: " + originalPath);
+        }
+      }
+    }
     files.push({
       source: "payload/" + originalPath,
       target: "LiveCPK/" + PITCH_SUBTREE + "/" + originalPath,
