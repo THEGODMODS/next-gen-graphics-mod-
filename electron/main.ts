@@ -170,6 +170,22 @@ function registerIpc() {
       approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
     });
   });
+  ipcMain.handle("modules:list-installed", async event => {
+    assertTrustedSender(event);
+    return new JournalStore(stateDirectory()).read().then(journal => journal.modules.map(module => ({
+      id: module.id, version: module.version, installedAt: module.installedAt,
+      files: module.files.map(file => file.target),
+      luaModules: module.files.map(file => file.target.replace(/\\\\/g, "/"))
+        .filter(target => /^modules\\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(target))
+        .map(target => target.slice(8)),
+    })));
+  });
+  ipcMain.handle("modules:set-lua-enabled", async (event, moduleName: unknown, enabled: unknown) => {
+    assertTrustedSender(event);
+    if (typeof moduleName !== "string" || typeof enabled !== "boolean") throw new Error("Invalid module activation request.");
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    return new SiderConfigManager(gameDirectory, stateDirectory()).setLuaModuleEnabled(moduleName, enabled);
+  });
   ipcMain.handle("sider:sync-installed-modules", async event => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
