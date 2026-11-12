@@ -134,6 +134,7 @@ function registerIpc() {
     if (picked.canceled || !picked.filePaths[0]) return null;
     const result = await pitchService.build({ stadiumFolder: selectedPitchInventory.stadiumRoot, inventory: selectedPitchInventory, inventoryPath: args.inventoryPath, replacementPath: selectedPitchReplacement, moduleId: args.moduleId, moduleName: args.moduleName, outputParent: picked.filePaths[0] }, app.getAppPath());
     selectedPitchReplacement = null;
+    libraryPackages.set(result.moduleId, result.output);
     return result;
   });
   ipcMain.handle("dds:choose", async (event, role: "original" | "replacement") => {
