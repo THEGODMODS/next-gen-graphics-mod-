@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import path from "node:path";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "../../src/main/module-engine/path-safety";
 
 describe("module path safety", () => {
@@ -13,6 +14,6 @@ describe("module path safety", () => {
   );
 
   it("resolves targets under the selected root", () => {
-    expect(resolveInsideRoot("/game/LiveCPK", "common/grass.dds")).toBe("/game/LiveCPK/common/grass.dds");
+    expect(resolveInsideRoot("/game/LiveCPK", "common/grass.dds")).toBe(path.join("/game/LiveCPK", "common", "grass.dds"));
   });
 });
