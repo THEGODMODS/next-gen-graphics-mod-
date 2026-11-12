@@ -28,3 +28,16 @@ The desktop manager, transactional module installer, Sider synchronization, loca
 ## Licensing
 
 Only distribute original assets or content for which redistribution permission has been obtained. Third-party tools and mods remain subject to their own licenses.
+
+## Windows test installer
+
+Pushes to `main` run the quality checks on Windows and Ubuntu. After both validation jobs pass, GitHub Actions builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
+
+To download a test build:
+
+1. Open the repository's **Actions** tab.
+2. Open the latest successful **Quality** run for the commit you want.
+3. Download the `pes2017-nextgen-windows-<commit-sha>` artifact.
+4. Extract the ZIP and run the installer.
+
+A workflow artifact is a development test build, not a stable public release. Do not install it over a production PES setup without a backup. A release is not considered validated until the packaged application is launched on Windows and its Sider/PES workflows are tested on a real installation.
