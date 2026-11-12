@@ -46,7 +46,7 @@ export function validateModuleManifest(input: unknown): ManifestValidation {
   }
 
   const seenTargets = new Set<string>();
-  add(Array.isArray(input.files) && input.files.length > 0, "files must contain at least one payload mapping.");
+  add(Array.isArray(input.files), "files must be an array.");
   if (Array.isArray(input.files)) {
     input.files.forEach((entry, index) => {
       if (!isRecord(entry)) { errors.push(`files[${index}] must be an object.`); return; }
@@ -83,6 +83,8 @@ export function validateModuleManifest(input: unknown): ManifestValidation {
       }
     });
   }
+
+  add((Array.isArray(input.files) && input.files.length > 0) || (Array.isArray(input.luaModules) && input.luaModules.length > 0), "module must contain at least one file or Lua module.");
 
   add(isRecord(input.license), "license metadata is required.");
   if (isRecord(input.license)) {
