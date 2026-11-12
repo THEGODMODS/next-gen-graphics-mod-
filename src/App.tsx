@@ -111,6 +111,7 @@ export default function App() {
     try {
       const result = await window.nextgen.installPreviewedModule();
       setModulePreview(null);
+      setGeneratedPitch(null);
       setNotice("Installed " + result.moduleId + ": " + result.installedFiles.length + " file(s). " + result.backups.length + " backup(s) created.");
       await refresh();
     } catch (error) {
