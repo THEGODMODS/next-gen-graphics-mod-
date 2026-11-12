@@ -4,12 +4,14 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { ModuleInstaller } from "../src/main/module-engine/installer";
+import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "../src/main/module-engine/path-safety";
 import { verifySha256 } from "../src/main/module-engine/sha256";
 
 let mainWindow: BrowserWindow | null = null;
 let gameDirectory: string | null = null;
+let pendingPackage: { root: string; id: string; version: string } | null = null;
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
@@ -102,6 +104,11 @@ function registerIpc() {
     const validation = parseModuleManifest(raw);
     if (!validation.valid || !validation.manifest) throw new Error(validation.errors.join("\n"));
     const manifest = validation.manifest;
+    const journal = await new JournalStore(stateDirectory()).read();
+    const installedIds = new Set(journal.modules.map(item => item.id));
+    const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
+    const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+    const alreadyInstalled = installedIds.has(manifest.id);
     const gameRoot = await fsp.realpath(gameDirectory);
     const files = [];
     for (const entry of manifest.files) {
@@ -121,8 +128,25 @@ function registerIpc() {
       }
       files.push({ source: entry.source, target: targetRelative, action });
     }
+    pendingPackage = { root: packageRoot, id: manifest.id, version: manifest.version };
     return { id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category,
-      description: manifest.description, license: manifest.license, files };
+      description: manifest.description, license: manifest.license, dependencies: manifest.dependencies,
+      missingDependencies, conflicts, alreadyInstalled, files };
+  });
+  ipcMain.handle("modules:install-previewed", async event => {
+    assertTrustedSender(event);
+    if (!gameDirectory || !pendingPackage) throw new Error("Preview a module package again before installing.");
+    const selected = pendingPackage;
+    pendingPackage = null;
+    const raw = await fsp.readFile(path.join(selected.root, "module.json"), "utf8");
+    const validation = parseModuleManifest(raw);
+    if (!validation.valid || !validation.manifest) throw new Error(validation.errors.join("\\n"));
+    const manifest = validation.manifest;
+    if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
+    const installer = new ModuleInstaller(gameDirectory, stateDirectory());
+    return installer.install(selected.root, manifest, {
+      approvedOverwriteTargets: manifest.files.map(file => normalizeSafeRelativePath(file.target))
+    });
   });
   ipcMain.handle("sider:launch", event => {
     assertTrustedSender(event);
