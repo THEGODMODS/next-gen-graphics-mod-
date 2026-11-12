@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import ddsService from "./dds-service.cjs";
 import { ModuleInstaller } from "../src/main/module-engine/installer";
 import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
@@ -14,6 +15,7 @@ let mainWindow: BrowserWindow | null = null;
 let gameDirectory: string | null = null;
 let pendingPackage: { root: string; id: string; version: string } | null = null;
 let libraryPackages = new Map<string, string>();
+let selectedDds: { original: string | null; replacement: string | null } = { original: null, replacement: null };
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
@@ -101,6 +103,20 @@ async function loadAndRecover() {
   }
 }
 function registerIpc() {
+  ipcMain.handle("dds:choose", async (event, role: "original" | "replacement") => {
+    assertTrustedSender(event);
+    if (role !== "original" && role !== "replacement") throw new Error("Invalid DDS selection role.");
+    const picked = await dialog.showOpenDialog(mainWindow!, { title: role === "original" ? "Choose original DDS texture" : "Choose replacement DDS texture", properties: ["openFile"], filters: [{ name: "DirectDraw Surface", extensions: ["dds"] }] });
+    if (picked.canceled || !picked.filePaths[0]) return null;
+    const result = await ddsService.inspect(picked.filePaths[0], app.getAppPath());
+    selectedDds[role] = picked.filePaths[0];
+    return result;
+  });
+  ipcMain.handle("dds:compare", async event => {
+    assertTrustedSender(event);
+    if (!selectedDds.original || !selectedDds.replacement) throw new Error("Choose both original and replacement DDS textures first.");
+    return ddsService.compare(selectedDds.original, selectedDds.replacement, app.getAppPath());
+  });
   ipcMain.handle("game:get-status", event => { assertTrustedSender(event); return getStatus(); });
   ipcMain.handle("game:choose-directory", async event => {
     assertTrustedSender(event);
