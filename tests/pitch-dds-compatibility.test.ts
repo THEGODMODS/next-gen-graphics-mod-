@@ -1,10 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { inspectDds } from "../tools/dds-audit.mjs";
-import { buildPitchModule } from "../tools/pitch-module-builder.mjs";
 function makeDds(width: number, height: number, mips: number) {
   let payload = 0, w = width, h = height;
   for (let i = 0; i < mips; i++) { payload += Math.ceil(w / 4) * Math.ceil(h / 4) * 16; w = Math.max(1, Math.floor(w / 2)); h = Math.max(1, Math.floor(h / 2)); }
@@ -14,6 +13,13 @@ function makeDds(width: number, height: number, mips: number) {
   buffer.writeUInt32LE(32, 76); buffer.writeUInt32LE(4, 80); buffer.write("DXT5", 84);
   return buffer;
 }
+let inspectDds: typeof import("../tools/dds-audit.mjs").inspectDds;
+let buildPitchModule: typeof import("../tools/pitch-module-builder.mjs").buildPitchModule;
+beforeAll(async () => {
+  ({ inspectDds } = await importNativeModule("../tools/dds-audit.mjs"));
+  ({ buildPitchModule } = await importNativeModule("../tools/pitch-module-builder.mjs"));
+});
+
 describe("pitch DDS mapping checks", () => {
   it("rejects replacement DDS dimensions that differ from the original stadium resource", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "pitch-dds-match-"));
