@@ -82,7 +82,7 @@ export async function buildPitchModule({descriptorPath,inventoryPath,outputPath}
   await mkdir(path.dirname(destination),{recursive:true});
   await copyFile(files[i].localSource,destination,constants.COPYFILE_EXCL);
  }
- await writeFile(path.join(out,"module.json"),JSON.stringify(manifest,null,2)+"\\n",{flag:"wx"});
+ await writeFile(path.join(out,"module.json"),JSON.stringify(manifest,null,2)+"\n",{flag:"wx"});
  return {moduleId:manifest.id,files:manifest.files.length,output:out,manifest};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
