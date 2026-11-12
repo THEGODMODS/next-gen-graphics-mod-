@@ -44,7 +44,7 @@ export default function App() {
   const [modulePreview, setModulePreview] = useState<ModulePreview | null>(null);
   const refresh = useCallback(async () => {
     setBusy(true);
-    try { setStatus(await window.nextgen.getStatus()); }
+    try { const nextStatus = await window.nextgen.getStatus(); setStatus(nextStatus); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
     catch { setNotice("Unable to read installation status."); }
     finally { setBusy(false); }
   }, []);
