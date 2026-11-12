@@ -53,3 +53,8 @@ Each module package contains a UTF-8 `module.json` at its root and a `payload/` 
 - License metadata is mandatory. The manager must not assume redistribution rights.
 
 This schema is a draft and must be implemented with runtime validation and tests before third-party packages are accepted.
+
+
+## Local library discovery
+
+The desktop manager can scan a selected collection directory. Each immediate, non-symlink child directory is treated as a candidate package and must contain a regular `module.json`. The scanner inspects at most 200 child directories per scan, validates the manifest, rejects symlinked payload path components, and verifies every declared payload SHA-256. It reports invalid packages rather than making them installable. Dependency and conflict status is evaluated against the current install journal; dependencies are not automatically fetched or installed. A package must still pass the separate installation preview and transactional installer checks. The current library is local-folder based; it does not claim to be a remote marketplace or distribute any third-party assets.
