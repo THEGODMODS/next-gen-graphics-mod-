@@ -7,6 +7,7 @@ export type ModulePreview = {
   dependencies: string[]; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean;
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
+export type LibraryPackage = { id: string; name: string; version: string; category: string; description: string; valid: boolean; errors: string[]; files: number; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean };
 export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; luaModules: string[]; };
 export type UninstallResult = { removed: string[]; restored: string[]; preservedModified: string[]; siderSyncWarning: string | null };
 export type SiderSyncResult = { registeredRoots: string[]; registeredLuaModules: string[]; changed: boolean; backupPath: string | null };
@@ -17,7 +18,8 @@ export type GameStatus = {
 const api = {
   getStatus: (): Promise<GameStatus> => ipcRenderer.invoke("game:get-status"),
   chooseGameDirectory: (): Promise<string | null> => ipcRenderer.invoke("game:choose-directory"),
-  previewModule: (): Promise<ModulePreview | null> => ipcRenderer.invoke("modules:preview"),
+  scanModuleLibrary: (): Promise<LibraryPackage[]> => ipcRenderer.invoke("modules:scan-library"),
+  previewModule: (packageId?: string): Promise<ModulePreview | null> => ipcRenderer.invoke("modules:preview", packageId),
   installPreviewedModule: (): Promise<{ moduleId: string; installedFiles: string[]; backups: string[] }> => ipcRenderer.invoke("modules:install-previewed"),
   listInstalledModules: (): Promise<InstalledModule[]> => ipcRenderer.invoke("modules:list-installed"),
   uninstallModule: (moduleId: string): Promise<UninstallResult> => ipcRenderer.invoke("modules:uninstall", moduleId),
