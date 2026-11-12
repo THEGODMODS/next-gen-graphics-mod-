@@ -90,13 +90,6 @@ export default function App() {
     try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setNotice("Library package revalidated. Review all target changes before installation."); } }
     catch (error) { setNotice(error instanceof Error ? error.message : "Could not preview library package."); }
   };
-  const previewModule = async () => {
-    try {
-      const result = await window.nextgen.previewModule();
-      if (result) { setModulePreview(result); setNotice("Package validated. Review every target before any installation is approved."); }
-    } catch (error) { setNotice(error instanceof Error ? error.message : "Module preview failed."); }
-  };
-
   const installPreviewedModule = async () => {
     if (!modulePreview || modulePreview.missingDependencies.length || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
     const replacements = modulePreview.files.filter(file => file.action === "replace").map(file => file.target);
