@@ -281,6 +281,15 @@ export default function App() {
                 <div className="panel"><div className="eyebrow">VISUALS · GRAPHICS · TOOLS</div><h3>Nexus Mods</h3><p>Community submissions for PES 2017, including graphics and presentation mods.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("nexus")}>BROWSE NEXUS MODS ↗</button></div>
                 <div className="panel"><div className="eyebrow">PLAYER FACES</div><h3>ProFaceMods</h3><p>Community face library with a dedicated PES 2017 edition and external download links.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("profacemods")}>BROWSE FACE LIBRARY ↗</button></div>
               </div>
+              <div className="panel" style={{marginTop:16}}>
+                <div className="eyebrow">FEATURED PES 2017 RELEASE · GRAPHICS + TURF</div>
+                <h3>PES 2017 GFX & Pitch from eFootball 2026</h3>
+                <p>Community release with natural-colour stadium lighting, random pitch patterns and weather-dependent pitch colours. The publisher lists separate CPK and Superloader versions.</p>
+                <div className="integrity-row"><span>Published file size</span><b>325.1 MB archive</b></div>
+                <div className="integrity-row"><span>Requirements listed by publisher</span><b>Sider · Superloader v2.8.0 · DpFileList Generator</b></div>
+                <p className="dds-note">Important: this is a third-party archive, not a manager-native package. CPK activation requires the external DpFileList workflow; the manager will not silently copy it into the game folder.</p>
+                <button className="primary-button" onClick={() => void window.nextgen.openContentSource("gfx-pitch-2026")}>VIEW RELEASE & DOWNLOAD OPTIONS ↗</button>
+              </div>
               <div className="dds-note">Downloads remain on their publishers' websites. The manager does not claim ownership, guarantee compatibility, or redistribute third-party files.</div>
             </div>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Local package library</h3><p>Choose a folder whose immediate subfolders contain module.json and payload folders. Scanning is read-only.</p><button className="primary-button" disabled={libraryBusy} onClick={() => void scanLibrary()}><FolderOpen size={16} /> {libraryBusy ? "SCANNING..." : "SCAN PACKAGE FOLDER"}</button></div></div>

@@ -113,7 +113,10 @@ function registerIpc() {
       pesmodding: "https://www.pesmodding.com/p/pes-2017.html",
       moddingway: "https://www.moddingway.com/game/387/pro-evolution-soccer-2017/mods",
       nexus: "https://www.nexusmods.com/pes2017/mods/top",
-      profacemods: "https://profacemods.com/"
+      profacemods: "https://profacemods.com/",
+      "gfx-pitch-2026": "https://pes-files.com/pes-2017-gfx-pitch-from-efootball-2026/",
+      "gfx-combined-2025": "https://pes-files.com/pes-2017-gfx-combined-update-2024-2025/",
+      "pesfiles-graphics": "https://pes-files.com/pes2017/pes2017-graphics-mod/"
     };
     if (typeof sourceId !== "string" || !Object.prototype.hasOwnProperty.call(sources, sourceId)) {
       throw new Error("Unknown community content source.");
