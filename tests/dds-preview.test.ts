@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { ddsToPng } from "../tools/dds-preview.mjs";
+import { beforeAll, describe, expect, it } from "vitest";
+import { importNativeModule } from "./helpers/native-esm";
 
 function dds(fourcc, block) {
   const buffer=Buffer.alloc(128+block.length);
@@ -10,6 +10,11 @@ function dds(fourcc, block) {
 function bc3() {
   const b=Buffer.alloc(16); b[0]=255; b[1]=255; b.writeUInt16LE(0xf800,8); return b;
 }
+let ddsToPng: typeof import("../tools/dds-preview.mjs").ddsToPng;
+beforeAll(async () => {
+  ({ ddsToPng } = await importNativeModule("../tools/dds-preview.mjs"));
+});
+
 describe("DDS PNG preview",()=>{
   it("writes a valid PNG signature and dimensions for BC3",()=>{
     const result=ddsToPng(dds("DXT5",bc3()));
