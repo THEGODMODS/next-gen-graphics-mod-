@@ -7,7 +7,7 @@ export type ModulePreview = {
   dependencies: string[]; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean;
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
-export type SiderSyncResult = { registeredRoots: string[]; changed: boolean; backupPath: string | null };
+export type SiderSyncResult = { registeredRoots: string[]; registeredLuaModules: string[]; changed: boolean; backupPath: string | null };
 export type GameStatus = {
   gameDirectory: string | null; gameExecutable: string | null; siderExecutable: string | null; siderIni: string | null;
   liveCpkEnabled: boolean; luaEnabled: boolean; luaModules: string[]; startupRecovery: RecoveryStatus;
