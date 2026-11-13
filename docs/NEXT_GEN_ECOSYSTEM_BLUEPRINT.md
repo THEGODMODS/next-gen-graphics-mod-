@@ -170,3 +170,14 @@ The evaluator requires:
 Added tests for full approval, pending and failed real-game status, rights and attribution failures, insecure URLs, malformed digests, wrong-game compatibility and incomplete evidence. Added docs/CONTENT_RELEASE_QUALITY_GATES.md with the required QA matrix and department-specific acceptance checks.
 
 **Content publication remains gated.** Existing department cards remain discovery/studio-roadmap entries. This phase does not invent mod assets or claim third-party redistribution permission. No actual content package is approved by this implementation; production package hosting and pinned signing trust configuration are still required. Real PES 2017 + Sider validation must be performed against actual content before a package can be marked verified.
+
+
+## Phase 5 implementation record — THEGODMODS original content library
+
+Added src/catalogue/original-content.ts as the production-brief registry for all ten original product lines across all six departments: GOD VISUALS, GOD CINEMATIC, GOD NATURAL, GOD TURF, GOD STADIUMS, GOD PITCH LAB, GOD KITS, GOD FACES, GOD ATMOSPHERE and GOD GAMEPLAY.
+
+Each brief now records a stable package identity, department, product line, production state, creative direction, deliverables, required source assets, acceptance checks, rights policy and preview plan. The Originals catalogue exposes these concrete briefs rather than a generic project placeholder. The brief view clearly distinguishes production briefs from downloadable content and continues to withhold install actions.
+
+Added tests to ensure every original project has a corresponding complete brief, all six departments are represented, IDs are unique, and no brief is represented as released content. Added docs/PHASE_5_CONTENT_LIBRARY.md and the content/originals workspace rights/asset policy.
+
+**Actual asset limitation:** the repository still has no authorized source art, audio recordings, player likeness assets, club marks or user-provided PES resource mappings. This implementation creates the production library and its acceptance framework, not fictional binary mods. GOD PITCH LAB is tooling-prototype only; it needs a real stadium pitch inventory and rights-cleared source textures before a pack can be built. All packs remain non-installable until real assets, provenance, package hashes, signing, automated rollback and real PES 2017/Sider validation are complete.
