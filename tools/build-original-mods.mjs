@@ -182,7 +182,8 @@ function makeLutCube(name, transform) {
   }
   return lines.join("\n") + "\n";
 }
-\nasync function buildSixDepartments(output) {
+
+async function buildSixDepartments(output) {
   const products = [];
   const addProduct = async (id, name, department, files, notes) => {
     const entries = [];
