@@ -58,7 +58,7 @@ export const departments: DepartmentDefinition[] = [
   {
     id: "kits", title: "Kits & Equipment", strapline: "EVERY DETAIL COUNTS", description: "Discover and manage team kits, goalkeeper kits, boots, balls, gloves and equipment collections.",
     subcategories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Gloves & Equipment", "Kit Fonts & Numbers", "Classic Kits"],
-    originals: [{ name: "GOD KITS", focus: "Original kit and equipment projects with creator-owned artwork and documented team/season coverage.", status: "studio-planned", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Kit Fonts & Numbers", "Classic Kits"] }],
+    originals: [{ name: "GOD KITS", focus: "Premium material and fabric-detail upgrades for the existing kits worn by players—without replacing club designs.", status: "studio-planned", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Kit Fonts & Numbers", "Classic Kits"] }],
     thirdParty: [
       { id: "moddingway", name: "ModdingWay", focus: "Kits, boots, balls and equipment", note: "External creator catalogue; verify season, patch and kit-server requirements.", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Gloves & Equipment", "Kit Fonts & Numbers", "Classic Kits"] },
       { id: "pesmodding", name: "PES Modding", focus: "Community kit and equipment releases", note: "External creator catalogue; review author instructions and redistribution terms.", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Kit Fonts & Numbers", "Classic Kits"] }
