@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import ddsService from "./dds-service.cjs";
 import pitchService from "./pitch-workflow.cjs";
 import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.cjs";
@@ -75,10 +76,21 @@ async function assertNoSymlinkParents(root: string, relativePath: string) {
     }
   }
 }
+function isTrustedRendererUrl(value: string): boolean {
+  if (app.isPackaged) {
+    return value === pathToFileURL(path.join(__dirname, "../../dist/index.html")).href;
+  }
+  try {
+    const candidate = new URL(value);
+    return candidate.origin === "http://127.0.0.1:5173" &&
+      (candidate.pathname === "/" || candidate.pathname === "/index.html");
+  } catch {
+    return false;
+  }
+}
 function assertTrustedSender(event: Electron.IpcMainInvokeEvent) {
   const url = event.senderFrame?.url ?? "";
-  const trusted = app.isPackaged ? url.startsWith("file://") : url.startsWith("http://127.0.0.1:5173");
-  if (!trusted) throw new Error("Blocked IPC from an untrusted renderer.");
+  if (!isTrustedRendererUrl(url)) throw new Error("Blocked IPC from an untrusted renderer.");
 }
 async function persistGameDirectory(directory: string) {
   await fsp.mkdir(path.dirname(settingsPath()), { recursive: true });
@@ -398,6 +410,9 @@ function createWindow() {
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+    if (!isTrustedRendererUrl(navigationUrl)) event.preventDefault();
+  });
   if (app.isPackaged) void mainWindow.loadFile(path.join(__dirname, "../../dist/index.html"));
   else void mainWindow.loadURL("http://127.0.0.1:5173");
 }
