@@ -53,13 +53,26 @@ export class SiderConfigManager {
   }
 
   async setLuaModuleEnabled(moduleName: string, enabled: boolean): Promise<SiderSyncResult> {
-    if (!/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(moduleName) || moduleName.includes("..")) throw new Error("Invalid Lua module filename.");
+    return this.setLuaModulesEnabled([moduleName], enabled);
+  }
+
+  /** Atomically toggles every Lua extension belonging to a single installed package. */
+  async setLuaModulesEnabled(moduleNames: string[], enabled: boolean): Promise<SiderSyncResult> {
+    if (!Array.isArray(moduleNames) || moduleNames.length === 0 ||
+        moduleNames.some(name => typeof name !== "string" || !/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(name) || name.includes(".."))) {
+      throw new Error("Invalid Lua module activation group.");
+    }
+    const uniqueNames = [...new Set(moduleNames)];
+    if (uniqueNames.length !== moduleNames.length) throw new Error("Lua activation group contains duplicate module names.");
     const installed = await this.listLuaModules();
-    if (!installed.some(module => module.moduleName === moduleName)) throw new Error("That Lua module is not installed or is not managed by this manager.");
+    const installedNames = new Set(installed.map(module => module.moduleName));
+    if (uniqueNames.some(name => !installedNames.has(name))) {
+      throw new Error("Every Lua module in the activation group must be installed and managed by this manager.");
+    }
     const activationPath = path.join(this.stateDirectory, "sider-enabled-lua.json");
     const previous = installed.filter(module => module.enabled).map(module => module.moduleName);
     const names = new Set(previous);
-    if (enabled) names.add(moduleName); else names.delete(moduleName);
+    for (const name of uniqueNames) enabled ? names.add(name) : names.delete(name);
     await fs.mkdir(this.stateDirectory, { recursive: true });
     const temporary = activationPath + ".tmp";
     await fs.writeFile(temporary, JSON.stringify([...names].sort(), null, 2), { encoding: "utf8", flag: "w" });
