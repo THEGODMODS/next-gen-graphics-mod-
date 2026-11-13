@@ -11,6 +11,8 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
+import { buildPremiumUpgrades } from "./build-premium-upgrades.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "content", "originals", "generated");
@@ -24,7 +26,7 @@ function hash32(x, y, seed) {
 }
 function clamp(v) { return Math.max(0, Math.min(255, Math.round(v))); }
 
-function makeGrassPixels(size, style) {
+function makeGrassPixels(size, style, seed = 11, wear = 0.08) {
   const pixels = Buffer.alloc(size * size * 4);
   const palettes = {
     natural: { base: [67, 105, 49], low: [22, 34, 16], high: [38, 51, 22], stripe: 5 },
@@ -33,11 +35,11 @@ function makeGrassPixels(size, style) {
   };
   const p = palettes[style];
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const grain = hash32(x, y, style === "natural" ? 11 : style === "emerald" ? 29 : 47);
-    const clump = hash32(Math.floor(x / 5), Math.floor(y / 5), 83);
-    const broad = Math.sin((x / size) * Math.PI * 8) * p.stripe;
+    const grain = hash32(x, y, seed + (style === "natural" ? 11 : style === "emerald" ? 29 : 47));
+    const clump = hash32(Math.floor(x / 5), Math.floor(y / 5), seed + 83);
+    const mowing = Math.sin((x / size) * Math.PI * 18 + seed * 0.013) * p.stripe;\n    const wearPatch = hash32(Math.floor(x / 11), Math.floor(y / 9), seed + 191) < wear ? -9 : 0;\n    const broad = mowing + wearPatch;
     const variation = (grain - 0.5) * 24 + (clump - 0.5) * 16 + broad;
-    const blade = hash32(x * 7 + y, y * 3 + x, 131);
+    const blade = hash32(x * 7 + y, y * 3 + x, seed + 131);
     const index = (y * size + x) * 4;
     pixels[index] = clamp(p.base[0] + variation * 0.8 + (blade > 0.86 ? 7 : 0));
     pixels[index + 1] = clamp(p.base[1] + variation + (blade > 0.86 ? 13 : 0));
@@ -221,7 +223,7 @@ async function buildSixDepartments(output) {
   ];
   const turfFiles = ["README.md", "surface-library.json", "pack.json"];\n  const turfAssetRecords = [];
   for (const item of turfPremium) {
-    const albedo = makeGrassPixels(SIZE, item.style);
+    const albedo = makeGrassPixels(SIZE, item.style, item.seed, item.wear);
     const height = makeHeightField(SIZE, item.seed, item.wear);
     const base = "textures/" + item.id;
     const maps = [
