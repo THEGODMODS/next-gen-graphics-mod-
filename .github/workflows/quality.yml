@@ -24,6 +24,8 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Build original GODMODS source assets
+        run: npm run mods:build-original
       - name: TypeScript validation
         run: npm run typecheck
       - name: Native Node ESM smoke test
