@@ -5,6 +5,7 @@ import type { ModuleManifest } from "../../shared/module-types";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "./path-safety";
 import { sha256File, verifySha256 } from "./sha256";
 import { JournalStore, type ManagedFileRecord } from "./journal";
+import { resolveDeploymentPlan } from "./deployment";
 
 export interface InstallOptions {
   /** Exact relative targets the user explicitly approved replacing in the install preview. */
@@ -180,12 +181,13 @@ export class ModuleInstaller {
       const stagingRoot = path.join(this.stateDirectory, "staging", transactionId);
       const backupRoot = path.join(this.stateDirectory, "backups", manifest.id, transactionId);
       const plan: Array<{ source: string; target: string; hash: string; existed: boolean; backup: string | null }> = [];
+      const deployment = resolveDeploymentPlan(manifest);
+      if (deployment.manualEntries.length) {
+        throw new Error("This package requires manual-assisted deployment. The manager will not claim installation or write configuration templates automatically.");
+      }
 
-      // Preflight the entire package before touching the game directory.
-      const packageEntries = [
-        ...manifest.files,
-        ...manifest.luaModules.map(module => ({ source: module.source, target: "modules/" + module.moduleName, sha256: module.sha256 })),
-      ];
+      // Preflight every adapter output before touching the game directory.
+      const packageEntries = deployment.automatedEntries;
       for (const entry of packageEntries) {
         const sourceRelative = normalizeSafeRelativePath(entry.source);
         const targetRelative = normalizeSafeRelativePath(entry.target);
