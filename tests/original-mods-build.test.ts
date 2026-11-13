@@ -50,7 +50,8 @@ describe("THEGODMODS original six-department asset build", () => {
     expect(gfxModule).toContain("shadow_softness");
     const gameplayModule = await readFile(path.join(dir, "GOD-GAMEPLAY", "sider", "modules", "godmods_gameplay.lua"), "utf8");
     expect(gameplayModule).toContain('ctx.register("set_home_team"');
-    const gameplayConfig = await readFile(path.join(dir, "GOD-GAMEPLAY", "sider", "content", "godmods", "gameplay.ini"), "utf8");\n    expect(gameplayConfig).toContain("enabled = 0");
+    const gameplayConfig = await readFile(path.join(dir, "GOD-GAMEPLAY", "sider", "content", "godmods", "gameplay.ini"), "utf8");
+    expect(gameplayConfig).toContain("enabled = 0");
     const conditionsModule = await readFile(path.join(dir, "GOD-STADIUMS", "sider", "modules", "godmods_conditions.lua"), "utf8");
     expect(conditionsModule).toContain('ctx.register("set_conditions"');
 
