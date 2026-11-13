@@ -154,3 +154,19 @@ The phase now also includes `tools/sign-package-release.mjs` and the `npm run si
 The current downloader is bounded and integrity-checked but is **not resumable**: an interrupted transfer is discarded and must be restarted. Resumable transfer support remains a follow-on hardening item; it is not represented as implemented. Production remote delivery also remains deliberately disabled until the real host and official public key are provisioned and pinned. These are external publisher prerequisites, not values that can safely be fabricated in source control.
 
 The Phase 2 Quality run for commit `4abdb918a6d458867b07d96976b954a0088f2472` completed successfully: TypeScript validation, native Node ESM smoke test, unit tests and production build passed. The Windows NSIS installer and artifact upload steps were skipped because the workflow was triggered by a pull request. New release-operations code/tests added after that run require their own CI run before sign-off.
+
+
+## Phase 4 implementation record — curated content release gates
+
+Added a strict release-candidate contract and evaluator in src/catalogue/release-gates.ts. Release state is derived from metadata and evidence; a caller-supplied verified label is ignored.
+
+The evaluator requires:
+- Stable package ID/version, department, ownership lane, publisher, author, licence, explicit redistribution permission and attribution.
+- PES 2017 executable, explicit tested patch/data-pack versions and Sider range.
+- Supported deployment strategy and immutable HTTPS package metadata (exact size, SHA-256 and signing-key ID).
+- Manifest and payload-hash validation, Windows CI evidence, automated test evidence and rollback testing.
+- Real-game evidence. A pending game test can reach automated-ready but never verified; a failed game test blocks release. A passed test must record timestamp, game build, Sider version, tester and evidence URL.
+
+Added tests for full approval, pending and failed real-game status, rights and attribution failures, insecure URLs, malformed digests, wrong-game compatibility and incomplete evidence. Added docs/CONTENT_RELEASE_QUALITY_GATES.md with the required QA matrix and department-specific acceptance checks.
+
+**Content publication remains gated.** Existing department cards remain discovery/studio-roadmap entries. This phase does not invent mod assets or claim third-party redistribution permission. No actual content package is approved by this implementation; production package hosting and pinned signing trust configuration are still required. Real PES 2017 + Sider validation must be performed against actual content before a package can be marked verified.
