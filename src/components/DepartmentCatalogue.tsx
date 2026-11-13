@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ArrowUpRight, BadgeCheck, Blocks, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { getDepartment } from "../catalogue/departments";
 
@@ -9,13 +9,9 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
   const [view, setView] = useState<"originals" | "third-party">("originals");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
-  const [subcategory, setSubcategory] = useState("All");
-  const filteredSubcategories = useMemo(() => department?.subcategories.filter(item => item.toLowerCase().includes(search.toLowerCase())) ?? [], [department, search]);
   if (!department) return null;
   const visibleSources = department.thirdParty.filter(item => (item.name + " " + item.focus + " " + item.note).toLowerCase().includes(search.toLowerCase()));
   const visibleOriginals = department.originals.filter(item => (item.name + " " + item.focus).toLowerCase().includes(search.toLowerCase()));
-  const activeOriginal = department.originals.find(item => item.name === selected);
-  const activeSource = department.thirdParty.find(item => item.id + item.name === selected);
   return <section className="department-catalogue">
     <div className="catalogue-heading">
       <div><div className="eyebrow">THEGODMODS CONTENT NETWORK · {department.strapline}</div><h2>{department.title} Catalogue</h2><p>{department.description}</p></div>
@@ -28,7 +24,7 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
         <button className={view === "third-party" ? "selected" : ""} onClick={() => {setView("third-party");setSelected(null);}}>THIRD-PARTY <span>{department.thirdParty.length}</span></button>
       </div>
     </div>
-    <div className="catalogue-subcategories"><span>EXPLORE</span>{department.subcategories.map(item => <button key={item} className={subcategory === item ? "active" : ""} onClick={() => setSubcategory(subcategory === item ? "All" : item)}>{item}</button>)}</div>
+    <div className="catalogue-subcategories"><span>EXPLORE</span>{department.subcategories.map(item => <span className="catalogue-chip" key={item}>{item}</span>)}</div>
     {view === "originals" ? <div className="catalogue-cards">
       {visibleOriginals.length ? visibleOriginals.map(item => <article className="catalogue-card original-card" key={item.name}>
         <div className="catalogue-card-top"><span className="catalogue-origin"><Sparkles size={13}/> BUILT BY THEGODMODS</span><span className="catalogue-state">{item.status === "in-development" ? "IN DEVELOPMENT" : "STUDIO ROADMAP"}</span></div>
