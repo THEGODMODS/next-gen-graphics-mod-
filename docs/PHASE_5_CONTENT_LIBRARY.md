@@ -80,3 +80,19 @@ Run `npm run mods:build-original`. Windows CI runs this command and publishes th
 ## Remaining production work
 
 These generated assets are the first real content tranche, not all ten finished product lines. GOD STADIUMS still needs original stadium artwork and verified stadium resource IDs; GOD KITS needs original kit designs and slot mappings; GOD FACES needs commissioned/authorized likeness assets; GOD ATMOSPHERE needs original recordings and event mappings; GOD GAMEPLAY needs a verified Sider API/config adapter and repeatable in-game tests. No package is labelled installable until its actual deployment mapping, compatibility, rights and rollback are validated.
+
+## Premium asset expansion
+
+The original asset workshop now expands the source collection substantially:
+
+- **GOD VISUALS:** six authored visual profiles and six 17³ 3D LUTs in standard .cube source format.
+- **GOD TURF:** six pitch looks, each with albedo, derived normal-source and roughness-source DDS maps (18 DDS maps total), full mip chains, dimensions and SHA-256 integrity records.
+- **GOD STADIUMS:** five sponsor-neutral editable LED/adboard artwork concepts.
+- **GOD KITS:** eight original fictional, sponsor-free kit design plates.
+- **GOD FACES:** four procedural skin-tone source textures and one procedural hair-detail source texture. These are not face models or real-player likenesses.
+- **GOD ATMOSPHERE:** five synthesized WAV source clips: crowd beds/swell, matchday horn and whistle tone. They are not recorded chants, club anthems or commentary.
+- **GOD GAMEPLAY:** three distinct tactical/tempo design profiles and a safe Lua stub that registers no undocumented engine hooks.
+
+Every product descriptor records source ownership, version, per-file size and SHA-256, scope and explicit integration status. CI tests the expected asset counts and publishes the generated source library as an artifact.
+
+These assets are materially richer authoring deliverables, but they are still not falsely marked as game-ready. .cube LUTs need a supported post-processing adapter; turf normal/roughness channels need a verified PES material shader; stadium boards and kit plates need UV conversion and resource mapping; face sources need proper commissioned meshes/likeness permissions; audio needs PES event mapping and mastering; gameplay profiles need a supported adapter and repeatable match tests.
