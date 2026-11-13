@@ -58,3 +58,27 @@ This schema is a draft and must be implemented with runtime validation and tests
 ## Local library discovery
 
 The desktop manager can scan a selected collection directory. Each immediate, non-symlink child directory is treated as a candidate package and must contain a regular `module.json`. The scanner inspects at most 200 child directories per scan, validates the manifest, rejects symlinked payload path components, and verifies every declared payload SHA-256. It reports invalid packages rather than making them installable. Dependency and conflict status is evaluated against the current install journal; dependencies are not automatically fetched or installed. A package must still pass the separate installation preview and transactional installer checks. The current library is local-folder based; it does not claim to be a remote marketplace or distribute any third-party assets.
+
+
+## Deployment declaration
+
+New packages may declare an optional deployment block. Older packages without it retain automatic legacy routing.
+
+```json
+{
+  "deployment": {
+    "strategy": "livecpk"
+  }
+}
+```
+
+Supported strategies are `auto`, `direct`, `livecpk`, `lua`, `configuration`, and `manual-assisted`.
+
+- `auto` preserves legacy behavior and routes each declared game file by its target, with Lua entries mapped to `modules/`.
+- `direct` accepts ordinary game-relative files only.
+- `livecpk` requires every file target to be below `LiveCPK/`.
+- `lua` accepts Lua modules only and deploys them below Sider's `modules/` directory.
+- `configuration` requires `configFormat` (`sider-ini`, `ini`, `json`, or `text`) and non-empty `manualSteps`. Configuration templates are never copied over a live configuration automatically.
+- `manual-assisted` requires non-empty `manualSteps` and is not eligible for automatic game-directory installation.
+
+Configuration/manual declarations are intentionally conservative. A format-specific transactional adapter must exist before the manager can safely automate a configuration mutation.
