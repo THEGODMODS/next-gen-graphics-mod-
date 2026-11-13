@@ -382,46 +382,9 @@ return M
   return products;
 }
 \nexport async function buildOriginalAssets(output = OUT) {
-  const turfDir = path.join(output, "GOD-TURF", "textures");
-  const visualsDir = path.join(output, "GOD-VISUALS");
-  await mkdir(turfDir, { recursive: true });
-  await mkdir(visualsDir, { recursive: true });
-  const variants = [
-    { id: "natural-cut", title: "Natural Cut", style: "natural", description: "Balanced natural grass with restrained variation." },
-    { id: "stadium-emerald", title: "Stadium Emerald", style: "emerald", description: "Richer broadcast-ready green with controlled mowing variation." },
-    { id: "heritage-worn", title: "Heritage Worn", style: "worn", description: "Subtle worn-in pitch palette for a grounded matchday look." },
-  ];
-  const records = [];
-  for (const variant of variants) {
-    const dds = makeDdsRgba(makeGrassPixels(SIZE, variant.style), SIZE);
-    const filename = variant.id + ".dds";
-    await writeFile(path.join(turfDir, filename), dds);
-    records.push({ ...variant, file: "textures/" + filename, width: SIZE, height: SIZE, format: "DDS RGBA8 with full mip chain", bytes: dds.length, sha256: digest(dds) });
-  }
-  const turfPack = {
-    schemaVersion: 1,
-    id: "thegodmods.god-turf-originals",
-    name: "GOD TURF — Original Surface Collection",
-    version: "0.1.0",
-    ownership: "THEGODMODS original procedural artwork",
-    status: "source-assets-generated; game mapping and compatibility not yet validated",
-    game: "PES 2017 target pending resource inventory",
-    installable: false,
-    textures: records,
-    notes: ["Original procedural textures; no extracted PES or third-party files.", "RGBA8 DDS is provided as a source/export format. Confirm target shader and DDS format support before deployment.", "No stadium resource paths are invented. Build a game-specific module only after a verified pitch inventory."],
-  };
-  await writeFile(path.join(output, "GOD-TURF", "pack.json"), JSON.stringify(turfPack, null, 2) + "\n");
-  const profiles = [
-    { id: "god-visuals-balanced", title: "GOD VISUALS — Balanced Broadcast", values: { saturation: 1.03, contrast: 1.04, exposure: 0.0, sharpening: 0.08, bloom: 0.06, whiteBalanceKelvin: 6500 }, note: "Neutral broadcast balance; values are creative targets, not asserted game-engine controls." },
-    { id: "god-natural-neutral", title: "GOD NATURAL — Neutral Realism", values: { saturation: 0.96, contrast: 1.01, exposure: 0.0, sharpening: 0.03, bloom: 0.02, whiteBalanceKelvin: 6500 }, note: "Restrained processing and neutral colour direction." },
-    { id: "god-cinematic-matchday", title: "GOD CINEMATIC — Matchday Film", values: { saturation: 0.94, contrast: 1.08, exposure: -0.02, sharpening: 0.05, bloom: 0.09, whiteBalanceKelvin: 6100 }, note: "Subtle filmic contrast without extreme tint or crushed shadows." },
-  ];
-  await writeFile(path.join(visualsDir, "profiles.json"), JSON.stringify({
-    schemaVersion: 1, ownership: "THEGODMODS original creative presets",
-    status: "creative-presets-authored; engine adapter and in-game validation pending",
-    installable: false, profiles,
-  }, null, 2) + "\n");
-  const products = await buildSixDepartments(output);\n  return { output, textures: records, profiles: profiles.length, products };
+  await mkdir(output, { recursive: true });
+  const products = await buildSixDepartments(output);
+  return { output, products, departments: [...new Set(products.map(product => product.department))] };
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
