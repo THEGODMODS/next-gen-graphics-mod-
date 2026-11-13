@@ -123,7 +123,8 @@ export function evaluateContentRelease(input: unknown): ReleaseGateResult {
     if (isRecord(realGame)) {
       add(realGame.status === "passed" || realGame.status === "pending" || realGame.status === "failed",
         "Real-game validation status is invalid.");
-      if (realGame.status !== "passed") blockers.push("A successful real PES 2017 game test is required for verified status.");
+      if (realGame.status === "pending") blockers.push("A successful real PES 2017 game test is required for verified status.");
+      if (realGame.status === "failed") blockers.push("Real PES 2017 game validation failed; the release is blocked.");
       if (realGame.status === "passed") {
         add(nonEmpty(realGame.testedAt) && !Number.isNaN(Date.parse(String(realGame.testedAt))),
           "A valid real-game test timestamp is required.");
