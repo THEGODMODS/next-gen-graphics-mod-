@@ -31,6 +31,6 @@ describe("THEGODMODS original six-department asset build", () => {
     const turf = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
     expect(turf.textures).toHaveLength(3);
     expect(turf.textures.every((t: { sha256: string }) => /^[a-f0-9]{64}$/.test(t.sha256))).toBe(true);
-    expect((await readdir(path.join(dir, "GOD-ATMOSPHERE", "audio"))).length).toBe(2);
+    expect((await readdir(path.join(dir, "GOD-ATMOSPHERE", "audio"))).length).toBeGreaterThanOrEqual(5);\n    expect((await readdir(path.join(dir, "GOD-KITS", "designs"))).length).toBe(8);\n    expect((await readdir(path.join(dir, "GOD-STADIUMS", "artwork"))).length).toBeGreaterThanOrEqual(5);\n    expect((await readdir(path.join(dir, "GOD-VISUALS", "luts"))).length).toBe(6);\n    expect((await readdir(path.join(dir, "GOD-FACES", "textures"))).length).toBe(5);\n    const turfPack = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));\n    expect(turfPack.textures).toHaveLength(6);\n    expect(turfPack.assets).toHaveLength(18);
   });
 });
