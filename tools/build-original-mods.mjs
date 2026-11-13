@@ -7,11 +7,10 @@
  * PES 2017 compatibility: no stadium resource IDs or game-specific shader
  * mappings are guessed here. A target-specific module is a separate step.
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { readFile } from "node:fs/promises";
 import { buildPremiumUpgrades } from "./build-premium-upgrades.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -394,6 +393,7 @@ return M
 }
 
 export async function buildOriginalAssets(output = OUT) {
+  await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   const products = await buildSixDepartments(output);
   return { output, products, departments: [...new Set(products.map(product => product.department))] };
