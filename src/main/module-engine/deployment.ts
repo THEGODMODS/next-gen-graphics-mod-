@@ -6,7 +6,7 @@ export type DeploymentEntry = { source: string; target: string; sha256: string; 
 export type DeploymentPlan = {
   strategy: DeploymentStrategy;
   automatedEntries: DeploymentEntry[];
-  manualEntries: ModuleFileEntry[];
+  manualEntries: Array<{ source: string; target: string; sha256: string }>;
   manualSteps: string[];
   summary: string;
 };
@@ -31,7 +31,10 @@ export function resolveDeploymentPlan(manifest: ModuleManifest): DeploymentPlan 
 
   if (strategy === "manual-assisted") {
     if (!manualSteps.length) throw new Error("Manual-assisted packages must include at least one explicit manual step.");
-    return { strategy, automatedEntries: [], manualEntries: [...files], manualSteps,
+    return { strategy, automatedEntries: [], manualEntries: [
+      ...files,
+      ...lua.map(item => ({ source: item.source, target: "modules/" + item.moduleName, sha256: item.sha256 }))
+    ], manualSteps,
       summary: "Package files are provided for a user-completed manual installation; no game files will be changed automatically." };
   }
 
