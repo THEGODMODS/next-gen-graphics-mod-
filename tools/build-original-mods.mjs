@@ -39,9 +39,9 @@ function makeGrassPixels(size, style) {
     const variation = (grain - 0.5) * 24 + (clump - 0.5) * 16 + broad;
     const blade = hash32(x * 7 + y, y * 3 + x, 131);
     const index = (y * size + x) * 4;
-    pixels[index] = clamp(p.base[2] + variation * 0.65 + (blade > 0.86 ? 9 : 0));
+    pixels[index] = clamp(p.base[0] + variation * 0.8 + (blade > 0.86 ? 7 : 0));
     pixels[index + 1] = clamp(p.base[1] + variation + (blade > 0.86 ? 13 : 0));
-    pixels[index + 2] = clamp(p.base[0] + variation * 0.8 + (blade > 0.86 ? 7 : 0));
+    pixels[index + 2] = clamp(p.base[2] + variation * 0.65 + (blade > 0.86 ? 9 : 0));
     pixels[index + 3] = 255;
   }
   return pixels;
@@ -104,17 +104,31 @@ async function writeText(file, value) {
 }
 function wavTone({ seconds = 8, sampleRate = 22050, seed = 1, mode = "crowd" } = {}) {
   const count = seconds * sampleRate, data = Buffer.alloc(count * 2);
-  let state = seed >>> 0, lp = 0, phase = 0;
+  let state = seed >>> 0, low = 0, mid = 0, phase = 0, phase2 = 0;
   for (let i = 0; i < count; i++) {
     state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    const noise = ((state / 4294967295) * 2 - 1);
+    const noise = (state / 4294967295) * 2 - 1;
     const t = i / sampleRate;
-    const swell = 0.35 + 0.25 * Math.sin(2 * Math.PI * t / 5.7) + 0.12 * Math.sin(2 * Math.PI * t / 2.9);
-    lp = lp * 0.965 + noise * 0.035;
-    phase += 2 * Math.PI * (mode === "whistle" ? 1750 + 90 * Math.sin(t * 8) : mode === "horn" ? 220 : 82 + 7 * Math.sin(t * 0.7)) / sampleRate;
-    const tonal = mode === "whistle" ? Math.sin(phase) * 0.2 : mode === "horn" ? (Math.sin(phase) + Math.sin(phase * 2) * 0.35) * 0.15 : (Math.sin(phase) + Math.sin(phase * 1.49) * 0.35) * 0.045;
-    const sample = Math.max(-1, Math.min(1, (lp * swell * 0.75 + tonal) * 0.72));
-    data.writeInt16LE(Math.round(sample * 32767), i * 2);
+    low = low * 0.992 + noise * 0.008;
+    mid = mid * 0.84 + noise * 0.16;
+    const high = noise - mid;
+    const swell = 0.48 + 0.2 * Math.sin(2 * Math.PI * t / 5.7) + 0.12 * Math.sin(2 * Math.PI * t / 2.9);
+    const frequency = mode === "whistle" ? 1750 + 90 * Math.sin(t * 8) : mode === "horn" ? 220 : 82 + 7 * Math.sin(t * 0.7);
+    phase += 2 * Math.PI * frequency / sampleRate;
+    phase2 += 2 * Math.PI * (frequency * (mode === "horn" ? 2.01 : 1.49)) / sampleRate;
+    let sample;
+    if (mode === "whistle" || mode === "horn") {
+      const edge = Math.min(1, t * 18, (seconds - t) * 14);
+      const tone = mode === "whistle" ? Math.sin(phase) * 0.2 : (Math.sin(phase) + Math.sin(phase2) * 0.35) * 0.15;
+      sample = tone * Math.max(0, edge);
+    } else {
+      const crowdVoices = Math.sin(phase) * 0.045 + Math.sin(phase2) * 0.028;
+      const crowdTexture = low * 0.62 + mid * 0.2 + high * 0.055;
+      const distantClap = hash32(Math.floor(t * 17), seed, 991) > 0.985 ? (hash32(i, seed, 997) - 0.5) * 0.11 : 0;
+      const fade = Math.min(1, t * 5, (seconds - t) * 5);
+      sample = (crowdTexture * swell + crowdVoices + distantClap) * Math.max(0, fade) * 0.78;
+    }
+    data.writeInt16LE(Math.round(Math.max(-1, Math.min(1, sample)) * 32767), i * 2);
   }
   const header = Buffer.alloc(44);
   header.write("RIFF", 0); header.writeUInt32LE(36 + data.length, 4); header.write("WAVE", 8);
