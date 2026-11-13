@@ -165,6 +165,38 @@ describe("transactional module installer", () => {
     expect(journal.pendingTransaction).toBeNull();
   });
 
+  it("preflights every interrupted-install backup before restoring any target", async () => {
+    const f = await fixture();
+    const installer = new ModuleInstaller(f.game, f.state);
+    const first = "LiveCPK/common/first.dds";
+    const second = "LiveCPK/common/second.dds";
+    const firstPath = path.join(f.game, ...first.split("/"));
+    const secondPath = path.join(f.game, ...second.split("/"));
+    const backupPath = path.join(f.state, "backups", "recovery", "first-original.dds");
+    await fs.mkdir(path.dirname(firstPath), { recursive: true });
+    await fs.mkdir(path.dirname(backupPath), { recursive: true });
+    await fs.writeFile(firstPath, "installed first");
+    await fs.writeFile(secondPath, "installed second");
+    await fs.writeFile(backupPath, "original first");
+    const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
+      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
+      pendingTransaction: {
+        id: "simulated-partial-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
+        files: [
+          { target: first, installedSha256: digest("installed first"), backupPath, backupSha256: digest("original first") },
+          { target: second, installedSha256: digest("installed second"), backupPath: path.join(f.state, "backups", "missing.dds"), backupSha256: digest("original second") },
+        ],
+      },
+    }));
+
+    await expect(installer.recoverPendingTransaction()).rejects.toThrow("backup is missing");
+    expect(await fs.readFile(firstPath, "utf8")).toBe("installed first");
+    expect(await fs.readFile(secondPath, "utf8")).toBe("installed second");
+    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
+    expect(journal.pendingTransaction).not.toBeNull();
+  });
+
   it("preserves a target changed after an interrupted install", async () => {
     const f = await fixture();
     const relative = "LiveCPK/common/grass.dds";
