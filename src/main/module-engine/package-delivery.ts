@@ -137,7 +137,8 @@ export async function downloadVerifiedPackage(
     if (bytes !== release.archiveSize) throw new Error("Downloaded package size does not match the signed release.");
     const actualHash = hash.digest("hex");
     if (actualHash !== release.archiveSha256) throw new Error("Downloaded package SHA-256 does not match the signed release.");
-    await fs.rename(temporaryPath, finalPath);
+    await fs.link(temporaryPath, finalPath);
+    await fs.rm(temporaryPath, { force: true });
     return { filePath: finalPath, bytes, sha256: actualHash };
   } catch (error) {
     await fs.rm(temporaryPath, { force: true });
