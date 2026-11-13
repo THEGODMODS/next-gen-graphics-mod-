@@ -223,7 +223,8 @@ async function buildSixDepartments(output) {
     { id: "sunlit-hybrid", style: "emerald", seed: 503, wear: 0.05 },
     { id: "matchday-striped", style: "natural", seed: 601, wear: 0.07 }
   ];
-  const turfFiles = ["README.md", "surface-library.json", "pack.json"];\n  const turfAssetRecords = [];
+  const turfFiles = ["README.md", "surface-library.json", "pack.json"];
+  const turfAssetRecords = [];
   for (const item of turfPremium) {
     const albedo = makeGrassPixels(SIZE, item.style, item.seed, item.wear);
     const height = makeHeightField(SIZE, item.seed, item.wear);
