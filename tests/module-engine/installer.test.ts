@@ -93,6 +93,24 @@ describe("transactional module installer", () => {
     expect(await fs.readFile(target, "utf8")).toBe("original user file");
   });
 
+  it("blocks uninstall before mutation when an original backup is missing", async () => {
+    const f = await fixture();
+    const relative = "LiveCPK/common/grass.dds";
+    const target = path.join(f.game, ...relative.split("/"));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, "original user file");
+    const installer = new ModuleInstaller(f.game, f.state);
+    await installer.install(f.pkg, f.manifest, { approvedOverwriteTargets: [relative] });
+    const journalPath = path.join(f.state, "install-journal.json");
+    const journal = JSON.parse(await fs.readFile(journalPath, "utf8"));
+    const backupPath = journal.modules[0].files[0].backupPath;
+    await fs.rm(backupPath, { force: true });
+    await expect(installer.uninstall("studio.pitch-pack")).rejects.toThrow("Original backup is missing");
+    expect(await fs.readFile(target, "utf8")).toBe("new grass asset");
+    const unchangedJournal = JSON.parse(await fs.readFile(journalPath, "utf8"));
+    expect(unchangedJournal.modules).toHaveLength(1);
+  });
+
   it("blocks uninstall while another installed module depends on it", async () => {
     const f = await fixture();
     const installer = new ModuleInstaller(f.game, f.state);
