@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { buildOriginalAssets } from "../tools/build-original-mods.mjs";
+import { pathToFileURL } from "node:url";
+
+const builderUrl = pathToFileURL(path.resolve(process.cwd(), "tools/build-original-mods.mjs")).href;
+const { buildOriginalAssets } = await import(builderUrl);
 
 const tempDirs: string[] = [];
 afterEach(async () => {
