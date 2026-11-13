@@ -23,3 +23,10 @@
 
 
 .catalogue-chip{cursor:pointer;font:inherit}.catalogue-chip:hover,.catalogue-chip.active{border-color:#789b4b;background:#202e1c;color:#d7f0b4}.catalogue-tags{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 12px}.catalogue-tags span{padding:4px 6px;border:1px solid #2d3d47;background:#131f28;color:#a8b7c0;font-size:7px;line-height:1.25}
+
+.catalogue-brief-state{margin:0 0 10px;padding:7px 8px;border:1px solid #4a5a3d;background:#1b2821;color:#c8e4a8;font-size:8px;letter-spacing:.06em;line-height:1.5}
+.catalogue-brief-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0 12px}
+.catalogue-brief-grid>div{min-width:0;padding:9px;background:#111a20;border:1px solid #263640}
+.catalogue-brief-grid ul{margin:6px 0 0;padding-left:15px;color:#9eacb7;font-size:9px;line-height:1.6}
+.catalogue-brief-grid li{margin:0 0 4px}
+@media(max-width:760px){.catalogue-brief-grid{grid-template-columns:1fr}}
