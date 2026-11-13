@@ -7,7 +7,7 @@
   "scripts": {
     "predev": "tsc -p electron && node tools/copy-electron-assets.mjs",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run mods:build-original && tsc --noEmit && vite build && tsc -p electron/tsconfig.json && node tools/copy-electron-assets.mjs",
+    "build": "npm run mods:build-original && npm run mods:build-packs && npm run mods:verify-packs && tsc --noEmit && vite build && tsc -p electron/tsconfig.json && node tools/copy-electron-assets.mjs",
     "dist:win": "npm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release",
@@ -19,7 +19,9 @@
     "compare:dds": "node tools/dds-compare.mjs",
     "preview:dds": "node tools/dds-preview.mjs",
     "sign:package": "node tools/sign-package-release.mjs",
-    "mods:build-original": "node tools/build-original-mods.mjs"
+    "mods:build-original": "node tools/build-original-mods.mjs",
+    "mods:build-packs": "node tools/build-pes2017-modules.mjs",
+    "mods:verify-packs": "node tools/verify-built-modules.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -51,7 +53,8 @@
       "dist-electron/**/*",
       "package.json",
       "tools/**/*",
-      "content/originals/generated/**/*"
+      "content/originals/generated/**/*",
+      "content/packs/**/*"
     ],
     "win": {
       "target": [
