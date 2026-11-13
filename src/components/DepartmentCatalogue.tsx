@@ -9,9 +9,10 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
   const [view, setView] = useState<"originals" | "third-party">("originals");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("All");
   if (!department) return null;
-  const visibleSources = department.thirdParty.filter(item => (item.name + " " + item.focus + " " + item.note).toLowerCase().includes(search.toLowerCase()));
-  const visibleOriginals = department.originals.filter(item => (item.name + " " + item.focus).toLowerCase().includes(search.toLowerCase()));
+  const visibleSources = department.thirdParty.filter(item => (selectedCategory === "All" || item.categories.includes(selectedCategory)) && (item.name + " " + item.focus + " " + item.note).toLowerCase().includes(search.toLowerCase()));
+  const visibleOriginals = department.originals.filter(item => (selectedCategory === "All" || item.categories.includes(selectedCategory)) && (item.name + " " + item.focus).toLowerCase().includes(search.toLowerCase()));
   return <section className="department-catalogue">
     <div className="catalogue-heading">
       <div><div className="eyebrow">THEGODMODS CONTENT NETWORK · {department.strapline}</div><h2>{department.title} Catalogue</h2><p>{department.description}</p></div>
@@ -24,22 +25,22 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
         <button className={view === "third-party" ? "selected" : ""} onClick={() => {setView("third-party");setSelected(null);}}>THIRD-PARTY <span>{department.thirdParty.length}</span></button>
       </div>
     </div>
-    <div className="catalogue-subcategories"><span>EXPLORE</span>{department.subcategories.map(item => <span className="catalogue-chip" key={item}>{item}</span>)}</div>
+    <div className="catalogue-subcategories"><span>FILTER BY</span><button className={"catalogue-chip" + (selectedCategory === "All" ? " active" : "")} onClick={() => setSelectedCategory("All")}>All</button>{department.subcategories.map(item => <button className={"catalogue-chip" + (selectedCategory === item ? " active" : "")} key={item} onClick={() => setSelectedCategory(selectedCategory === item ? "All" : item)}>{item}</button>)}</div>
     {view === "originals" ? <div className="catalogue-cards">
       {visibleOriginals.length ? visibleOriginals.map(item => <article className="catalogue-card original-card" key={item.name}>
         <div className="catalogue-card-top"><span className="catalogue-origin"><Sparkles size={13}/> BUILT BY THEGODMODS</span><span className="catalogue-state">{item.status === "in-development" ? "IN DEVELOPMENT" : "STUDIO ROADMAP"}</span></div>
         <div className="catalogue-art"><div className="catalogue-art-mark">GOD<span>MODS</span></div><div className="catalogue-art-line"/><span>{department.id.toUpperCase()} / ORIGINAL SERIES</span></div>
-        <h3>{item.name}</h3><p>{item.focus}</p>
+        <h3>{item.name}</h3><p>{item.focus}</p><div className="catalogue-tags">{item.categories.filter(category => selectedCategory === "All" || category === selectedCategory).map(category => <span key={category}>{category}</span>)}</div>
         <div className="catalogue-card-foot"><span><BadgeCheck size={14}/> Original content programme</span><button onClick={() => setSelected(selected === item.name ? null : item.name)}>{selected === item.name ? "HIDE DETAILS" : "PROJECT DETAILS"}</button></div>
         {selected === item.name && <div className="catalogue-detail"><b>Production status</b><p>This is a THEGODMODS-owned project concept, not a downloadable release yet. The team must create the assets, test them in PES 2017, package them and publish verified hashes before installation is enabled.</p><b>Planned quality gates</b><p>Original asset provenance · PES 2017/Sider compatibility · preview evidence · package manifest · backup and rollback test.</p></div>}
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching original projects</b><span>Try a different search.</span></div>}
     </div> : <div className="catalogue-cards">
       {visibleSources.length ? visibleSources.map(item => <article className="catalogue-card third-party-card" key={item.id + item.name}>
         <div className="catalogue-card-top"><span className="catalogue-origin">EXTERNAL PUBLISHER</span><span className="catalogue-state external">SOURCE ONLY</span></div>
-        <div className="catalogue-publisher-mark">{item.name.slice(0,2).toUpperCase()}</div><h3>{item.name}</h3><strong>{item.focus}</strong><p>{item.note}</p>
+        <div className="catalogue-publisher-mark">{item.name.slice(0,2).toUpperCase()}</div><h3>{item.name}</h3><strong>{item.focus}</strong><p>{item.note}</p><div className="catalogue-tags">{item.categories.filter(category => selectedCategory === "All" || category === selectedCategory).map(category => <span key={category}>{category}</span>)}</div>
         <div className="catalogue-card-foot"><span><ShieldCheck size={14}/> Not verified by THEGODMODS</span><button onClick={() => onOpenSource(item.id)}>VISIT SOURCE <ArrowUpRight size={13}/></button></div>
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching third-party sources</b><span>Try a different search.</span></div>}
     </div>}
-    <div className="catalogue-release-note"><ShieldCheck size={15}/><span><b>Installation is locked until verification.</b> Catalogue listings and project concepts are not installable packages. A real release must have a version-pinned package, verified SHA-256, clear publisher/licence, PES 2017 compatibility and a tested install/rollback path.</span></div>
+    <div className="catalogue-release-note"><ShieldCheck size={15}/><span><b>{selectedCategory === "All" ? "Installation is locked until verification." : selectedCategory + " · discovery filter active."}</b> Catalogue listings and project concepts are not installable packages. A real release must have a version-pinned package, verified SHA-256, clear publisher/licence, PES 2017 compatibility and a tested install/rollback path.</span></div>
   </section>;
 }
