@@ -126,3 +126,22 @@ Each department has a focused subcategory taxonomy. Graphics includes complete o
 The src/catalogue/departments.ts registry now defines the six department identities, descriptions, subcategories, original production tracks and allowed third-party source references. DepartmentCatalogue renders the Originals and Third-Party lanes, searchable cards, ownership/status labels and a strict release-gate explanation. The Graphics DDS workbench and Stadium Pitch Builder remain available beneath their new catalogues. Kits & Equipment, Players, Audio & Atmosphere and Gameplay now use the same catalogue component instead of the former generic placeholder.
 
 The initial registry intentionally contains no installable catalogue package. Third-party cards open external publisher/community pages; original tracks are labelled as studio roadmap or development work. The local manifest scanner and safe installer remain the only current installation path. This avoids conflating discovery metadata with trusted packages.
+
+
+## Phase 2 implementation record — trusted package delivery foundation
+
+The new `src/main/module-engine/package-delivery.ts` module defines a versioned remote release contract and a fail-closed validation/download pipeline.
+
+A remote release must provide:
+- Namespaced package ID and semantic version.
+- Publisher identity and explicit licence ID.
+- An explicit `redistributionAllowed: true` declaration.
+- HTTPS download URL on an application-configured trusted hostname, with no embedded credentials or fragment.
+- Exact archive byte size and lowercase SHA-256 digest, bounded by the configured maximum.
+- An Ed25519 detached signature over a stable canonical release payload, verified against a key ID in the application's pinned public-key trust map.
+
+The downloader refuses redirects, non-200 responses, mismatched Content-Length, truncated/oversized payloads, hash mismatches and already-downloaded version collisions. It streams to a temporary `.part` file, verifies the exact byte count and digest, and only then links the verified archive into its final versioned filename. Failed downloads clean up the partial file. It does not extract archives or install packages; those operations remain behind the existing manifest validator and transactional installer.
+
+Automated tests cover valid signatures, metadata tampering, unknown hosts/keys, absent redistribution permission, redirect responses, corrupted payloads, and successful verified downloads.
+
+**Publisher onboarding is intentionally not activated yet.** This repository does not currently contain a THEGODMODS package-host domain, an official release-signing public key, or a production catalogue endpoint. No made-up host/key or unsigned fallback is introduced. Until THEGODMODS provisions and pins its Ed25519 public key and approved host, remote delivery remains unavailable by design; local package scanning and installation continue to work as before. A passing test with generated test-only keys is not evidence that a production publisher is trusted.
