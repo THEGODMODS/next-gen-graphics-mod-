@@ -18,7 +18,8 @@
     "inspect:dds": "node tools/dds-inspect.mjs",
     "compare:dds": "node tools/dds-compare.mjs",
     "preview:dds": "node tools/dds-preview.mjs",
-    "sign:package": "node tools/sign-package-release.mjs"
+    "sign:package": "node tools/sign-package-release.mjs",
+    "mods:build-original": "node tools/build-original-mods.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
