@@ -227,7 +227,19 @@ function makeLutCube(name, transform) {
     <text x="800" y="470" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="100" fill="#fff" letter-spacing="16">THE MATCHDAY</text>
     <text x="800" y="570" text-anchor="middle" font-family="Arial,sans-serif" font-size="44" fill="#7de6ee" letter-spacing="12">GOD STADIUMS • ORIGINAL ARTWORK</text>`));
   await writeText(path.join(stadiumDir, "README.md"), "# GOD STADIUMS\n\nOriginal sponsor-neutral LED/adboard artwork. This is presentation artwork, not a stadium model or mapped PES resource. Convert to the target texture format and map only after the stadium resource is identified.\n");
-  await addProduct("GOD-STADIUMS", "GOD STADIUMS — Matchday Presentation Artwork", "stadiums", ["artwork/led-board-generic.svg", "README.md"], ["No club, league or sponsor marks are included.", "No stadium IDs or LiveCPK paths are assumed."]);
+  const stadiumFiles = ["artwork/led-board-generic.svg", "README.md"];
+  const boardThemes = [
+    ["night", "#071629", "#26c6da", "NIGHT MATCH"],
+    ["cup-final", "#241a0b", "#e5bd58", "FINAL • MATCHDAY"],
+    ["classic", "#17251b", "#a6d46b", "THE BEAUTIFUL GAME"],
+    ["minimal", "#10151c", "#d9e2ec", "MATCHDAY"]
+  ];
+  for (const [id, bg, accent, headline] of boardThemes) {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="#0b1118"/><rect x="35" y="185" width="1530" height="530" rx="20" fill="' + bg + '" stroke="' + accent + '" stroke-width="10"/><path d="M75 225h1450v450H75z" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2"/><text x="800" y="465" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="104" letter-spacing="14" fill="#fff">' + headline + '</text><text x="800" y="555" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" letter-spacing="9" fill="' + accent + '">THEGODMODS • ORIGINAL STADIUM SERIES</text></svg>\n';
+    await writeText(path.join(stadiumDir, "artwork", "led-board-" + id + ".svg"), svg);
+    stadiumFiles.push("artwork/led-board-" + id + ".svg");
+  }
+  await addProduct("GOD-STADIUMS", "GOD STADIUMS — Premium Matchday Artwork Suite", "stadiums", stadiumFiles, ["Five original sponsor-neutral LED/adboard concepts.", "No club/league marks, stadium geometry or resource IDs are included."]);
 
   // Kit concepts: generic, fictional, sponsor-free design plates, not licensed team kits.
   const kitDir = path.join(output, "GOD-KITS");
@@ -236,37 +248,63 @@ function makeLutCube(name, transform) {
     ["concept-01-home.svg", "Concept 01 Home", "#f2f4f6", "#163c72", "hoops"],
     ["concept-02-away.svg", "Concept 02 Away", "#15202d", "#e6b84b", "sash"],
     ["concept-03-third.svg", "Concept 03 Third", "#6d1e36", "#f1e9df", "stripes"],
-    ["concept-04-keeper.svg", "Concept 04 Keeper", "#c5a93a", "#182b24", "hoops"]
+    ["concept-04-keeper.svg", "Concept 04 Keeper", "#c5a93a", "#182b24", "hoops"],
+    ["concept-05-carbon.svg", "Concept 05 Carbon", "#20252d", "#a7bac9", "stripes"],
+    ["concept-06-coral.svg", "Concept 06 Coral", "#c44e55", "#f4e5d8", "sash"],
+    ["concept-07-ice.svg", "Concept 07 Ice", "#cce7ec", "#25677a", "hoops"],
+    ["concept-08-heritage.svg", "Concept 08 Heritage", "#174a39", "#e6d6ae", "stripes"]
   ];
   for (const [file, name, base, accent, pattern] of kits) {
     await writeText(path.join(kitDir, "designs", file), kitSvg(name, base, accent, pattern));
     kitFiles.push("designs/" + file);
   }
-  await writeText(path.join(kitDir, "README.md"), "# GOD KITS\n\nFour original fictional, sponsor-free kit design plates. They are editable concept artwork, not ready-made PES kit textures and are not assigned to real clubs. UV template conversion, kit-server slot mapping and in-game review are required before installation.\n");
+  await writeText(path.join(kitDir, "README.md"), "# GOD KITS\n\nEight original fictional, sponsor-free kit design plates. They are editable concept artwork, not ready-made PES kit textures and are not assigned to real clubs. UV template conversion, kit-server slot mapping and in-game review are required before installation.\n");
   kitFiles.push("README.md");
-  await addProduct("GOD-KITS", "GOD KITS — Original Fictional Design Collection", "kits", kitFiles, ["No real club crests, manufacturer marks, sponsors or fonts.", "Design plates require conversion to a verified kit UV template."]);
+  await addProduct("GOD-KITS", "GOD KITS — Eight-Piece Premium Design Collection", "kits", kitFiles, ["No real club crests, manufacturer marks, sponsors or fonts.", "Design plates require conversion to a verified kit UV template."]);
 
   // Player appearance: neutral procedural skin-detail texture; no real-person likeness.
   const faceDir = path.join(output, "GOD-FACES", "textures");
   await mkdir(faceDir, { recursive: true });
-  const skin = Buffer.alloc(256 * 256 * 4);
-  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
-    const n = (hash32(x, y, 401) - .5) * 10 + Math.sin(y / 256 * Math.PI) * 5;
-    const i = (y * 256 + x) * 4;
-    skin[i] = clamp(174 + n); skin[i + 1] = clamp(119 + n * .8); skin[i + 2] = clamp(91 + n * .65); skin[i + 3] = 255;
+  const faceFiles = ["README.md"];
+  const skinVariants = [
+    ["neutral-skin-detail-source.dds", [174, 119, 91], 401],
+    ["warm-umber-detail-source.dds", [112, 69, 48], 419],
+    ["golden-olive-detail-source.dds", [190, 139, 101], 433],
+    ["deep-brown-detail-source.dds", [82, 48, 36], 457]
+  ];
+  for (const [filename, tone, seed] of skinVariants) {
+    const tex = Buffer.alloc(256 * 256 * 4);
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+      const pore = (hash32(x, y, seed) - .5) * 9, soft = Math.sin(y / 256 * Math.PI) * 3;
+      const i = (y * 256 + x) * 4;
+      tex[i] = clamp(tone[0] + pore + soft); tex[i + 1] = clamp(tone[1] + pore * .78 + soft);
+      tex[i + 2] = clamp(tone[2] + pore * .62 + soft); tex[i + 3] = 255;
+    }
+    await writeFile(path.join(faceDir, filename), makeDdsRgba(tex, 256));
+    faceFiles.push("textures/" + filename);
   }
-  const faceDds = makeDdsRgba(skin, 256);
-  await writeFile(path.join(faceDir, "neutral-skin-detail-source.dds"), faceDds);
+  const hair = Buffer.alloc(256 * 256 * 4);
+  for (let y = 0; y < 256; y++) for (let x = 0; x < 256; x++) {
+    const strand = Math.sin((x + Math.sin(y * .08) * 3) * .42) * 22;
+    const noise = (hash32(x, y, 877) - .5) * 24, v = clamp(42 + strand + noise), i = (y * 256 + x) * 4;
+    hair[i] = v; hair[i + 1] = clamp(v * .91); hair[i + 2] = clamp(v * .78); hair[i + 3] = 255;
+  }
+  await writeFile(path.join(faceDir, "procedural-hair-detail-source.dds"), makeDdsRgba(hair, 256));
+  faceFiles.push("textures/procedural-hair-detail-source.dds");
   await writeText(path.join(output, "GOD-FACES", "README.md"), "# GOD FACES\n\nOriginal neutral procedural skin-detail source texture only. It is not a face model, a real-player likeness, or a complete face replacement. No player IDs are assigned. A licensed/commissioned model, UV layout and roster mapping are needed for a full player appearance mod.\n");
-  await addProduct("GOD-FACES", "GOD FACES — Neutral Appearance Source", "players", ["textures/neutral-skin-detail-source.dds", "README.md"], ["Generic procedural texture only; not a human likeness.", "No player ID, face mesh or roster mapping is included."]);
+  faceFiles.push("README.md");
+  await addProduct("GOD-FACES", "GOD FACES — Procedural Appearance Texture Kit", "players", faceFiles, ["Four original procedural skin-tone source textures and one hair-detail source texture.", "These are texture sources only, not face meshes, real-player likenesses or roster assignments."]);
 
   // Audio: synthesized original crowd bed and horn tone, no sampled chants or anthems.
   const audioDir = path.join(output, "GOD-ATMOSPHERE", "audio");
   await mkdir(audioDir, { recursive: true });
   await writeFile(path.join(audioDir, "synthetic-crowd-bed.wav"), wavTone({ seconds: 12, seed: 73, mode: "crowd" }));
   await writeFile(path.join(audioDir, "synthetic-matchday-horn.wav"), wavTone({ seconds: 4, seed: 91, mode: "horn" }));
+  await writeFile(path.join(audioDir, "synthetic-crowd-swell.wav"), wavTone({ seconds: 10, seed: 137, mode: "crowd" }));
+  await writeFile(path.join(audioDir, "synthetic-stadium-bed-alt.wav"), wavTone({ seconds: 12, seed: 211, mode: "crowd" }));
+  await writeFile(path.join(audioDir, "synthetic-whistle-tone.wav"), wavTone({ seconds: 2, seed: 313, mode: "horn", sampleRate: 32000 }));
   await writeText(path.join(output, "GOD-ATMOSPHERE", "README.md"), "# GOD ATMOSPHERE\n\nOriginal synthesized ambience and tonal matchday horn. These are not club anthems, recorded supporter chants or commentary. Audio-event codec conversion, volume mastering and PES event mapping remain to be configured and tested.\n");
-  await addProduct("GOD-ATMOSPHERE", "GOD ATMOSPHERE — Synthetic Matchday Audio", "audio", ["audio/synthetic-crowd-bed.wav", "audio/synthetic-matchday-horn.wav", "README.md"], ["All sounds are generated procedurally; no recordings or copyrighted compositions are sampled.", "No PES audio event IDs are guessed."]);
+  await addProduct("GOD-ATMOSPHERE", "GOD ATMOSPHERE — Original Matchday Sound Suite", "audio", ["audio/synthetic-crowd-bed.wav", "audio/synthetic-crowd-swell.wav", "audio/synthetic-stadium-bed-alt.wav", "audio/synthetic-matchday-horn.wav", "audio/synthetic-whistle-tone.wav", "README.md"], ["All sounds are generated procedurally; no recordings or copyrighted compositions are sampled.", "No PES audio event IDs are guessed."]);
 
   // Gameplay: conservative, documented tuning profile plus a no-op Lua integration stub.
   const gameplayDir = path.join(output, "GOD-GAMEPLAY");
@@ -276,6 +314,13 @@ function makeLutCube(name, transform) {
     principles: { matchTempo: "measured", playerAcceleration: "avoid_artificial_burst", ballResponse: "preserve_contextual_variation", cpuTactics: "retain_team_identity", fouls: "test_before_tuning" },
     validationScenarios: ["slow build-up vs high press", "counter attack transition", "loose ball and rebound", "physical duel and foul frequency", "extra time fatigue and substitutions"]
   }, null, 2) + "\n");
+  const gameplayFiles = ["profiles/simulation-balanced.json", "lua/god_gameplay_status.lua", "README.md"];
+  const gameplayProfiles = [
+    ["possession-control", { tempo: "patient", pressing: "situational", passingRisk: "measured", fatigue: "baseline" }],
+    ["high-intensity", { tempo: "fast", pressing: "aggressive", passingRisk: "direct", fatigue: "increased" }],
+    ["classic-simulation", { tempo: "measured", pressing: "balanced", passingRisk: "contextual", fatigue: "baseline" }]
+  ];
+  for (const [id, settings] of gameplayProfiles) { const file = "profiles/" + id + ".json"; await writeText(path.join(gameplayDir, file), JSON.stringify({ schemaVersion: 1, id, settings, status: "design profile only; requires supported gameplay adapter and scenario validation" }, null, 2) + "\n"); gameplayFiles.push(file); }
   await writeText(path.join(gameplayDir, "lua", "god_gameplay_status.lua"), `-- THEGODMODS GOD GAMEPLAY integration placeholder.
 -- This module deliberately makes no undocumented game-engine calls.
 -- Add behavior only against a verified Sider/Lua API and tested PES 2017 build.
@@ -286,7 +331,7 @@ end
 return M
 `);
   await writeText(path.join(gameplayDir, "README.md"), "# GOD GAMEPLAY\n\nIncludes a complete design/QA profile and a safe Lua module stub. It does not change physics, AI or executable memory. Real gameplay behavior requires documented supported hooks and repeatable in-game tests; unsupported memory patches are intentionally not fabricated.\n");
-  await addProduct("GOD-GAMEPLAY", "GOD GAMEPLAY — Simulation Design Profile", "gameplay", ["profiles/simulation-balanced.json", "lua/god_gameplay_status.lua", "README.md"], ["No undocumented executable hooks or memory patches.", "Lua stub is safe and does not alter gameplay."]);
+  await addProduct("GOD-GAMEPLAY", "GOD GAMEPLAY — Three-Style Simulation Profiles", "gameplay", gameplayFiles, ["No undocumented executable hooks or memory patches.", "Lua stub is safe and does not alter gameplay."]);
 
 
   const visualProfiles = [
