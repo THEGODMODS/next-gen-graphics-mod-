@@ -396,6 +396,8 @@ export async function buildOriginalAssets(output = OUT) {
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   const products = await buildSixDepartments(output);
+  await buildPremiumUpgrades(output);
+  for (let i = 0; i < products.length; i++) Object.assign(products[i], JSON.parse(await readFile(path.join(output, products[i].name.split(" — ")[0].replaceAll(" ", "-"), "package.json"), "utf8")));
   return { output, products, departments: [...new Set(products.map(product => product.department))] };
 }
 
