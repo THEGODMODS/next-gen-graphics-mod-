@@ -152,6 +152,9 @@ async function buildSixDepartments(output) {
     products.push(record);
   };
 
+  await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF\\n\\nThree original procedural RGBA8 DDS turf textures with mip chains. These are source texture assets; target format conversion, pitch resource mapping and real-game validation are still required.\\n");
+  await addProduct("GOD-TURF", "GOD TURF — Original Surface Collection", "stadiums", ["pack.json", "README.md", "textures/natural-cut.dds", "textures/stadium-emerald.dds", "textures/heritage-worn.dds"], ["Three original procedural grass textures with complete mip chains.", "No game resource mapping is claimed; target conversion and validation are required."]);
+
   // Stadium presentation: original sponsor-neutral LED board artwork.
   const stadiumDir = path.join(output, "GOD-STADIUMS");
   await writeText(path.join(stadiumDir, "artwork", "led-board-generic.svg"), svgDoc("GOD STADIUMS LED board", `
