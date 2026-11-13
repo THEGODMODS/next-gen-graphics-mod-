@@ -88,7 +88,7 @@ export class SiderConfigManager {
   /** Replaces the complete manager-owned Lua activation set in one Sider sync. */
   async applyLuaActivationProfile(enabledModuleNames: string[]): Promise<SiderSyncResult> {
     if (!Array.isArray(enabledModuleNames) || enabledModuleNames.length > 1000 ||
-        enabledModuleNames.some(name => typeof name !== "string" || !/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(name) || name.includes(".."))) {
+        enabledModuleNames.some(name => typeof name !== "string" || !/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(name) || name.includes(".."))) {
       throw new Error("Invalid Lua activation profile.");
     }
     const uniqueNames = [...new Set(enabledModuleNames)];
