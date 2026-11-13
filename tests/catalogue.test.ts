@@ -15,6 +15,20 @@ describe("department catalogue foundation", () => {
     }
   });
 
+  it("maps every project and external source to valid department subcategories", () => {
+    for (const department of departments) {
+      const validCategories = new Set(department.subcategories);
+      for (const project of department.originals) {
+        expect(project.categories.length, project.name).toBeGreaterThan(0);
+        for (const category of project.categories) expect(validCategories.has(category), project.name + ": " + category).toBe(true);
+      }
+      for (const source of department.thirdParty) {
+        expect(source.categories.length, source.name).toBeGreaterThan(0);
+        for (const category of source.categories) expect(validCategories.has(category), source.name + ": " + category).toBe(true);
+      }
+    }
+  });
+
   it("keeps external source IDs within the supported IPC allowlist", () => {
     const supported = new Set(["pesmodding", "moddingway", "nexus", "profacemods", "gfx-pitch-2026", "gfx-combined-2025", "pesfiles-graphics"]);
     for (const department of departments) {
