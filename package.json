@@ -17,7 +17,8 @@
     "build:pitch-module": "node tools/pitch-module-builder.mjs",
     "inspect:dds": "node tools/dds-inspect.mjs",
     "compare:dds": "node tools/dds-compare.mjs",
-    "preview:dds": "node tools/dds-preview.mjs"
+    "preview:dds": "node tools/dds-preview.mjs",
+    "sign:package": "node tools/sign-package-release.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
