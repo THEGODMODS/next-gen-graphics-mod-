@@ -82,7 +82,8 @@ export default function App() {
   const createProfile = () => {
     const name = window.prompt("Name this PES 2017 setup profile:");
     if (!name || !name.trim()) return;
-    const enabledLuaModules = status?.luaModules ?? [];
+    const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
+    const enabledLuaModules = (status?.luaModules ?? []).filter(name => managedLuaModules.has(name));
     const profile = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: name.trim().slice(0, 48), createdAt: new Date().toISOString(), enabledLuaModules: [...enabledLuaModules] };
     persistProfiles([...profiles, profile]);
     setNotice(`Saved profile “${profile.name}” with ${enabledLuaModules.length} active Sider Lua module(s).`);
@@ -91,8 +92,9 @@ export default function App() {
     if (!siderReady || profileBusy) return;
     setProfileBusy(true);
     try {
-      const current = status?.luaModules ?? [];
-      const wanted = new Set(profile.enabledLuaModules);
+      const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
+      const current = (status?.luaModules ?? []).filter(name => managedLuaModules.has(name));
+      const wanted = new Set(profile.enabledLuaModules.filter(name => managedLuaModules.has(name)));
       for (const name of current) if (!wanted.has(name)) await window.nextgen.setLuaModuleEnabled(name, false);
       for (const name of profile.enabledLuaModules) if (!current.includes(name)) await window.nextgen.setLuaModuleEnabled(name, true);
       await refresh();
