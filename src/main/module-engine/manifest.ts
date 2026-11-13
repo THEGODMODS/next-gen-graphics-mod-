@@ -29,6 +29,32 @@ export function validateModuleManifest(input: unknown): ManifestValidation {
   add(typeof input.description === "string", "description must be a string.");
   add(typeof input.category === "string" && categories.has(input.category as ModuleCategory), "category is not supported.");
 
+  if (input.deployment !== undefined) {
+    add(isRecord(input.deployment), "deployment must be an object.");
+    if (isRecord(input.deployment)) {
+      add(["auto", "direct", "livecpk", "lua", "configuration", "manual-assisted"].includes(String(input.deployment.strategy)),
+        "deployment.strategy is not supported.");
+      if (input.deployment.configFormat !== undefined) {
+        add(["sider-ini", "ini", "json", "text"].includes(String(input.deployment.configFormat)),
+          "deployment.configFormat is not supported.");
+      }
+      if (input.deployment.manualSteps !== undefined) {
+        add(Array.isArray(input.deployment.manualSteps) &&
+          input.deployment.manualSteps.every(step => typeof step === "string" && step.trim().length > 0 && step.length <= 500),
+          "deployment.manualSteps must contain non-empty instructions of at most 500 characters.");
+      }
+      if (input.deployment.strategy === "configuration") {
+        add(typeof input.deployment.configFormat === "string", "Configuration deployment requires configFormat.");
+        add(Array.isArray(input.deployment.manualSteps) && input.deployment.manualSteps.length > 0,
+          "Configuration deployment requires manualSteps.");
+      }
+      if (input.deployment.strategy === "manual-assisted") {
+        add(Array.isArray(input.deployment.manualSteps) && input.deployment.manualSteps.length > 0,
+          "Manual-assisted deployment requires manualSteps.");
+      }
+    }
+  }
+
   const game = input.game;
   add(isRecord(game), "game must be an object.");
   if (isRecord(game)) {
