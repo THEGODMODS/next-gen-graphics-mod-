@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowUpRight, BadgeCheck, Blocks, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { getDepartment } from "../catalogue/departments";
+import { getOriginalContentProject } from "../catalogue/original-content";
 
 type Props = { departmentId: string; onOpenSource: (sourceId: string) => void };
 
@@ -32,7 +33,23 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
         <div className="catalogue-art"><div className="catalogue-art-mark">GOD<span>MODS</span></div><div className="catalogue-art-line"/><span>{department.id.toUpperCase()} / ORIGINAL SERIES</span></div>
         <h3>{item.name}</h3><p>{item.focus}</p><div className="catalogue-tags">{item.categories.filter(category => selectedCategory === "All" || category === selectedCategory).map(category => <span key={category}>{category}</span>)}</div>
         <div className="catalogue-card-foot"><span><BadgeCheck size={14}/> Original content programme</span><button onClick={() => setSelected(selected === item.name ? null : item.name)}>{selected === item.name ? "HIDE DETAILS" : "PROJECT DETAILS"}</button></div>
-        {selected === item.name && <div className="catalogue-detail"><b>Production status</b><p>This is a THEGODMODS-owned project concept, not a downloadable release yet. The team must create the assets, test them in PES 2017, package them and publish verified hashes before installation is enabled.</p><b>Planned quality gates</b><p>Original asset provenance · PES 2017/Sider compatibility · preview evidence · package manifest · backup and rollback test.</p></div>}
+        {selected === item.name && (() => {
+          const brief = getOriginalContentProject(item.name);
+          if (!brief) return <div className="catalogue-detail"><b>Production brief unavailable</b><p>This project cannot be released until its content brief is completed.</p></div>;
+          return <div className="catalogue-detail">
+            <div className="catalogue-brief-state">{brief.productionState === "tooling-prototype" ? "AUTHORING TOOLING PROTOTYPE · NOT A CONTENT PACK" : "PRODUCTION BRIEF · ASSETS NOT YET RELEASED"}</div>
+            <b>Production goal</b><p>{brief.goal}</p>
+            <b>Style direction</b><p>{brief.styleDirection}</p>
+            <div className="catalogue-brief-grid">
+              <div><b>Deliverables</b><ul>{brief.deliverables.map(value => <li key={value}>{value}</li>)}</ul></div>
+              <div><b>Required source assets</b><ul>{brief.assetRequirements.map(value => <li key={value}>{value}</li>)}</ul></div>
+              <div><b>Acceptance checks</b><ul>{brief.acceptanceChecks.map(value => <li key={value}>{value}</li>)}</ul></div>
+              <div><b>Preview plan</b><ul>{brief.previewPlan.map(value => <li key={value}>{value}</li>)}</ul></div>
+            </div>
+            <b>Rights policy</b><p>{brief.rightsPolicy}</p>
+            <b>Install status</b><p>No downloadable payload is approved. Installation remains locked until real assets, rights, compatibility, package hashes, rollback tests and real-game evidence pass release gates.</p>
+          </div>;
+        })()}
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching original projects</b><span>Try a different search.</span></div>}
     </div> : <div className="catalogue-cards">
       {visibleSources.length ? visibleSources.map(item => <article className="catalogue-card third-party-card" key={item.id + item.name}>
