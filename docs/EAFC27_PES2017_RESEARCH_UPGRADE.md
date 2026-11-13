@@ -78,3 +78,13 @@ Do not mark any source package as one-click installable until all of the followi
 - PES 2017 Reshade/turf/stadium/crowd precedent: https://steamcommunity.com/sharedfiles/filedetails/?id=770118087
 
 This research informs original implementation. It does not copy EA assets, proprietary shaders, or third-party mod packages.
+
+
+## PES 2017 kit-server compatibility distinction
+
+The popular GDB Kitserver Sider module repository explicitly describes itself as an extension for Sider 6 and Sider 7, and its community overview identifies the Kitserver release as targeting Sider 6 / PES 2020. It is therefore **not bundled or treated as a PES 2017 kit installer**. PES 2017's documented Sider 3.5 mechanism is LiveCPK: ordered file-override roots replace a file only when the exact relative path is known. GOD KITS therefore remains a fabric-detail authoring library until the installed PES 2017 patch's real kit texture paths and UV layouts are identified. No newer .ftex/GDB mapping is guessed or copied into a PES 2017 package.
+
+Additional references:
+- Sider Kitserver repository (Sider 6/7): https://github.com/pes-modding/kitserver-sider-module
+- Kitserver overview (Sider 6 / PES 2020): https://instructions.pesmodding.com/2021/01/sider-module-kitserver.html
+- PES 2017 Sider 3.5 LiveCPK README: https://github.com/pes-modding/sider3/blob/master/doc/readme.txt
