@@ -131,3 +131,23 @@ export const originalContentProjects: OriginalContentProject[] = [
 export function getOriginalContentProject(name: string): OriginalContentProject | undefined {
   return originalContentProjects.find(project => project.name === name);
 }
+
+export interface GeneratedAssetStatus {
+  summary: string;
+  files: string[];
+  readiness: string;
+}
+const generatedAssetStatus: Record<string, GeneratedAssetStatus> = {
+  "GOD VISUALS": { summary: "Six original creative profiles and six 17³ colour LUTs.", files: ["profiles.json", "luts/*.cube"], readiness: "Source grades generated; post-processing adapter and PES 2017 visual validation pending." },
+  "GOD CINEMATIC": { summary: "Cinematic matchday profile and original 3D LUT source.", files: ["profiles.json", "luts/cinematic-matchday.cube", "luts/european-evening.cube"], readiness: "Source grades generated; supported shader adapter and in-game validation pending." },
+  "GOD NATURAL": { summary: "Natural realism, daylight and overcast profiles with original LUT sources.", files: ["profiles.json", "luts/natural-realism.cube", "luts/sunlit-daylight.cube", "luts/overcast-realism.cube"], readiness: "Source grades generated; supported shader adapter and in-game validation pending." },
+  "GOD TURF": { summary: "Six original pitch looks with 18 DDS source maps: albedo, normal and roughness.", files: ["pack.json", "surface-library.json", "textures/*-albedo.dds", "textures/*-normal-source.dds", "textures/*-roughness-source.dds"], readiness: "Source maps generated; PES material channels, DDS target format and stadium resource mapping need verification." },
+  "GOD STADIUMS": { summary: "Five original sponsor-neutral LED/adboard SVG masters.", files: ["artwork/led-board-*.svg"], readiness: "Artwork generated; export to target UV dimensions and map stadium resources before install." },
+  "GOD KITS": { summary: "Eight original fictional, sponsor-free kit design plates.", files: ["designs/concept-*.svg"], readiness: "Design artwork generated; kit UV conversion and kit-server slot mapping pending." },
+  "GOD FACES": { summary: "Four procedural skin-tone textures and one hair-detail texture.", files: ["textures/*-detail-source.dds", "textures/procedural-hair-detail-source.dds"], readiness: "Generic texture sources generated; no face meshes, player likenesses or roster IDs included." },
+  "GOD ATMOSPHERE": { summary: "Five original synthesized WAV source clips.", files: ["audio/*.wav"], readiness: "Audio sources generated; mastering, PES codec and event mapping pending." },
+  "GOD GAMEPLAY": { summary: "Three tactical/tempo design profiles and a safe Lua stub.", files: ["profiles/*.json", "lua/god_gameplay_status.lua"], readiness: "Design profiles generated; no physics/AI hooks applied until a supported adapter is validated." }
+};
+export function getGeneratedAssetStatus(name: string): GeneratedAssetStatus | undefined {
+  return generatedAssetStatus[name];
+}
