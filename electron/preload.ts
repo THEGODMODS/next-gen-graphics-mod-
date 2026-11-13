@@ -13,7 +13,7 @@ export type ModulePreview = {
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
 export type LibraryPackage = { id: string; name: string; version: string; category: string; description: string; valid: boolean; errors: string[]; files: number; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean };
-export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; luaModules: string[]; };
+export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; backupCount: number; luaModules: string[]; };
 export type UninstallResult = { removed: string[]; restored: string[]; preservedModified: string[]; siderSyncWarning: string | null };
 export type SiderSyncResult = { registeredRoots: string[]; registeredLuaModules: string[]; changed: boolean; backupPath: string | null };
 export type GameStatus = {
