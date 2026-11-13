@@ -48,3 +48,18 @@ owned by the install journal cannot be toggled by this interface.
 
 
 Legacy journals remain compatible: missing dependency arrays are treated as having no recorded dependencies. This is necessarily less protective for packages installed before dependency metadata was stored; those modules should be reviewed before removal.
+
+
+## Phase 3 — deployment adapter foundation
+
+The module engine now resolves package manifests through explicit deployment adapters before any game-directory write:
+
+- **Direct files:** ordinary game-relative targets are staged and installed transactionally.
+- **LiveCPK:** targets must remain under the declared `LiveCPK/` tree; the existing Sider-root synchronization remains the registration path.
+- **Lua/Sider:** Lua-only packages map to `modules/<moduleName>` and remain registered/activated through the manager-owned Sider configuration workflow.
+- **Configuration:** configuration templates are classified as manual artifacts, require a declared format and explicit instructions, and are never blindly copied over a user's live configuration.
+- **Manual-assisted:** package artifacts and steps are surfaced as non-automated work; the installer refuses to report these as installed or write them into the game folder.
+
+Legacy manifests retain automatic routing so existing local packages continue to work. Adapter validation and path-boundary tests cover legacy direct/LiveCPK routing, explicit LiveCPK constraints, Lua mapping, configuration safety and required manual instructions.
+
+This is the first Phase 3 increment, not the completed phase. Full module update transactions, generic enable/disable, transactional Sider/config application, and end-to-end UI workflows remain to be implemented and tested before Phase 3 sign-off.
