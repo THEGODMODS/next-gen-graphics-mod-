@@ -224,10 +224,17 @@ async function buildSixDepartments(output) {
     const albedo = makeGrassPixels(SIZE, item.style);
     const height = makeHeightField(SIZE, item.seed, item.wear);
     const base = "textures/" + item.id;
-    await writeFile(path.join(output, "GOD-TURF", base + "-albedo.dds"), makeDdsRgba(albedo, SIZE));
-    await writeFile(path.join(output, "GOD-TURF", base + "-normal-source.dds"), makeDdsRgba(makeNormalPixels(height, SIZE), SIZE));
-    await writeFile(path.join(output, "GOD-TURF", base + "-roughness-source.dds"), makeDdsRgba(makeRoughnessPixels(height, SIZE), SIZE));
-    turfFiles.push(base + "-albedo.dds", base + "-normal-source.dds", base + "-roughness-source.dds");
+    const maps = [
+      ["albedo", makeDdsRgba(albedo, SIZE)],
+      ["normal-source", makeDdsRgba(makeNormalPixels(height, SIZE), SIZE)],
+      ["roughness-source", makeDdsRgba(makeRoughnessPixels(height, SIZE), SIZE)]
+    ];
+    for (const [mapName, bytes] of maps) {
+      const file = base + "-" + mapName + ".dds";
+      await writeFile(path.join(output, "GOD-TURF", file), bytes);
+      turfFiles.push(file);
+      turfAssetRecords.push({ file, width: SIZE, height: SIZE, format: "DDS RGBA8 mipmapped", bytes: bytes.length, sha256: digest(bytes) });
+    }
   }
   await writeText(path.join(output, "GOD-TURF", "pack.json"), JSON.stringify({
     schemaVersion: 1, id: "thegodmods.god-turf-premium", name: "GOD TURF Premium Six-Surface Collection",
