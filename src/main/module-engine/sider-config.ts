@@ -67,7 +67,7 @@ export class SiderConfigManager {
     const installed = await this.listLuaModules();
     const installedNames = new Set(installed.map(module => module.moduleName));
     if (uniqueNames.some(name => !installedNames.has(name))) {
-      throw new Error("Every Lua module in the activation group must be installed and managed by this manager.");
+      throw new Error("Lua module is not installed or is not managed by this manager; every activation-group member must be installed.");
     }
     const activationPath = path.join(this.stateDirectory, "sider-enabled-lua.json");
     const previous = installed.filter(module => module.enabled).map(module => module.moduleName);
