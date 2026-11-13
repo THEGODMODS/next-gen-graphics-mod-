@@ -43,5 +43,15 @@ describe("THEGODMODS original six-department asset build", () => {
     expect((await readdir(path.join(dir, "GOD-VISUALS", "sider", "modules")))).toContain("godmods_gfx.lua");
     expect((await readdir(path.join(dir, "GOD-GAMEPLAY", "sider", "modules")))).toContain("godmods_gameplay.lua");
     expect((await readdir(path.join(dir, "GOD-STADIUMS", "sider", "modules")))).toContain("godmods_conditions.lua");
+    expect((await readdir(path.join(dir, "GOD-STADIUMS", "sider", "content", "godmods", "conditions")))).toHaveLength(4);
+    const gfxModule = await readFile(path.join(dir, "GOD-VISUALS", "sider", "modules", "godmods_gfx.lua"), "utf8");
+    expect(gfxModule).toContain('ctx.register("set_home_team"');
+    expect(gfxModule).toContain("shadow_softness");
+    const gameplayModule = await readFile(path.join(dir, "GOD-GAMEPLAY", "sider", "modules", "godmods_gameplay.lua"), "utf8");
+    expect(gameplayModule).toContain('ctx.register("set_home_team"');
+    expect(gameplayModule).toContain('enabled=0');
+    const conditionsModule = await readFile(path.join(dir, "GOD-STADIUMS", "sider", "modules", "godmods_conditions.lua"), "utf8");
+    expect(conditionsModule).toContain('ctx.register("set_conditions"');
+
   });
 });
