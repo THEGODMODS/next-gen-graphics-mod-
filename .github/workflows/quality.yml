@@ -26,6 +26,17 @@ jobs:
         run: npm install
       - name: Build original GODMODS source assets
         run: npm run mods:build-original
+      - name: Build installable GODMODS Sider modules
+        run: npm run mods:build-packs
+      - name: Verify GODMODS module manifests and payloads
+        run: npm run mods:verify-packs
+      - name: Upload installable GODMODS module packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: thegodmods-installable-modules-${{ github.sha }}
+          path: content/packs/**
+          if-no-files-found: error
+          retention-days: 30
       - name: Upload generated original GODMODS content
         uses: actions/upload-artifact@v4
         with:
