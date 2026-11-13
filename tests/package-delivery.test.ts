@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -20,12 +20,7 @@ function signedRelease(overrides: Partial<RemotePackageRelease> = {}): RemotePac
   return { ...unsigned, signature: { ...unsigned.signature, value: signature } };
 }
 function requireHash(value: Buffer): string {
-  return Array.from(createHash(value)).map(byte => byte.toString(16).padStart(2, "0")).join("");
-}
-function createHash(value: Buffer): number[] {
-  // Keep fixture hashing independent from the implementation under test.
-  const crypto = require("node:crypto") as typeof import("node:crypto");
-  return [...crypto.createHash("sha256").update(value).digest()];
+  return createHash("sha256").update(value).digest("hex");
 }
 const directories: string[] = [];
 afterEach(async () => { await Promise.all(directories.splice(0).map(directory => fs.rm(directory, { recursive: true, force: true }))); });
