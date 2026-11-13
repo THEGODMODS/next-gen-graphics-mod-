@@ -381,7 +381,8 @@ return M
   }, null, 2) + "\n");
   return products;
 }
-\nexport async function buildOriginalAssets(output = OUT) {
+
+export async function buildOriginalAssets(output = OUT) {
   await mkdir(output, { recursive: true });
   const products = await buildSixDepartments(output);
   return { output, products, departments: [...new Set(products.map(product => product.department))] };
