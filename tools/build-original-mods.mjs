@@ -139,7 +139,50 @@ function kitSvg(name, base, accent, pattern) {
     </g>
     <text x="800" y="820" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="42" letter-spacing="8">THEGODMODS • ${name}</text>`, "#0c1218");
 }
-async function buildSixDepartments(output) {
+
+function makeHeightField(size, seed, wear = 0.12) {
+  const h = new Float32Array(size * size);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const broad = Math.sin(x / size * Math.PI * 14 + seed) * 0.16 + Math.cos(y / size * Math.PI * 11) * 0.12;
+    const fine = (hash32(x, y, seed) - 0.5) * 0.34;
+    const clump = (hash32(Math.floor(x / 4), Math.floor(y / 4), seed + 17) - 0.5) * 0.28;
+    const scuff = hash32(Math.floor(x / 13), Math.floor(y / 13), seed + 31) < wear ? -0.2 : 0;
+    h[y * size + x] = broad + fine + clump + scuff;
+  }
+  return h;
+}
+function makeNormalPixels(height, size, strength = 3.2) {
+  const out = Buffer.alloc(size * size * 4);
+  const at = (x, y) => height[((y + size) % size) * size + ((x + size) % size)];
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const dx = (at(x + 1, y) - at(x - 1, y)) * strength;
+    const dy = (at(x, y + 1) - at(x, y - 1)) * strength;
+    const inv = 1 / Math.sqrt(dx * dx + dy * dy + 1);
+    const i = (y * size + x) * 4;
+    out[i] = clamp(((-dx * inv) * 0.5 + 0.5) * 255);
+    out[i + 1] = clamp(((-dy * inv) * 0.5 + 0.5) * 255);
+    out[i + 2] = clamp(inv * 255); out[i + 3] = 255;
+  }
+  return out;
+}
+function makeRoughnessPixels(height, size, base = 0.72) {
+  const out = Buffer.alloc(size * size * 4);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const v = clamp((base + height[y * size + x] * 0.16) * 255);
+    const i = (y * size + x) * 4;
+    out[i] = out[i + 1] = out[i + 2] = v; out[i + 3] = 255;
+  }
+  return out;
+}
+function makeLutCube(name, transform) {
+  const n = 17, lines = [`TITLE "${name}"`, `LUT_3D_SIZE ${n}`, "DOMAIN_MIN 0.0 0.0 0.0", "DOMAIN_MAX 1.0 1.0 1.0"];
+  for (let b = 0; b < n; b++) for (let g = 0; g < n; g++) for (let r = 0; r < n; r++) {
+    const rgb = transform(r / (n - 1), g / (n - 1), b / (n - 1));
+    lines.push(rgb.map(v => Math.max(0, Math.min(1, v)).toFixed(6)).join(" "));
+  }
+  return lines.join("\n") + "\n";
+}
+\nasync function buildSixDepartments(output) {
   const products = [];
   const addProduct = async (id, name, department, files, notes) => {
     const entries = [];
@@ -152,8 +195,28 @@ async function buildSixDepartments(output) {
     products.push(record);
   };
 
-  await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF\\n\\nThree original procedural RGBA8 DDS turf textures with mip chains. These are source texture assets; target format conversion, pitch resource mapping and real-game validation are still required.\\n");
-  await addProduct("GOD-TURF", "GOD TURF — Original Surface Collection", "stadiums", ["pack.json", "README.md", "textures/natural-cut.dds", "textures/stadium-emerald.dds", "textures/heritage-worn.dds"], ["Three original procedural grass textures with complete mip chains.", "No game resource mapping is claimed; target conversion and validation are required."]);
+
+  const turfPremium = [
+    { id: "natural-cut", style: "natural", seed: 101, wear: 0.08 },
+    { id: "stadium-emerald", style: "emerald", seed: 203, wear: 0.06 },
+    { id: "heritage-worn", style: "worn", seed: 307, wear: 0.28 },
+    { id: "cool-climate", style: "natural", seed: 409, wear: 0.11 },
+    { id: "sunlit-hybrid", style: "emerald", seed: 503, wear: 0.05 },
+    { id: "matchday-striped", style: "natural", seed: 601, wear: 0.07 }
+  ];
+  const turfFiles = ["README.md", "surface-library.json"];
+  for (const item of turfPremium) {
+    const albedo = makeGrassPixels(SIZE, item.style);
+    const height = makeHeightField(SIZE, item.seed, item.wear);
+    const base = "textures/" + item.id;
+    await writeFile(path.join(output, "GOD-TURF", base + "-albedo.dds"), makeDdsRgba(albedo, SIZE));
+    await writeFile(path.join(output, "GOD-TURF", base + "-normal-source.dds"), makeDdsRgba(makeNormalPixels(height, SIZE), SIZE));
+    await writeFile(path.join(output, "GOD-TURF", base + "-roughness-source.dds"), makeDdsRgba(makeRoughnessPixels(height, SIZE), SIZE));
+    turfFiles.push(base + "-albedo.dds", base + "-normal-source.dds", base + "-roughness-source.dds");
+  }
+  await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF — Premium Surface Lab\n\nSix original procedural pitch looks, each with albedo, derived tangent-space normal source and roughness source maps, all exported as RGBA8 DDS with full mip chains. Normal/roughness maps are source maps only: verify target PES material shader and channel convention before use.\n");
+  await writeText(path.join(output, "GOD-TURF", "surface-library.json"), JSON.stringify({ schemaVersion: 1, generator: "THEGODMODS procedural surface workshop", resolution: SIZE, format: "DDS RGBA8 mipmapped", variants: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })) }, null, 2) + "\n");
+  await addProduct("GOD-TURF", "GOD TURF — Premium Six-Surface Collection", "stadiums", turfFiles, ["Six original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
 
   // Stadium presentation: original sponsor-neutral LED board artwork.
   const stadiumDir = path.join(output, "GOD-STADIUMS");
@@ -225,9 +288,37 @@ return M
   await writeText(path.join(gameplayDir, "README.md"), "# GOD GAMEPLAY\n\nIncludes a complete design/QA profile and a safe Lua module stub. It does not change physics, AI or executable memory. Real gameplay behavior requires documented supported hooks and repeatable in-game tests; unsupported memory patches are intentionally not fabricated.\n");
   await addProduct("GOD-GAMEPLAY", "GOD GAMEPLAY — Simulation Design Profile", "gameplay", ["profiles/simulation-balanced.json", "lua/god_gameplay_status.lua", "README.md"], ["No undocumented executable hooks or memory patches.", "Lua stub is safe and does not alter gameplay."]);
 
-  // Graphics documentation and creative presets already generated above.
-  await writeText(path.join(output, "GOD-VISUALS", "README.md"), "# GOD VISUALS / GOD NATURAL / GOD CINEMATIC\n\nSee profiles.json for three original visual directions. Values are creative targets, not an engine-specific ReShade/Sider configuration. A verified adapter and visual comparison on PES 2017 are required before enabling automatic installation.\n");
-  await addProduct("GOD-VISUALS", "GOD VISUALS — Original Visual Profile Collection", "graphics", ["profiles.json", "README.md"], ["Creative preset values only; no unsupported shader settings are written."]);
+
+  const visualProfiles = [
+    { id: "broadcast-neutral", title: "GOD VISUALS — Broadcast Neutral", saturation: 1.02, contrast: 1.035, exposure: 0, warmth: 0, bloom: 0.025, sharpen: 0.06 },
+    { id: "natural-realism", title: "GOD NATURAL — Natural Realism", saturation: 0.96, contrast: 1.015, exposure: 0, warmth: -0.01, bloom: 0.01, sharpen: 0.025 },
+    { id: "cinematic-matchday", title: "GOD CINEMATIC — Matchday Film", saturation: 0.94, contrast: 1.075, exposure: -0.015, warmth: 0.015, bloom: 0.07, sharpen: 0.04 },
+    { id: "european-evening", title: "GOD VISUALS — European Evening", saturation: 0.99, contrast: 1.06, exposure: -0.01, warmth: -0.005, bloom: 0.055, sharpen: 0.05 },
+    { id: "sunlit-daylight", title: "GOD NATURAL — Sunlit Daylight", saturation: 0.98, contrast: 1.025, exposure: 0.015, warmth: 0.012, bloom: 0.02, sharpen: 0.035 },
+    { id: "overcast-realism", title: "GOD VISUALS — Overcast Realism", saturation: 0.97, contrast: 1.045, exposure: -0.005, warmth: -0.012, bloom: 0.015, sharpen: 0.045 }
+  ];
+  const lutDir = path.join(output, "GOD-VISUALS", "luts");
+  await mkdir(lutDir, { recursive: true });
+  const lutFiles = [];
+  for (const profile of visualProfiles) {
+    const cube = makeLutCube(profile.id, (r, g, b) => {
+      const luma = r * 0.2126 + g * 0.7152 + b * 0.0722;
+      const grade = v => (v - 0.5) * profile.contrast + 0.5 + profile.exposure;
+      const sat = v => luma + (v - luma) * profile.saturation;
+      return [sat(grade(r) + profile.warmth * (1 - luma)), sat(grade(g)), sat(grade(b) - profile.warmth * (1 - luma))];
+    });
+    const file = profile.id + ".cube";
+    await writeText(path.join(lutDir, file), cube);
+    lutFiles.push("luts/" + file);
+  }
+  await writeText(path.join(output, "GOD-VISUALS", "profiles.json"), JSON.stringify({
+    schemaVersion: 1, ownership: "THEGODMODS original creative presets",
+    status: "creative-presets-authored; engine adapter and in-game validation pending",
+    installable: false, profiles: visualProfiles, lutFormat: "17-point .cube 3D LUT",
+    note: "LUTs are authored source grades. Confirm supported post-processing adapter and colour-space before use."
+  }, null, 2) + "\n");
+  await writeText(path.join(output, "GOD-VISUALS", "README.md"), "# GOD VISUALS — Premium Colour Lab\n\nSix original creative profiles and six 17³ .cube 3D LUTs. These are source grades, not an installer-specific shader preset. Confirm a compatible colour-management adapter and input/output colour space before use.\n");
+  await addProduct("GOD-VISUALS", "GOD VISUALS — Six Original Colour Profiles & LUTs", "graphics", ["profiles.json", "README.md", ...lutFiles], ["Six original 17³ 3D LUT source grades and matching profile metadata.", "No unsupported shader settings are written automatically."]);
 
   await writeText(path.join(output, "README.md"), `# THEGODMODS Original Content Library\n\nGenerated by ` + "`npm run mods:build-original`" + `.\n\nAll six departments have original source deliverables. These are content-authoring outputs, not all game-ready replacements. See each department README and package.json for exact scope and compatibility gates.\n`);
   await writeText(path.join(output, "catalogue.json"), JSON.stringify({
