@@ -312,9 +312,25 @@ function registerIpc() {
     const manifest = validation.manifest;
     if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
     const installer = new ModuleInstaller(gameDirectory, stateDirectory());
-    return installer.install(selected.root, manifest, {
+    const installed = await installer.install(selected.root, manifest, {
       approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
     });
+    try {
+      await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      return installed;
+    } catch (syncError) {
+      // Compensate the committed file transaction if Sider registration cannot be made safe.
+      try {
+        await installer.uninstall(manifest.id);
+        await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      } catch (rollbackError) {
+        throw new Error("Files were installed but Sider synchronization failed, and automatic compensation was incomplete. Keep the manager state/backups intact and run recovery before launching PES 2017. Sync error: " +
+          (syncError instanceof Error ? syncError.message : String(syncError)) + "; compensation error: " +
+          (rollbackError instanceof Error ? rollbackError.message : String(rollbackError)));
+      }
+      throw new Error("Installation was rolled back because Sider configuration could not be synchronized: " +
+        (syncError instanceof Error ? syncError.message : String(syncError)));
+    }
   });
   ipcMain.handle("modules:list-installed", async event => {
     assertTrustedSender(event);
