@@ -145,3 +145,12 @@ The downloader refuses redirects, non-200 responses, mismatched Content-Length, 
 Automated tests cover valid signatures, metadata tampering, unknown hosts/keys, absent redistribution permission, redirect responses, corrupted payloads, and successful verified downloads.
 
 **Publisher onboarding is intentionally not activated yet.** This repository does not currently contain a THEGODMODS package-host domain, an official release-signing public key, or a production catalogue endpoint. No made-up host/key or unsigned fallback is introduced. Until THEGODMODS provisions and pins its Ed25519 public key and approved host, remote delivery remains unavailable by design; local package scanning and installation continue to work as before. A passing test with generated test-only keys is not evidence that a production publisher is trusted.
+
+
+### Phase 2 release operations and validation
+
+The phase now also includes `tools/sign-package-release.mjs` and the `npm run sign:package -- ...` command. This offline publisher utility calculates archive size and SHA-256 from the actual ZIP bytes, creates the same canonical signing payload used by the verifier, and emits an Ed25519-signed release record without overwriting an existing output. `docs/PACKAGE_RELEASE_OPERATIONS.md` documents offline key generation/custody, release signing, application-side trust pinning, key rotation and incident response. A dedicated Vitest integration test generates an ephemeral test key, signs a fixture archive through the CLI, and verifies the resulting release through the production validator.
+
+The current downloader is bounded and integrity-checked but is **not resumable**: an interrupted transfer is discarded and must be restarted. Resumable transfer support remains a follow-on hardening item; it is not represented as implemented. Production remote delivery also remains deliberately disabled until the real host and official public key are provisioned and pinned. These are external publisher prerequisites, not values that can safely be fabricated in source control.
+
+The Phase 2 Quality run for commit `4abdb918a6d458867b07d96976b954a0088f2472` completed successfully: TypeScript validation, native Node ESM smoke test, unit tests and production build passed. The Windows NSIS installer and artifact upload steps were skipped because the workflow was triggered by a pull request. New release-operations code/tests added after that run require their own CI run before sign-off.
