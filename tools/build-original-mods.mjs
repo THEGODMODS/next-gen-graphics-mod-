@@ -111,8 +111,8 @@ function wavTone({ seconds = 8, sampleRate = 22050, seed = 1, mode = "crowd" } =
     const t = i / sampleRate;
     const swell = 0.35 + 0.25 * Math.sin(2 * Math.PI * t / 5.7) + 0.12 * Math.sin(2 * Math.PI * t / 2.9);
     lp = lp * 0.965 + noise * 0.035;
-    phase += 2 * Math.PI * (mode === "horn" ? 220 : 82 + 7 * Math.sin(t * 0.7)) / sampleRate;
-    const tonal = mode === "horn" ? Math.sin(phase) * 0.15 : (Math.sin(phase) + Math.sin(phase * 1.49) * 0.35) * 0.045;
+    phase += 2 * Math.PI * (mode === "whistle" ? 1750 + 90 * Math.sin(t * 8) : mode === "horn" ? 220 : 82 + 7 * Math.sin(t * 0.7)) / sampleRate;
+    const tonal = mode === "whistle" ? Math.sin(phase) * 0.2 : mode === "horn" ? (Math.sin(phase) + Math.sin(phase * 2) * 0.35) * 0.15 : (Math.sin(phase) + Math.sin(phase * 1.49) * 0.35) * 0.045;
     const sample = Math.max(-1, Math.min(1, (lp * swell * 0.75 + tonal) * 0.72));
     data.writeInt16LE(Math.round(sample * 32767), i * 2);
   }
@@ -204,7 +204,7 @@ function makeLutCube(name, transform) {
     { id: "sunlit-hybrid", style: "emerald", seed: 503, wear: 0.05 },
     { id: "matchday-striped", style: "natural", seed: 601, wear: 0.07 }
   ];
-  const turfFiles = ["README.md", "surface-library.json"];
+  const turfFiles = ["README.md", "surface-library.json", "pack.json"];\n  const turfAssetRecords = [];
   for (const item of turfPremium) {
     const albedo = makeGrassPixels(SIZE, item.style);
     const height = makeHeightField(SIZE, item.seed, item.wear);
@@ -214,6 +214,13 @@ function makeLutCube(name, transform) {
     await writeFile(path.join(output, "GOD-TURF", base + "-roughness-source.dds"), makeDdsRgba(makeRoughnessPixels(height, SIZE), SIZE));
     turfFiles.push(base + "-albedo.dds", base + "-normal-source.dds", base + "-roughness-source.dds");
   }
+  await writeText(path.join(output, "GOD-TURF", "pack.json"), JSON.stringify({
+    schemaVersion: 1, id: "thegodmods.god-turf-premium", name: "GOD TURF Premium Six-Surface Collection",
+    version: "0.2.0", ownership: "THEGODMODS original procedural artwork",
+    status: "source maps generated; PES material mapping and in-game validation pending",
+    installable: false, textures: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })),
+    assets: turfAssetRecords
+  }, null, 2) + "\n");
   await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF — Premium Surface Lab\n\nSix original procedural pitch looks, each with albedo, derived tangent-space normal source and roughness source maps, all exported as RGBA8 DDS with full mip chains. Normal/roughness maps are source maps only: verify target PES material shader and channel convention before use.\n");
   await writeText(path.join(output, "GOD-TURF", "surface-library.json"), JSON.stringify({ schemaVersion: 1, generator: "THEGODMODS procedural surface workshop", resolution: SIZE, format: "DDS RGBA8 mipmapped", variants: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })) }, null, 2) + "\n");
   await addProduct("GOD-TURF", "GOD TURF — Premium Six-Surface Collection", "stadiums", turfFiles, ["Six original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
@@ -265,7 +272,7 @@ function makeLutCube(name, transform) {
   // Player appearance: neutral procedural skin-detail texture; no real-person likeness.
   const faceDir = path.join(output, "GOD-FACES", "textures");
   await mkdir(faceDir, { recursive: true });
-  const faceFiles = ["README.md"];
+  const faceFiles = [];
   const skinVariants = [
     ["neutral-skin-detail-source.dds", [174, 119, 91], 401],
     ["warm-umber-detail-source.dds", [112, 69, 48], 419],
@@ -302,7 +309,7 @@ function makeLutCube(name, transform) {
   await writeFile(path.join(audioDir, "synthetic-matchday-horn.wav"), wavTone({ seconds: 4, seed: 91, mode: "horn" }));
   await writeFile(path.join(audioDir, "synthetic-crowd-swell.wav"), wavTone({ seconds: 10, seed: 137, mode: "crowd" }));
   await writeFile(path.join(audioDir, "synthetic-stadium-bed-alt.wav"), wavTone({ seconds: 12, seed: 211, mode: "crowd" }));
-  await writeFile(path.join(audioDir, "synthetic-whistle-tone.wav"), wavTone({ seconds: 2, seed: 313, mode: "horn", sampleRate: 32000 }));
+  await writeFile(path.join(audioDir, "synthetic-whistle-tone.wav"), wavTone({ seconds: 2, seed: 313, mode: "whistle", sampleRate: 32000 }));
   await writeText(path.join(output, "GOD-ATMOSPHERE", "README.md"), "# GOD ATMOSPHERE\n\nOriginal synthesized ambience and tonal matchday horn. These are not club anthems, recorded supporter chants or commentary. Audio-event codec conversion, volume mastering and PES event mapping remain to be configured and tested.\n");
   await addProduct("GOD-ATMOSPHERE", "GOD ATMOSPHERE — Original Matchday Sound Suite", "audio", ["audio/synthetic-crowd-bed.wav", "audio/synthetic-crowd-swell.wav", "audio/synthetic-stadium-bed-alt.wav", "audio/synthetic-matchday-horn.wav", "audio/synthetic-whistle-tone.wav", "README.md"], ["All sounds are generated procedurally; no recordings or copyrighted compositions are sampled.", "No PES audio event IDs are guessed."]);
 
