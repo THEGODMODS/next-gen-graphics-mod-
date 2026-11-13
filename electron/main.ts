@@ -350,6 +350,7 @@ function registerIpc() {
       id: module.id, version: module.version, installedAt: module.installedAt,
       dependencies: module.dependencies ?? [],
       files: module.files.map(file => file.target),
+      backupCount: module.files.filter(file => Boolean(file.backupPath)).length,
       luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
         .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
         .map(target => target.slice(8)),
