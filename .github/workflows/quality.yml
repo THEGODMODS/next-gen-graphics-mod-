@@ -41,10 +41,8 @@ jobs:
       - name: Production build
         run: npm run build
       - name: Build Windows NSIS installer
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: npx electron-builder --win nsis --publish never
       - name: Upload Windows test installer
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: pes2017-nextgen-windows-${{ github.sha }}
