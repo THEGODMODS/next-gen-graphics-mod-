@@ -58,6 +58,25 @@ Run `npm run mods:build-original` to create deterministic, original source asset
 
 The generator uses only Node built-ins and is executed by the Windows quality workflow. These are genuine THEGODMODS-created source assets, not borrowed game files. The generated turf textures are uncompressed RGBA8 DDS; a target PES shader may require another format or resource layout, so conversion/mapping and in-game verification remain mandatory. The profiles are creative parameter targets, not claims that PES 2017 exposes those controls directly.
 
+
+## Six-department generated source collection
+
+The build now creates **seven original product packages across all six departments** (Graphics has three named profiles grouped into GOD VISUALS; Stadiums & Turf has GOD TURF and GOD STADIUMS):
+
+| Department | Generated product | Actual deliverables |
+|---|---|---|
+| Graphics | GOD VISUALS | Three creative visual profiles: balanced broadcast, neutral realism and cinematic matchday |
+| Stadiums & Turf | GOD TURF | Three original 512×512 RGBA8 DDS textures with full mip chains and SHA-256 records |
+| Stadiums & Turf | GOD STADIUMS | Sponsor-neutral original LED/adboard artwork |
+| Kits & Equipment | GOD KITS | Four fictional, sponsor-free kit design plates |
+| Players | GOD FACES | Generic procedural skin-detail DDS source texture; no real-person likeness |
+| Audio & Atmosphere | GOD ATMOSPHERE | Original synthesized crowd ambience and matchday horn WAV files |
+| Gameplay | GOD GAMEPLAY | Documented simulation tuning profile and safe no-op Lua integration stub |
+
+Run `npm run mods:build-original`. Windows CI runs this command and publishes the generated `content/originals/generated/` folder as a downloadable workflow artifact named `thegodmods-original-content-<commit>`. Each product folder contains a package descriptor, per-file SHA-256 hashes and a README describing its exact scope.
+
+**Installability remains false by design.** The output is a real original source-content collection, but it is not yet a set of PES-ready replacement packages. We do not guess DDS compression/shader requirements, stadium/kit/player/audio IDs, Sider hook APIs or engine controls. Each target-specific adapter and mapping must pass the module manifest checks, Windows tests, rollback checks and real-game validation before the manager enables one-click installation. The generic face texture is not a player face; the kit plates are not mapped club kits; synthesized ambience is not a chant/anthem library; and the gameplay stub does not modify physics or AI.
+
 ## Remaining production work
 
 These generated assets are the first real content tranche, not all ten finished product lines. GOD STADIUMS still needs original stadium artwork and verified stadium resource IDs; GOD KITS needs original kit designs and slot mappings; GOD FACES needs commissioned/authorized likeness assets; GOD ATMOSPHERE needs original recordings and event mappings; GOD GAMEPLAY needs a verified Sider API/config adapter and repeatable in-game tests. No package is labelled installable until its actual deployment mapping, compatibility, rights and rollback are validated.
