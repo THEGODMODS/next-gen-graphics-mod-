@@ -50,6 +50,19 @@ describe("transactional module installer", () => {
   });
 
 
+  it("refuses to auto-install manual-assisted configuration packages", async () => {
+    const f = await fixture();
+    const manifest: ModuleManifest = {
+      ...f.manifest,
+      deployment: { strategy: "configuration", configFormat: "sider-ini",
+        manualSteps: ["Review the generated settings and apply them manually."] }
+    };
+    await expect(new ModuleInstaller(f.game, f.state).install(f.pkg, manifest))
+      .rejects.toThrow("requires manual-assisted deployment");
+    await expect(fs.access(path.join(f.game, "LiveCPK/common/grass.dds"))).rejects.toThrow();
+    await expect(fs.access(path.join(f.state, "install-journal.json"))).rejects.toThrow();
+  });
+
   it("rejects a payload changed after its manifest was created", async () => {
     const f = await fixture();
     await fs.writeFile(path.join(f.pkg, "payload", "grass.dds"), "tampered payload");
