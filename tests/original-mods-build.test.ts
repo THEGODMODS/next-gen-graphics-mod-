@@ -18,9 +18,10 @@ describe("THEGODMODS original six-department asset build", () => {
     tempDirs.push(dir);
     const { stdout } = await execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/build-original-mods.mjs"), dir], { maxBuffer: 8 * 1024 * 1024 });
     const result = JSON.parse(stdout);
-    expect(result.products.map((p: { department: string }) => p.department).sort()).toEqual(
+    expect([...new Set(result.products.map((p: { department: string }) => p.department))].sort()).toEqual(
       ["audio", "gameplay", "graphics", "kits", "players", "stadiums"].sort()
     );
+    expect(result.products.filter((p: { department: string }) => p.department === "stadiums")).toHaveLength(2);
     expect(result.products).toHaveLength(7);
     for (const product of result.products) {
       expect(product.files.length).toBeGreaterThan(0);
