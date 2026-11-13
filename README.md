@@ -35,7 +35,7 @@ Only distribute original assets or content for which redistribution permission h
 
 ## Windows test installer
 
-Pushes to `main` run the quality checks on Windows and Ubuntu. After both validation jobs pass, GitHub Actions builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
+Pull requests targeting `main` and pushes to `main` run the Windows quality pipeline. It validates TypeScript, native Node tooling, unit tests and the production build, then builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
 
 To download a test build:
 
