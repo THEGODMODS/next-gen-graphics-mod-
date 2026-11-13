@@ -93,10 +93,8 @@ export default function App() {
     setProfileBusy(true);
     try {
       const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
-      const current = (status?.luaModules ?? []).filter(name => managedLuaModules.has(name));
-      const wanted = new Set(profile.enabledLuaModules.filter(name => managedLuaModules.has(name)));
-      for (const name of current) if (!wanted.has(name)) await window.nextgen.setLuaModuleEnabled(name, false);
-      for (const name of profile.enabledLuaModules) if (!current.includes(name)) await window.nextgen.setLuaModuleEnabled(name, true);
+      const wanted = [...new Set(profile.enabledLuaModules.filter(name => managedLuaModules.has(name)))];
+      await window.nextgen.applyLuaActivationProfile(wanted);
       await refresh();
       setNotice(`Applied “${profile.name}”. Sider Lua registrations now match the saved profile.`);
     } catch (error) { setNotice(error instanceof Error ? error.message : "Could not apply profile. Review Sider configuration before launching the game."); await refresh(); }
