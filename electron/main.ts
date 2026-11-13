@@ -407,7 +407,7 @@ function registerIpc() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 920, minWidth: 1100, minHeight: 720,
-    backgroundColor: "#090d13", title: "PES 2017 Next Gen",
+    backgroundColor: "#07110e", title: "THEGODMODS PES 2017 Next Gen Graphics Manager",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
