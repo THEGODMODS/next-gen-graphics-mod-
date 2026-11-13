@@ -6,6 +6,7 @@ import {
   Sparkles, Users, Waves
 } from "lucide-react";
 import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport } from "../electron/preload";
+import DepartmentCatalogue from "./components/DepartmentCatalogue";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -233,6 +234,7 @@ export default function App() {
           </> : active === "Stadiums & Turf" ? <section className="page-placeholder">
             <div className="eyebrow">STADIUM SERVER · LIVECPK</div><h1>PITCH BUILDER</h1>
             <p>Inventory a Stadium Server pitch folder, map one exact resource to a replacement, then package it as a validated installable module.</p>
+            <DepartmentCatalogue departmentId="stadiums" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">STEP 01 · SOURCE INVENTORY</div><h3>Scan stadium resources</h3></div><span className="coming-tag">{pitchInventory ? pitchInventory.fileCount+" FILES" : "NOT SCANNED"}</span></div>
               <p>Choose the stadium folder containing <code>common/bg/model/bg/pitch</code>. The scan is read-only, hashes files and does not modify the stadium.</p>
@@ -256,6 +258,7 @@ export default function App() {
           </section> : active === "Graphics" ? <section className="page-placeholder">
             <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
             <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
+            <DepartmentCatalogue departmentId="graphics" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
             <div className="dds-toolbar">
               <button className="primary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("original"); if (result) { setOriginalDds(result); setDdsComparison(null); setNotice("Original DDS inspected. Choose a replacement to compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect original DDS."); } finally { setDdsBusy(false); } }}><FolderOpen size={15}/> CHOOSE ORIGINAL DDS</button>
               <button className="secondary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("replacement"); if (result) { setReplacementDds(result); setDdsComparison(null); setNotice("Replacement DDS inspected. Review the preview and compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect replacement DDS."); } finally { setDdsBusy(false); } }}>{ddsBusy ? "INSPECTING..." : "CHOOSE REPLACEMENT DDS"}</button>
@@ -359,6 +362,9 @@ export default function App() {
             </div>}
             <div className="notice"><span className="notice-mark">i</span>For a meaningful capture: back up the stadium, start Sider, launch PES, enter one target stadium, play long enough to load the pitch, exit, then analyze the resulting log. Compare logs before and after a one-resource replacement. Keep the original log for audit.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
+          </section> : ["Kits & Equipment", "Players", "Audio & Atmosphere", "Gameplay"].includes(active) ? <section className="page-placeholder">
+            <DepartmentCatalogue departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Module system is being built</h3><p>This section will become operational as the package engine, validation, install transactions and rollback system are implemented. No fake install controls here.</p></div><span className="coming-tag">IN DEVELOPMENT</span></div>
