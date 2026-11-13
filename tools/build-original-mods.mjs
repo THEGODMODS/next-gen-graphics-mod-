@@ -405,6 +405,7 @@ export async function buildOriginalAssets(output = OUT) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const result = await buildOriginalAssets();
+  const output = process.argv[2] ? path.resolve(process.argv[2]) : OUT;
+  const result = await buildOriginalAssets(output);
   process.stdout.write(JSON.stringify(result, null, 2) + "\n");
 }
