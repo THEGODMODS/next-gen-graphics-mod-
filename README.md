@@ -9,6 +9,10 @@ A modular, Sider-based enhancement platform for Pro Evolution Soccer 2017.
 - Provide a Windows desktop manager for module discovery, installation, profiles, backups, diagnostics, and launch.
 - Keep installation reversible and protect saves, option files, settings, and unknown user files.
 
+## Product architecture
+
+The six-department catalogue, trusted package lifecycle, deployment adapters and release gates are defined in [the Next Gen ecosystem blueprint](docs/NEXT_GEN_ECOSYSTEM_BLUEPRINT.md). This is the product contract for the catalogue and installer work; catalogue entries remain non-installable until their packages and permissions are verified.
+
 ## Architecture
 
 - `app/`: Windows desktop manager (Electron, React, TypeScript).
