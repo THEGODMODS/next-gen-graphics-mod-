@@ -310,6 +310,27 @@ export class ModuleInstaller {
       const index = journal.modules.findIndex((item) => item.id === moduleId);
       if (index < 0) throw new Error(`Module is not installed: ${moduleId}`);
       const moduleRecord = journal.modules[index];
+      // Validate every preserved original before removing or restoring any managed file.
+      // A missing/corrupt backup must block the whole uninstall, never silently delete the mod.
+      for (const record of moduleRecord.files) {
+        const relative = normalizeSafeRelativePath(record.target);
+        await assertNoSymlinkPath(root, relative, true);
+        if (!record.backupPath) continue;
+        const backupRelative = path.relative(this.stateDirectory, record.backupPath);
+        if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+          throw new Error("Journal backup path escapes the manager state directory.");
+        }
+        if (!(await exists(record.backupPath))) {
+          throw new Error("Original backup is missing; uninstall is blocked to protect the game file: " + relative);
+        }
+        const backupStat = await fs.lstat(record.backupPath);
+        if (backupStat.isSymbolicLink() || !backupStat.isFile()) {
+          throw new Error("Journal backup is not a regular file: " + relative);
+        }
+        if (!record.backupSha256 || !(await verifySha256(record.backupPath, record.backupSha256))) {
+          throw new Error("Backup integrity check failed; uninstall is blocked: " + relative);
+        }
+      }
       const dependents = journal.modules.filter(item => item.id !== moduleId && item.dependencies?.includes(moduleId));
       if (dependents.length) {
         throw new Error("Cannot uninstall this module while installed modules depend on it: " +
