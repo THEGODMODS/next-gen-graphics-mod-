@@ -378,6 +378,14 @@ function registerIpc() {
     if (!luaNames.length || luaNames.length !== targets.length) throw new Error("Package-wide activation is currently supported only for Lua-only packages. Direct and LiveCPK assets require a separate reversible file-activation adapter.");
     return new SiderConfigManager(gameDirectory, stateDirectory()).setLuaModulesEnabled(luaNames, enabled);
   });
+  ipcMain.handle("modules:apply-lua-profile", async (event, enabledModuleNames: unknown) => {
+    assertTrustedSender(event);
+    if (!Array.isArray(enabledModuleNames) || enabledModuleNames.length > 1000 || enabledModuleNames.some(name => typeof name !== "string")) {
+      throw new Error("Invalid Lua activation profile.");
+    }
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    return new SiderConfigManager(gameDirectory, stateDirectory()).applyLuaActivationProfile(enabledModuleNames);
+  });
   ipcMain.handle("modules:set-lua-enabled", async (event, moduleName: unknown, enabled: unknown) => {
     assertTrustedSender(event);
     if (typeof moduleName !== "string" || typeof enabled !== "boolean") throw new Error("Invalid module activation request.");
