@@ -85,6 +85,36 @@ export class SiderConfigManager {
       throw error;
     }
   }
+  /** Replaces the complete manager-owned Lua activation set in one Sider sync. */
+  async applyLuaActivationProfile(enabledModuleNames: string[]): Promise<SiderSyncResult> {
+    if (!Array.isArray(enabledModuleNames) || enabledModuleNames.length > 1000 ||
+        enabledModuleNames.some(name => typeof name !== "string" || !/^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.lua$/i.test(name) || name.includes(".."))) {
+      throw new Error("Invalid Lua activation profile.");
+    }
+    const uniqueNames = [...new Set(enabledModuleNames)];
+    if (uniqueNames.length !== enabledModuleNames.length) throw new Error("Lua activation profile contains duplicate module names.");
+    const installed = await this.listLuaModules();
+    const installedNames = new Set(installed.map(module => module.moduleName));
+    if (uniqueNames.some(name => !installedNames.has(name))) {
+      throw new Error("Lua activation profile contains a module that is not installed or manager-owned.");
+    }
+    const activationPath = path.join(this.stateDirectory, "sider-enabled-lua.json");
+    const previous = installed.filter(module => module.enabled).map(module => module.moduleName).sort();
+    const desired = [...uniqueNames].sort();
+    await fs.mkdir(this.stateDirectory, { recursive: true });
+    const temporary = activationPath + ".profile.tmp";
+    await fs.writeFile(temporary, JSON.stringify(desired, null, 2), { encoding: "utf8", flag: "w" });
+    await fs.rename(temporary, activationPath);
+    try {
+      return await this.syncInstalledModules();
+    } catch (error) {
+      const rollback = activationPath + ".profile-rollback.tmp";
+      await fs.writeFile(rollback, JSON.stringify(previous, null, 2), { encoding: "utf8", flag: "w" });
+      await fs.rename(rollback, activationPath);
+      throw error;
+    }
+  }
+
   async syncInstalledModules(): Promise<SiderSyncResult> {
     return withSiderLock(this.stateDirectory, async () => {
       const gameRoot = await fs.realpath(this.gameDirectory);
