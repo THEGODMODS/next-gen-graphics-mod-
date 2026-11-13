@@ -50,6 +50,19 @@ describe("transactional module installer", () => {
   });
 
 
+  it("refuses to auto-install manual-assisted configuration packages", async () => {
+    const f = await fixture();
+    const manifest: ModuleManifest = {
+      ...f.manifest,
+      deployment: { strategy: "configuration", configFormat: "sider-ini",
+        manualSteps: ["Review the generated settings and apply them manually."] }
+    };
+    await expect(new ModuleInstaller(f.game, f.state).install(f.pkg, manifest))
+      .rejects.toThrow("requires manual-assisted deployment");
+    await expect(fs.access(path.join(f.game, "LiveCPK/common/grass.dds"))).rejects.toThrow();
+    await expect(fs.access(path.join(f.state, "install-journal.json"))).rejects.toThrow();
+  });
+
   it("rejects a payload changed after its manifest was created", async () => {
     const f = await fixture();
     await fs.writeFile(path.join(f.pkg, "payload", "grass.dds"), "tampered payload");
@@ -78,6 +91,24 @@ describe("transactional module installer", () => {
     const result = await installer.uninstall("studio.pitch-pack");
     expect(result.restored).toEqual([relative]);
     expect(await fs.readFile(target, "utf8")).toBe("original user file");
+  });
+
+  it("blocks uninstall before mutation when an original backup is missing", async () => {
+    const f = await fixture();
+    const relative = "LiveCPK/common/grass.dds";
+    const target = path.join(f.game, ...relative.split("/"));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.writeFile(target, "original user file");
+    const installer = new ModuleInstaller(f.game, f.state);
+    await installer.install(f.pkg, f.manifest, { approvedOverwriteTargets: [relative] });
+    const journalPath = path.join(f.state, "install-journal.json");
+    const journal = JSON.parse(await fs.readFile(journalPath, "utf8"));
+    const backupPath = journal.modules[0].files[0].backupPath;
+    await fs.rm(backupPath, { force: true });
+    await expect(installer.uninstall("studio.pitch-pack")).rejects.toThrow("Original backup is missing");
+    expect(await fs.readFile(target, "utf8")).toBe("new grass asset");
+    const unchangedJournal = JSON.parse(await fs.readFile(journalPath, "utf8"));
+    expect(unchangedJournal.modules).toHaveLength(1);
   });
 
   it("blocks uninstall while another installed module depends on it", async () => {
@@ -132,6 +163,38 @@ describe("transactional module installer", () => {
     await expect(fs.access(addedPath)).rejects.toThrow();
     const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
     expect(journal.pendingTransaction).toBeNull();
+  });
+
+  it("preflights every interrupted-install backup before restoring any target", async () => {
+    const f = await fixture();
+    const installer = new ModuleInstaller(f.game, f.state);
+    const first = "LiveCPK/common/first.dds";
+    const second = "LiveCPK/common/second.dds";
+    const firstPath = path.join(f.game, ...first.split("/"));
+    const secondPath = path.join(f.game, ...second.split("/"));
+    const backupPath = path.join(f.state, "backups", "recovery", "first-original.dds");
+    await fs.mkdir(path.dirname(firstPath), { recursive: true });
+    await fs.mkdir(path.dirname(backupPath), { recursive: true });
+    await fs.writeFile(firstPath, "installed first");
+    await fs.writeFile(secondPath, "installed second");
+    await fs.writeFile(backupPath, "original first");
+    const digest = (value: string) => createHash("sha256").update(value).digest("hex");
+    await fs.writeFile(path.join(f.state, "install-journal.json"), JSON.stringify({
+      schemaVersion: 1, updatedAt: new Date().toISOString(), modules: [],
+      pendingTransaction: {
+        id: "simulated-partial-crash", moduleId: "studio.pitch-pack", startedAt: new Date().toISOString(),
+        files: [
+          { target: first, installedSha256: digest("installed first"), backupPath, backupSha256: digest("original first") },
+          { target: second, installedSha256: digest("installed second"), backupPath: path.join(f.state, "backups", "missing.dds"), backupSha256: digest("original second") },
+        ],
+      },
+    }));
+
+    await expect(installer.recoverPendingTransaction()).rejects.toThrow("backup is missing");
+    expect(await fs.readFile(firstPath, "utf8")).toBe("installed first");
+    expect(await fs.readFile(secondPath, "utf8")).toBe("installed second");
+    const journal = JSON.parse(await fs.readFile(path.join(f.state, "install-journal.json"), "utf8"));
+    expect(journal.pendingTransaction).not.toBeNull();
   });
 
   it("preserves a target changed after an interrupted install", async () => {

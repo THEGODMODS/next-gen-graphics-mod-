@@ -14,7 +14,14 @@ export interface LuaModuleEntry {
   sha256: string;
 }
 
+export interface ModuleDeploymentDeclaration {
+  strategy: "auto" | "direct" | "livecpk" | "lua" | "configuration" | "manual-assisted";
+  configFormat?: "sider-ini" | "ini" | "json" | "text";
+  manualSteps?: string[];
+}
+
 export interface ModuleManifest {
+  deployment?: ModuleDeploymentDeclaration;
   schemaVersion: 1;
   id: string;
   name: string;

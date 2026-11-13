@@ -5,6 +5,7 @@ import type { ModuleManifest } from "../../shared/module-types";
 import { normalizeSafeRelativePath, resolveInsideRoot } from "./path-safety";
 import { sha256File, verifySha256 } from "./sha256";
 import { JournalStore, type ManagedFileRecord } from "./journal";
+import { resolveDeploymentPlan } from "./deployment";
 
 export interface InstallOptions {
   /** Exact relative targets the user explicitly approved replacing in the install preview. */
@@ -105,34 +106,41 @@ export class ModuleInstaller {
   private async rollbackPending(root: string, journal: Awaited<ReturnType<JournalStore["read"]>>): Promise<string[]> {
     const pending = journal.pendingTransaction;
     if (!pending) return [];
+
+    // Preflight the entire recovery set before changing any game file. A later
+    // missing/corrupt backup must not leave an earlier subset half-restored.
+    for (const item of pending.files) {
+      const relative = normalizeSafeRelativePath(item.target);
+      await assertNoSymlinkPath(root, relative, true);
+      if (!item.backupPath) continue;
+      const backupRelative = path.relative(this.stateDirectory, item.backupPath);
+      if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+        throw new Error("Pending transaction backup escapes the manager state directory; recovery is blocked.");
+      }
+      if (!(await exists(item.backupPath))) {
+        throw new Error("Pending transaction backup is missing; recovery is blocked: " + relative);
+      }
+      const stat = await fs.lstat(item.backupPath);
+      if (stat.isSymbolicLink() || !stat.isFile()) {
+        throw new Error("Pending transaction backup is not a regular file; recovery is blocked.");
+      }
+      if (!item.backupSha256 || !(await verifySha256(item.backupPath, item.backupSha256))) {
+        throw new Error("Pending transaction backup integrity check failed; recovery is blocked.");
+      }
+    }
+
     const recovered: string[] = [];
     for (const item of [...pending.files].reverse()) {
       const relative = normalizeSafeRelativePath(item.target);
-      await assertNoSymlinkPath(root, relative, true);
       const target = resolveInsideRoot(root, relative);
       const backup = item.backupPath;
-      const backupExists = backup ? await exists(backup) : false;
-      if (backup) {
-        const backupRelative = path.relative(this.stateDirectory, backup);
-        if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
-          throw new Error("Pending transaction backup escapes the manager state directory; recovery is blocked.");
-        }
-        if (backupExists) {
-          const stat = await fs.lstat(backup);
-          if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Pending transaction backup is not a regular file.");
-          if (!item.backupSha256 || !(await verifySha256(backup, item.backupSha256))) {
-            throw new Error("Pending transaction backup integrity check failed; recovery is blocked.");
-          }
-        }
-      }
-
       const targetExists = await exists(target);
       if (targetExists) {
         const stat = await fs.lstat(target);
         if (stat.isSymbolicLink() || !stat.isFile()) continue;
         if (!(await verifySha256(target, item.installedSha256))) continue;
       }
-      if (backup && backupExists) {
+      if (backup) {
         await ensureSafeParents(root, relative);
         const restoreTemp = target + `.nextgen-recovery-${pending.id}.tmp`;
         await fs.copyFile(backup, restoreTemp);
@@ -142,7 +150,7 @@ export class ModuleInstaller {
         }
         await fs.rename(restoreTemp, target);
         recovered.push(relative);
-      } else if (!backup && targetExists) {
+      } else if (targetExists) {
         await fs.unlink(target);
         recovered.push(relative);
       }
@@ -180,12 +188,13 @@ export class ModuleInstaller {
       const stagingRoot = path.join(this.stateDirectory, "staging", transactionId);
       const backupRoot = path.join(this.stateDirectory, "backups", manifest.id, transactionId);
       const plan: Array<{ source: string; target: string; hash: string; existed: boolean; backup: string | null }> = [];
+      const deployment = resolveDeploymentPlan(manifest);
+      if (deployment.manualEntries.length) {
+        throw new Error("This package requires manual-assisted deployment. The manager will not claim installation or write configuration templates automatically.");
+      }
 
-      // Preflight the entire package before touching the game directory.
-      const packageEntries = [
-        ...manifest.files,
-        ...manifest.luaModules.map(module => ({ source: module.source, target: "modules/" + module.moduleName, sha256: module.sha256 })),
-      ];
+      // Preflight every adapter output before touching the game directory.
+      const packageEntries = deployment.automatedEntries;
       for (const entry of packageEntries) {
         const sourceRelative = normalizeSafeRelativePath(entry.source);
         const targetRelative = normalizeSafeRelativePath(entry.target);
@@ -308,6 +317,27 @@ export class ModuleInstaller {
       const index = journal.modules.findIndex((item) => item.id === moduleId);
       if (index < 0) throw new Error(`Module is not installed: ${moduleId}`);
       const moduleRecord = journal.modules[index];
+      // Validate every preserved original before removing or restoring any managed file.
+      // A missing/corrupt backup must block the whole uninstall, never silently delete the mod.
+      for (const record of moduleRecord.files) {
+        const relative = normalizeSafeRelativePath(record.target);
+        await assertNoSymlinkPath(root, relative, true);
+        if (!record.backupPath) continue;
+        const backupRelative = path.relative(this.stateDirectory, record.backupPath);
+        if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+          throw new Error("Journal backup path escapes the manager state directory.");
+        }
+        if (!(await exists(record.backupPath))) {
+          throw new Error("Original backup is missing; uninstall is blocked to protect the game file: " + relative);
+        }
+        const backupStat = await fs.lstat(record.backupPath);
+        if (backupStat.isSymbolicLink() || !backupStat.isFile()) {
+          throw new Error("Journal backup is not a regular file: " + relative);
+        }
+        if (!record.backupSha256 || !(await verifySha256(record.backupPath, record.backupSha256))) {
+          throw new Error("Backup integrity check failed; uninstall is blocked: " + relative);
+        }
+      }
       const dependents = journal.modules.filter(item => item.id !== moduleId && item.dependencies?.includes(moduleId));
       if (dependents.length) {
         throw new Error("Cannot uninstall this module while installed modules depend on it: " +

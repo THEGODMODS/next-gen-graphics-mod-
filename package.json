@@ -2,12 +2,12 @@
   "name": "pes2017-nextgen-manager",
   "version": "0.1.0",
   "private": true,
-  "description": "PES 2017 Next Gen desktop manager",
+  "description": "THEGODMODS PES 2017 Next Gen Graphics Manager",
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "predev": "tsc -p electron && node tools/copy-electron-assets.mjs",
     "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "tsc --noEmit && vite build && tsc -p electron/tsconfig.json && node tools/copy-electron-assets.mjs",
+    "build": "npm run mods:build-original && tsc --noEmit && vite build && tsc -p electron/tsconfig.json && node tools/copy-electron-assets.mjs",
     "dist:win": "npm run build && electron-builder --win nsis",
     "typecheck": "tsc --noEmit --pretty && tsc -p electron/tsconfig.json --noEmit",
     "clean": "rimraf dist dist-electron release",
@@ -17,7 +17,9 @@
     "build:pitch-module": "node tools/pitch-module-builder.mjs",
     "inspect:dds": "node tools/dds-inspect.mjs",
     "compare:dds": "node tools/dds-compare.mjs",
-    "preview:dds": "node tools/dds-preview.mjs"
+    "preview:dds": "node tools/dds-preview.mjs",
+    "sign:package": "node tools/sign-package-release.mjs",
+    "mods:build-original": "node tools/build-original-mods.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -40,7 +42,7 @@
   },
   "build": {
     "appId": "com.thegodmods.pes2017nextgen",
-    "productName": "PES 2017 Next Gen",
+    "productName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
     "directories": {
       "output": "release"
     },
@@ -48,7 +50,8 @@
       "dist/**/*",
       "dist-electron/**/*",
       "package.json",
-      "tools/**/*"
+      "tools/**/*",
+      "content/originals/generated/**/*"
     ],
     "win": {
       "target": [
@@ -63,7 +66,14 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true
-    }
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "THEGODMODS PES 2017 Next Gen Manager",
+      "uninstallDisplayName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
+      "installerLanguages": [
+        "en_US"
+      ]
+    },
+    "artifactName": "THEGODMODS-PES2017-NextGen-Manager-${version}-Setup.${ext}"
   }
 }

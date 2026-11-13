@@ -15,11 +15,12 @@ The six-department catalogue, trusted package lifecycle, deployment adapters and
 
 ## Architecture
 
-- `app/`: Windows desktop manager (Electron, React, TypeScript).
-- `loader/`: Sider integration, configuration management, and Lua module contracts.
-- `modules/`: installable module manifests and content packages.
-- `docs/`: architecture, compatibility, safety, and development documentation.
-- `tools/`: validation and packaging utilities.
+- `electron/`: Electron main process, preload bridge, DDS and pitch services.
+- `src/`: React UI, department catalogues, shared types, and the module engine.
+- `content/originals/`: rights policy and generated original source-asset workspace.
+- `docs/`: architecture, compatibility, safety, research, and development documentation.
+- `tools/`: deterministic asset generation, DDS/pitch validation, signing, and packaging utilities.
+- `.github/workflows/`: Windows quality and draft-release pipelines.
 
 ## Safety principles
 
@@ -27,7 +28,7 @@ The installer must never blindly delete files from a PES installation. It must i
 
 ## Development status
 
-The desktop manager, transactional module installer, Sider synchronization, local package library and DDS audit tooling are under active development. No game replacement assets are bundled yet. The DDS audit checks a conservative set of DDS headers and block-compressed payload lengths; it is not a PES texture compatibility validator. The read-only pitch inventory records paths, sizes, and SHA-256 hashes under a Stadium Server stadium's `common/bg/model/bg/pitch` subtree. Run `npm run inventory:pitch -- "<stadium-folder>"` to create a local JSON inventory. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md), [pitch resource discovery](docs/PITCH_RESOURCE_DISCOVERY.md), and [pitch inventory](docs/PITCH_INVENTORY.md) before authoring pitch or stadium assets.
+The desktop manager, transactional module installer, Sider synchronization, local package library and DDS/pitch audit tooling are under active development. The Windows build generates and bundles original source assets for all six departments. These include editable artwork, DDS material/texture sources, audio sources and documented Sider adapters. They are **not yet verified PES 2017 replacement packages**: exact patch UVs, resource paths, shader channels, audio event mappings and live-game compatibility still need target-specific validation. The DDS audit checks a conservative set of DDS headers and block-compressed payload lengths; it is not a PES texture compatibility validator. The read-only pitch inventory records paths, sizes, and SHA-256 hashes under a Stadium Server stadium's `common/bg/model/bg/pitch` subtree. Run `npm run inventory:pitch -- "<stadium-folder>"` to create a local JSON inventory. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md), [pitch resource discovery](docs/PITCH_RESOURCE_DISCOVERY.md), and [pitch inventory](docs/PITCH_INVENTORY.md) before authoring pitch or stadium assets.
 
 ## Licensing
 
@@ -35,7 +36,7 @@ Only distribute original assets or content for which redistribution permission h
 
 ## Windows test installer
 
-Pushes to `main` run the quality checks on Windows and Ubuntu. After both validation jobs pass, GitHub Actions builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
+Pull requests targeting `main` and pushes to `main` run the Windows quality pipeline. It validates TypeScript, native Node tooling, unit tests and the production build, then builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
 
 To download a test build:
 
@@ -45,3 +46,7 @@ To download a test build:
 4. Extract the ZIP and run the installer.
 
 A workflow artifact is a development test build, not a stable public release. Do not install it over a production PES setup without a backup. A release is not considered validated until the packaged application is launched on Windows and its Sider/PES workflows are tested on a real installation.
+
+## Versioned Windows releases
+
+Versioned release tags run the Windows release pipeline described in [Release Engineering](docs/RELEASE_ENGINEERING.md). The pipeline validates the tagged version and source branch, runs checks, builds the NSIS installer, creates SHA-256 checksums and opens a **draft** GitHub release for human review. It does not publish automatically. The installer is not Authenticode-signed until an official code-signing certificate is provisioned. Real PES 2017 + Sider testing remains a required manual release gate.

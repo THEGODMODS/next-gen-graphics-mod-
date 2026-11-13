@@ -24,6 +24,15 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Build original GODMODS source assets
+        run: npm run mods:build-original
+      - name: Upload generated original GODMODS content
+        uses: actions/upload-artifact@v4
+        with:
+          name: thegodmods-original-content-${{ github.sha }}
+          path: content/originals/generated/**
+          if-no-files-found: error
+          retention-days: 30
       - name: TypeScript validation
         run: npm run typecheck
       - name: Native Node ESM smoke test
@@ -36,15 +45,17 @@ jobs:
           './tools/pitch-inventory.mjs',
           './tools/pitch-module-builder.mjs'
           ].map((file) => import(file)))"
+      - name: Syntax-check asset generators
+        run: |
+          node --check tools/build-original-mods.mjs
+          node --check tools/build-premium-upgrades.mjs
       - name: Unit tests
         run: npm test
       - name: Production build
         run: npm run build
       - name: Build Windows NSIS installer
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: npx electron-builder --win nsis --publish never
       - name: Upload Windows test installer
-        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: pes2017-nextgen-windows-${{ github.sha }}

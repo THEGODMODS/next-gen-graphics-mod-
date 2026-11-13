@@ -6,6 +6,7 @@ import {
   Sparkles, Users, Waves
 } from "lucide-react";
 import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport } from "../electron/preload";
+import DepartmentCatalogue from "./components/DepartmentCatalogue";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -62,6 +63,8 @@ export default function App() {
   const [generatedPitch, setGeneratedPitch] = useState<{ id: string; output: string } | null>(null);
   const [pitchLog, setPitchLog] = useState<{ fileName: string; report: PitchLogReport } | null>(null);
   const [pitchLogBusy, setPitchLogBusy] = useState(false);
+  const [profiles, setProfiles] = useState<Array<{ id: string; name: string; createdAt: string; enabledLuaModules: string[] }>>([]);
+  const [profileBusy, setProfileBusy] = useState(false);
   const refresh = useCallback(async () => {
     setBusy(true);
     try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
@@ -70,6 +73,33 @@ export default function App() {
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
+
+  useEffect(() => {
+    try { const saved = window.localStorage.getItem("thegodmods.profiles.v1"); if (saved) { const parsed: unknown = JSON.parse(saved); if (Array.isArray(parsed)) setProfiles(parsed.filter(item => item && typeof item.id === "string" && typeof item.name === "string" && Array.isArray(item.enabledLuaModules))); } } catch { setNotice("Saved profiles could not be read. Existing game files were not changed."); }
+  }, []);
+
+  const persistProfiles = (next: typeof profiles) => { setProfiles(next); window.localStorage.setItem("thegodmods.profiles.v1", JSON.stringify(next)); };
+  const createProfile = () => {
+    const name = window.prompt("Name this PES 2017 setup profile:");
+    if (!name || !name.trim()) return;
+    const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
+    const enabledLuaModules = (status?.luaModules ?? []).filter(name => managedLuaModules.has(name));
+    const profile = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: name.trim().slice(0, 48), createdAt: new Date().toISOString(), enabledLuaModules: [...enabledLuaModules] };
+    persistProfiles([...profiles, profile]);
+    setNotice(`Saved profile “${profile.name}” with ${enabledLuaModules.length} active Sider Lua module(s).`);
+  };
+  const applyProfile = async (profile: typeof profiles[number]) => {
+    if (!siderReady || profileBusy) return;
+    setProfileBusy(true);
+    try {
+      const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
+      const wanted = [...new Set(profile.enabledLuaModules.filter(name => managedLuaModules.has(name)))];
+      await window.nextgen.applyLuaActivationProfile(wanted);
+      await refresh();
+      setNotice(`Applied “${profile.name}”. Sider Lua registrations now match the saved profile.`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Could not apply profile. Review Sider configuration before launching the game."); await refresh(); }
+    finally { setProfileBusy(false); }
+  };
 
   const chooseFolder = async () => {
     const selected = await window.nextgen.chooseGameDirectory();
@@ -143,6 +173,17 @@ export default function App() {
     } finally { setModuleActionBusy(null); }
   };
 
+  const setPackageLuaEnabled = async (module: InstalledModule, enabled: boolean) => {
+    if (moduleActionBusy) return;
+    setModuleActionBusy(module.id);
+    try {
+      const result = await window.nextgen.setPackageLuaEnabled(module.id, enabled);
+      setNotice(module.id + (enabled ? " enabled" : " disabled") + " as a package. " + (result.changed ? "Sider configuration backed up and updated." : "Sider configuration already matched."));
+      await refresh();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Could not change package activation."); }
+    finally { setModuleActionBusy(null); }
+  };
+
   const uninstallModule = async (module: InstalledModule) => {
     if (moduleActionBusy) return;
     const dependents = installedModules.filter(item => item.dependencies.includes(module.id));
@@ -177,8 +218,8 @@ export default function App() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><span>NG</span></div>
-          <div><div className="brand-name">NEXT GEN</div><div className="brand-sub">PES 2017 PROJECT</div></div>
+          <div className="brand-mark"><span>G</span></div>
+          <div><div className="brand-name">THEGODMODS</div><div className="brand-sub">PES 2017 NEXT GEN MANAGER</div></div>
         </div>
         <div className="sidebar-rule" />
         {["WORKSPACE", "CONTENT", "MANAGEMENT", "SYSTEM"].map(group => (
@@ -208,13 +249,13 @@ export default function App() {
           {active === "Overview" ? <>
             <section className="hero">
               <div className="hero-copy">
-                <div className="eyebrow"><span className="eyebrow-line" /> THE NEXT GENERATION STARTS HERE</div>
-                <h1>MAKE EVERY<br /><em>MATCH</em> MATTER.</h1>
-                <p>Your PES 2017 enhancement hub. Build your setup, manage every module and take control of your matchday experience.</p>
+                <div className="eyebrow"><span className="eyebrow-line" /> THEGODMODS · PREMIUM EDITION · EAFC 27 INSPIRED</div>
+                <h1>THE NEXT<br /><em>GENERATION</em><br />OF PES 2017.</h1>
+                <p>Six departments. One premium ecosystem. Upgrade the look, feel and atmosphere of every match—with safe, transparent mod management.</p>
                 <div className="hero-actions"><button className="primary-button" onClick={chooseFolder}><FolderOpen size={17} /> {ready ? "CHANGE GAME FOLDER" : "LOCATE PES 2017"}</button><button className="secondary-button" onClick={() => setActive("Modules")}>EXPLORE MODULES <ChevronRight size={16} /></button></div>
               </div>
-              <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-ball"><div className="ball-panel" /><div className="ball-panel second" /><div className="ball-seam" /></div><div className="hero-tag">ENGINEERED<br />FOR THE PITCH</div><div className="hero-index">01 <span>/</span> 04</div></div>
-              <div className="hero-footer"><span>BUILT FOR PES 2017</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
+              <div className="hero-art"><div className="hero-tag">MORE REALISM.<br />MORE IMMERSION.<br />MORE FOOTBALL.</div><div className="hero-index">THEGODMODS <span>/</span> 2017</div></div>
+              <div className="hero-footer"><span>BUILT FOR PES 2017 · INSPIRED BY THE NEXT GENERATION</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
             </section>
 
             <div className="section-heading"><div><div className="eyebrow">SYSTEM OVERVIEW</div><h2>Your setup</h2></div><button className="text-button" disabled={busy} onClick={() => void refresh()}>REFRESH STATUS <RefreshCw size={14} /></button></div>
@@ -233,6 +274,7 @@ export default function App() {
           </> : active === "Stadiums & Turf" ? <section className="page-placeholder">
             <div className="eyebrow">STADIUM SERVER · LIVECPK</div><h1>PITCH BUILDER</h1>
             <p>Inventory a Stadium Server pitch folder, map one exact resource to a replacement, then package it as a validated installable module.</p>
+            <DepartmentCatalogue departmentId="stadiums" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">STEP 01 · SOURCE INVENTORY</div><h3>Scan stadium resources</h3></div><span className="coming-tag">{pitchInventory ? pitchInventory.fileCount+" FILES" : "NOT SCANNED"}</span></div>
               <p>Choose the stadium folder containing <code>common/bg/model/bg/pitch</code>. The scan is read-only, hashes files and does not modify the stadium.</p>
@@ -256,6 +298,7 @@ export default function App() {
           </section> : active === "Graphics" ? <section className="page-placeholder">
             <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
             <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
+            <DepartmentCatalogue departmentId="graphics" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
             <div className="dds-toolbar">
               <button className="primary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("original"); if (result) { setOriginalDds(result); setDdsComparison(null); setNotice("Original DDS inspected. Choose a replacement to compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect original DDS."); } finally { setDdsBusy(false); } }}><FolderOpen size={15}/> CHOOSE ORIGINAL DDS</button>
               <button className="secondary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("replacement"); if (result) { setReplacementDds(result); setDdsComparison(null); setNotice("Replacement DDS inspected. Review the preview and compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect replacement DDS."); } finally { setDdsBusy(false); } }}>{ddsBusy ? "INSPECTING..." : "CHOOSE REPLACEMENT DDS"}</button>
@@ -324,6 +367,10 @@ export default function App() {
                 <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
                 <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
                 <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
+                {module.luaModules.length > 0 && module.files.every(file => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(file)) && <div className="action-row">
+                  <div className="action-copy"><strong>Package activation</strong><span>Lua-only package · changes all its Lua registrations together</span></div>
+                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.luaModules.every(name => status?.luaModules.includes(name)))}>{moduleActionBusy === module.id ? "SAVING" : module.luaModules.every(name => status?.luaModules.includes(name)) ? "DISABLE PACKAGE" : "ENABLE PACKAGE"}</button>
+                </div>}
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
                   return <div className="action-row" key={name}><div className="action-icon"><Activity size={17} /></div><div className="action-copy"><strong>{name}</strong><span>{enabled ? "Registered in Sider configuration" : "Not currently registered"}</span></div><button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setLuaEnabled(name, !enabled)}>{moduleActionBusy === name ? "SAVING" : enabled ? "DISABLE" : "ENABLE"}</button></div>;
@@ -333,6 +380,52 @@ export default function App() {
               </div>)
             }
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
+          </section> : active === "Profiles" ? <section className="page-placeholder">
+            <div className="eyebrow">SAVE · SWITCH · REPEAT</div><h1>SETUP PROFILES</h1>
+            <p>Save and restore Sider Lua activation sets for different PES 2017 experiences. Profiles are stored locally on this PC.</p>
+            <div className="panel">
+              <div className="panel-heading"><div><div className="eyebrow">CURRENT RUNTIME</div><h3>{status?.luaModules.length ?? 0} active Lua module(s)</h3></div><span className="coming-tag">{siderReady ? "SIDER DETECTED" : "SIDER NOT LINKED"}</span></div>
+              <div className="integrity-row"><span>Game folder</span><b>{status?.gameDirectory ?? "Not selected"}</b></div>
+              <div className="integrity-row"><span>Active Lua registrations</span><b>{status?.luaModules.length ? status.luaModules.join(", ") : "None detected"}</b></div>
+              <button className="primary-button" disabled={!siderReady} onClick={createProfile}>SAVE CURRENT PROFILE</button>
+            </div>
+            {profiles.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Disc3 size={24}/></div><div><h3>No saved profiles yet</h3><p>Save your current Sider Lua setup to create your first profile.</p></div></div> : profiles.map(profile => <div className="panel library-card" key={profile.id}>
+              <div className="panel-heading"><div><div className="eyebrow">LOCAL PROFILE · {new Date(profile.createdAt).toLocaleDateString()}</div><h3>{profile.name}</h3></div><span className="coming-tag">{profile.enabledLuaModules.length} LUA MODULES</span></div>
+              <p>{profile.enabledLuaModules.length ? profile.enabledLuaModules.join(" · ") : "No Lua modules enabled in this profile."}</p>
+              <div className="dds-toolbar"><button className="primary-button" disabled={!siderReady || profileBusy} onClick={() => void applyProfile(profile)}>{profileBusy ? "APPLYING..." : "APPLY PROFILE"}</button><button className="secondary-button" onClick={() => persistProfiles(profiles.filter(item => item.id !== profile.id))}>DELETE PROFILE</button></div>
+            </div>)}
+            <div className="notice"><span className="notice-mark">i</span>Profiles currently manage Sider Lua activation only. Direct-file and LiveCPK package activation is not yet reversible, so those assets are never silently toggled by a profile.</div>
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
+          </section> : active === "Backups" ? <section className="page-placeholder">
+            <div className="eyebrow">PROTECT · REVIEW · RESTORE</div><h1>BACKUP VAULT</h1>
+            <p>Review original files saved by successful module installs. Restoring a package backup removes that managed mod and puts the saved original files back where safe.</p>
+            {installedModules.length === 0 ? <div className="coming-panel"><div className="coming-icon"><HardDrive size={24}/></div><div><h3>No managed package backups</h3><p>Backups appear here after a module replaces existing game files with your approval.</p></div></div> : installedModules.map(module => <div className="panel library-card" key={module.id}>
+              <div className="panel-heading"><div><div className="eyebrow">PACKAGE · {module.version}</div><h3>{module.id}</h3></div><span className="coming-tag">{module.backupCount} ORIGINAL BACKUPS</span></div>
+              <p>{module.backupCount ? "Original files are stored in the manager's private backup vault. Restoring them uninstalls this package and preserves user-modified files." : "This package added new files only; no original game files were replaced."}</p>
+              <div className="integrity-row"><span>Managed files</span><b>{module.files.length}</b></div>
+              <div className="integrity-row"><span>Original backups</span><b>{module.backupCount}</b></div>
+              <button className="small-action" disabled={!module.backupCount || moduleActionBusy !== null} onClick={() => void uninstallModule(module)}>RESTORE ORIGINALS & REMOVE MOD</button>
+            </div>)}
+            <div className="notice"><span className="notice-mark">i</span>Restoration is hash-guarded: files edited after installation are preserved rather than overwritten. Keep the manager state folder intact until you have verified your game.</div>
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
+          </section> : active === "Settings" ? <section className="page-placeholder">
+            <div className="eyebrow">APPLICATION · GAME PATH · RECOVERY</div><h1>MANAGER SETTINGS</h1>
+            <p>Configure the PES 2017 installation used by the installer and inspect the manager's recovery state.</p>
+            <div className="panel">
+              <div className="panel-heading"><div><div className="eyebrow">GAME INSTALLATION</div><h3>Managed game directory</h3></div><span className={ready ? "pill good-pill" : "pill"}>{ready ? "VALID EXECUTABLE" : "NOT CONFIGURED"}</span></div>
+              <div className="integrity-row"><span>Folder</span><b>{status?.gameDirectory ?? "No folder selected"}</b></div>
+              <div className="integrity-row"><span>Executable</span><b>{status?.gameExecutable ?? "Not detected"}</b></div>
+              <div className="integrity-row"><span>Sider</span><b>{status?.siderExecutable ?? "Not detected"}</b></div>
+              <div className="dds-toolbar"><button className="primary-button" onClick={chooseFolder}><FolderOpen size={15}/> {ready ? "CHANGE GAME FOLDER" : "SELECT GAME FOLDER"}</button><button className="secondary-button" disabled={busy} onClick={() => void refresh()}><RefreshCw size={14}/> REFRESH STATUS</button></div>
+            </div>
+            <div className="panel" style={{marginTop:14}}>
+              <div className="panel-heading"><div><div className="eyebrow">INSTALL RECOVERY</div><h3>Transaction health</h3></div><ShieldCheck size={18}/></div>
+              <div className="integrity-row"><span>Recovery state</span><b>{status?.startupRecovery.status.toUpperCase() ?? "CHECKING"}</b></div>
+              <p className="dds-note">{status?.startupRecovery.message ?? "Select a game folder to inspect interrupted installation recovery."}</p>
+              {status?.startupRecovery.files.map(file => <div className="integrity-row" key={file}><span>{file}</span><b className="pill good-pill">RECOVERED</b></div>)}
+            </div>
+            <div className="notice"><span className="notice-mark">i</span>The manager keeps game-folder settings and installation journals locally. It does not change Windows registry entries or game files merely by opening this page.</div>
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : active === "Diagnostics" ? <section className="page-placeholder">
             <div className="eyebrow">RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
             <p>Inspect Sider log evidence for references to Stadium Server pitch resources. This is a log parser—not a claim that a texture rendered correctly in PES.</p>
@@ -359,6 +452,9 @@ export default function App() {
             </div>}
             <div className="notice"><span className="notice-mark">i</span>For a meaningful capture: back up the stadium, start Sider, launch PES, enter one target stadium, play long enough to load the pitch, exit, then analyze the resulting log. Compare logs before and after a one-resource replacement. Keep the original log for audit.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
+          </section> : ["Kits & Equipment", "Players", "Audio & Atmosphere", "Gameplay"].includes(active) ? <section className="page-placeholder">
+            <DepartmentCatalogue departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
+            <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Module system is being built</h3><p>This section will become operational as the package engine, validation, install transactions and rollback system are implemented. No fake install controls here.</p></div><span className="coming-tag">IN DEVELOPMENT</span></div>

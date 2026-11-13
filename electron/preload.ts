@@ -13,7 +13,7 @@ export type ModulePreview = {
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
 export type LibraryPackage = { id: string; name: string; version: string; category: string; description: string; valid: boolean; errors: string[]; files: number; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean };
-export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; luaModules: string[]; };
+export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; backupCount: number; luaModules: string[]; };
 export type UninstallResult = { removed: string[]; restored: string[]; preservedModified: string[]; siderSyncWarning: string | null };
 export type SiderSyncResult = { registeredRoots: string[]; registeredLuaModules: string[]; changed: boolean; backupPath: string | null };
 export type GameStatus = {
@@ -35,6 +35,8 @@ const api = {
   listInstalledModules: (): Promise<InstalledModule[]> => ipcRenderer.invoke("modules:list-installed"),
   uninstallModule: (moduleId: string): Promise<UninstallResult> => ipcRenderer.invoke("modules:uninstall", moduleId),
   setLuaModuleEnabled: (moduleName: string, enabled: boolean): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:set-lua-enabled", moduleName, enabled),
+  setPackageLuaEnabled: (moduleId: string, enabled: boolean): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:set-package-lua-enabled", moduleId, enabled),
+  applyLuaActivationProfile: (enabledModuleNames: string[]): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:apply-lua-profile", enabledModuleNames),
   syncSiderModules: (): Promise<SiderSyncResult> => ipcRenderer.invoke("sider:sync-installed-modules"),
   launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch"),
   openContentSource: (sourceId: string): Promise<void> => ipcRenderer.invoke("content:open-source", sourceId)

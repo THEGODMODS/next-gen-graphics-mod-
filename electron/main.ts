@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import ddsService from "./dds-service.cjs";
 import pitchService from "./pitch-workflow.cjs";
 import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.cjs";
@@ -75,10 +76,21 @@ async function assertNoSymlinkParents(root: string, relativePath: string) {
     }
   }
 }
+function isTrustedRendererUrl(value: string): boolean {
+  if (app.isPackaged) {
+    return value === pathToFileURL(path.join(__dirname, "../../dist/index.html")).href;
+  }
+  try {
+    const candidate = new URL(value);
+    return candidate.origin === "http://127.0.0.1:5173" &&
+      (candidate.pathname === "/" || candidate.pathname === "/index.html");
+  } catch {
+    return false;
+  }
+}
 function assertTrustedSender(event: Electron.IpcMainInvokeEvent) {
   const url = event.senderFrame?.url ?? "";
-  const trusted = app.isPackaged ? url.startsWith("file://") : url.startsWith("http://127.0.0.1:5173");
-  if (!trusted) throw new Error("Blocked IPC from an untrusted renderer.");
+  if (!isTrustedRendererUrl(url)) throw new Error("Blocked IPC from an untrusted renderer.");
 }
 async function persistGameDirectory(directory: string) {
   await fsp.mkdir(path.dirname(settingsPath()), { recursive: true });
@@ -312,9 +324,25 @@ function registerIpc() {
     const manifest = validation.manifest;
     if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
     const installer = new ModuleInstaller(gameDirectory, stateDirectory());
-    return installer.install(selected.root, manifest, {
+    const installed = await installer.install(selected.root, manifest, {
       approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
     });
+    try {
+      await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      return installed;
+    } catch (syncError) {
+      // Compensate the committed file transaction if Sider registration cannot be made safe.
+      try {
+        await installer.uninstall(manifest.id);
+        await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      } catch (rollbackError) {
+        throw new Error("Files were installed but Sider synchronization failed, and automatic compensation was incomplete. Keep the manager state/backups intact and run recovery before launching PES 2017. Sync error: " +
+          (syncError instanceof Error ? syncError.message : String(syncError)) + "; compensation error: " +
+          (rollbackError instanceof Error ? rollbackError.message : String(rollbackError)));
+      }
+      throw new Error("Installation was rolled back because Sider configuration could not be synchronized: " +
+        (syncError instanceof Error ? syncError.message : String(syncError)));
+    }
   });
   ipcMain.handle("modules:list-installed", async event => {
     assertTrustedSender(event);
@@ -322,6 +350,7 @@ function registerIpc() {
       id: module.id, version: module.version, installedAt: module.installedAt,
       dependencies: module.dependencies ?? [],
       files: module.files.map(file => file.target),
+      backupCount: module.files.filter(file => Boolean(file.backupPath)).length,
       luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
         .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
         .map(target => target.slice(8)),
@@ -336,6 +365,26 @@ function registerIpc() {
     try { await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules(); }
     catch (error) { siderSyncWarning = error instanceof Error ? error.message : "Sider synchronization failed."; }
     return { ...result, siderSyncWarning };
+  });
+  ipcMain.handle("modules:set-package-lua-enabled", async (event, moduleId: unknown, enabled: unknown) => {
+    assertTrustedSender(event);
+    if (typeof moduleId !== "string" || !/^[a-z0-9][a-z0-9._-]*$/.test(moduleId) || typeof enabled !== "boolean") throw new Error("Invalid package activation request.");
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    const journal = await new JournalStore(stateDirectory()).read();
+    const module = journal.modules.find(item => item.id === moduleId);
+    if (!module) throw new Error("That package is not installed.");
+    const targets = module.files.map(file => file.target.replace(/\\/g, "/"));
+    const luaNames = targets.filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target)).map(target => target.slice("modules/".length));
+    if (!luaNames.length || luaNames.length !== targets.length) throw new Error("Package-wide activation is currently supported only for Lua-only packages. Direct and LiveCPK assets require a separate reversible file-activation adapter.");
+    return new SiderConfigManager(gameDirectory, stateDirectory()).setLuaModulesEnabled(luaNames, enabled);
+  });
+  ipcMain.handle("modules:apply-lua-profile", async (event, enabledModuleNames: unknown) => {
+    assertTrustedSender(event);
+    if (!Array.isArray(enabledModuleNames) || enabledModuleNames.length > 1000 || enabledModuleNames.some(name => typeof name !== "string")) {
+      throw new Error("Invalid Lua activation profile.");
+    }
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    return new SiderConfigManager(gameDirectory, stateDirectory()).applyLuaActivationProfile(enabledModuleNames);
   });
   ipcMain.handle("modules:set-lua-enabled", async (event, moduleName: unknown, enabled: unknown) => {
     assertTrustedSender(event);
@@ -366,10 +415,13 @@ function registerIpc() {
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1440, height: 920, minWidth: 1100, minHeight: 720,
-    backgroundColor: "#090d13", title: "PES 2017 Next Gen",
+    backgroundColor: "#07110e", title: "THEGODMODS PES 2017 Next Gen Graphics Manager",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
+    if (!isTrustedRendererUrl(navigationUrl)) event.preventDefault();
+  });
   if (app.isPackaged) void mainWindow.loadFile(path.join(__dirname, "../../dist/index.html"));
   else void mainWindow.loadURL("http://127.0.0.1:5173");
 }

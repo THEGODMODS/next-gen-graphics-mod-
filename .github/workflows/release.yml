@@ -1,0 +1,116 @@
+name: Draft Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows-release:
+    name: Validate and package Windows release
+    runs-on: windows-latest
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify release tag and source branch
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($tag -ne "v$($package.version)") {
+            throw "Release tag $tag does not match package.json version v$($package.version)."
+          }
+          git fetch origin main
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          if ($LASTEXITCODE -ne 0) {
+            throw "Release tags must point to a commit reachable from main."
+          }
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: TypeScript validation
+        run: npm run typecheck
+
+      - name: Native Node ESM smoke test
+        run: >-
+          node --input-type=module -e "await Promise.all([
+          './tools/dds-audit.mjs',
+          './tools/dds-compare.mjs',
+          './tools/dds-inspect.mjs',
+          './tools/dds-preview.mjs',
+          './tools/pitch-inventory.mjs',
+          './tools/pitch-module-builder.mjs'
+          ].map((file) => import(file)))"
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Build Windows NSIS installer
+        run: npx electron-builder --win nsis --publish never
+
+      - name: Generate SHA-256 checksums
+        shell: pwsh
+        run: |
+          $installers = Get-ChildItem release -Filter *.exe -File
+          if (-not $installers -or $installers.Count -eq 0) {
+            throw "No Windows installer was produced."
+          }
+          $lines = foreach ($file in $installers) {
+            $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($file.Name)"
+          }
+          $lines | Set-Content release/SHA256SUMS.txt -Encoding ascii
+
+      - name: Upload release candidate artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pes2017-nextgen-release-${{ github.ref_name }}
+          path: |
+            release/*.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create draft GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $notes = @"
+          ## THEGODMODS PES 2017 Next Gen — $tag
+
+          **Draft release candidate.** Review and test the installer on a clean Windows machine and a backed-up PES 2017 + Sider installation before publishing.
+
+          ### Verification
+          - TypeScript validation
+          - Native Node ESM smoke tests
+          - Unit tests
+          - Production build
+          - Windows NSIS installer build
+          - SHA-256 checksum file
+
+          ### Important
+          A successful CI run does not prove in-game compatibility. This application release does not imply that any catalogue mod pack is available or verified. Review the release notes and test rollback before making this release public.
+          "@
+          Set-Content release/RELEASE-NOTES.md $notes -Encoding utf8
+          gh release create $tag (Get-ChildItem release -Filter *.exe | ForEach-Object { $_.FullName }) release/SHA256SUMS.txt release/RELEASE-NOTES.md --draft --verify-tag --title "PES 2017 Next Gen $tag" --notes-file release/RELEASE-NOTES.md

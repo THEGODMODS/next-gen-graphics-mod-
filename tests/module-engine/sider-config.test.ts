@@ -108,4 +108,48 @@ describe("Sider configuration sync", () => {
       .rejects.toThrow("not installed");
   });
 
+
+  it("toggles every Lua file in one package as an atomic activation group", async () => {
+    const f = await fixture();
+    const journal = new JournalStore(f.state);
+    const data = await journal.read();
+    data.modules.push({ id: "studio.weather", version: "1.0.0", installedAt: new Date().toISOString(),
+      files: [
+        { target: "modules/weather.lua", sha256: "a".repeat(64), backupPath: null, backupSha256: null },
+        { target: "modules/clouds.lua", sha256: "b".repeat(64), backupPath: null, backupSha256: null },
+      ] });
+    await journal.write(data);
+    const manager = new SiderConfigManager(f.root, f.state);
+    await manager.syncInstalledModules();
+    const disabled = await manager.setLuaModulesEnabled(["weather.lua", "clouds.lua"], false);
+    expect(disabled.registeredLuaModules).toEqual([]);
+    const enabled = await manager.setLuaModulesEnabled(["weather.lua", "clouds.lua"], true);
+    expect(enabled.registeredLuaModules).toEqual(["clouds.lua", "weather.lua"]);
+  });
+
+  it("applies a complete Lua profile atomically and disables omitted managed modules", async () => {
+    const f = await fixture();
+    const journal = new JournalStore(f.state);
+    const data = await journal.read();
+    data.modules.push({ id: "studio.profile-pack", version: "1.0.0", installedAt: new Date().toISOString(),
+      files: [
+        { target: "modules/weather.lua", sha256: "a".repeat(64), backupPath: null, backupSha256: null },
+        { target: "modules/clouds.lua", sha256: "b".repeat(64), backupPath: null, backupSha256: null },
+      ] });
+    await journal.write(data);
+    const manager = new SiderConfigManager(f.root, f.state);
+    await manager.syncInstalledModules();
+    const applied = await manager.applyLuaActivationProfile(["weather.lua"]);
+    expect(applied.registeredLuaModules).toEqual(["weather.lua"]);
+    const cleared = await manager.applyLuaActivationProfile([]);
+    expect(cleared.registeredLuaModules).toEqual([]);
+    await expect(manager.applyLuaActivationProfile(["not-managed.lua"])).rejects.toThrow("not installed or manager-owned");
+  });
+
+  it("rejects a Lua activation group containing an unmanaged module", async () => {
+    const f = await fixture();
+    await expect(new SiderConfigManager(f.root, f.state).setLuaModulesEnabled(["missing.lua"], false))
+      .rejects.toThrow("not installed");
+  });
+
 });

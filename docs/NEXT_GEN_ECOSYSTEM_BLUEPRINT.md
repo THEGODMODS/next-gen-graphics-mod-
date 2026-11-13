@@ -108,3 +108,76 @@ A record without a trusted immutable package URL, digest, compatible manifest an
 The current app already has an Electron/React shell, local module-library scanning, manifest and SHA-256 validation, an install preview, a module installer/journal, Sider configuration synchronization, startup recovery, a DDS inspection/comparison workbench and a read-only Stadium Server pitch inventory/module builder.
 
 The current library is local-folder based. The repository README states that no game replacement assets are bundled. Remote downloads are intentionally disabled in the current UI. Most of the six content navigation destinations are not yet complete catalogue experiences. The next implementation work must preserve these safety boundaries and close those gaps without presenting community links as verified installable packages.
+
+
+## Catalogue ownership lanes
+
+Every department exposes two distinct catalogue lanes:
+
+- **THEGODMODS Originals** — projects created and packaged by THEGODMODS. Project concepts and active tooling are visibly labelled as roadmap/in-development until the actual assets have been authored, tested and released.
+- **Third-Party** — creator and publisher catalogues opened at their original source. These listings remain external-source information; they are not mirrored, endorsed, redistributed or treated as manager-verified packages.
+
+Initial original-product lines include GOD VISUALS, GOD CINEMATIC and GOD NATURAL (Graphics); GOD TURF, GOD STADIUMS and GOD PITCH LAB (Stadiums & Turf); GOD KITS; GOD FACES; GOD ATMOSPHERE; and GOD GAMEPLAY. These are production tracks, not claims that downloadable packs already exist. The first original releases must be created from assets we have rights to use, with source provenance and repeatable validation.
+
+Each department has a focused subcategory taxonomy. Graphics includes complete overhauls, eFootball/FC-inspired directions, natural realism, lighting/weather and broadcast presentation. Stadiums & Turf includes turf/pitch textures, grass patterns, stadium environments, adboards, lighting and Stadium Server modules. The remaining departments similarly separate their own content types.
+
+## Phase 1 implementation record
+
+The src/catalogue/departments.ts registry now defines the six department identities, descriptions, subcategories, original production tracks and allowed third-party source references. DepartmentCatalogue renders the Originals and Third-Party lanes, searchable cards, ownership/status labels and a strict release-gate explanation. The Graphics DDS workbench and Stadium Pitch Builder remain available beneath their new catalogues. Kits & Equipment, Players, Audio & Atmosphere and Gameplay now use the same catalogue component instead of the former generic placeholder.
+
+The initial registry intentionally contains no installable catalogue package. Third-party cards open external publisher/community pages; original tracks are labelled as studio roadmap or development work. The local manifest scanner and safe installer remain the only current installation path. This avoids conflating discovery metadata with trusted packages.
+
+
+## Phase 2 implementation record — trusted package delivery foundation
+
+The new `src/main/module-engine/package-delivery.ts` module defines a versioned remote release contract and a fail-closed validation/download pipeline.
+
+A remote release must provide:
+- Namespaced package ID and semantic version.
+- Publisher identity and explicit licence ID.
+- An explicit `redistributionAllowed: true` declaration.
+- HTTPS download URL on an application-configured trusted hostname, with no embedded credentials or fragment.
+- Exact archive byte size and lowercase SHA-256 digest, bounded by the configured maximum.
+- An Ed25519 detached signature over a stable canonical release payload, verified against a key ID in the application's pinned public-key trust map.
+
+The downloader refuses redirects, non-200 responses, mismatched Content-Length, truncated/oversized payloads, hash mismatches and already-downloaded version collisions. It streams to a temporary `.part` file, verifies the exact byte count and digest, and only then links the verified archive into its final versioned filename. Failed downloads clean up the partial file. It does not extract archives or install packages; those operations remain behind the existing manifest validator and transactional installer.
+
+Automated tests cover valid signatures, metadata tampering, unknown hosts/keys, absent redistribution permission, redirect responses, corrupted payloads, and successful verified downloads.
+
+**Publisher onboarding is intentionally not activated yet.** This repository does not currently contain a THEGODMODS package-host domain, an official release-signing public key, or a production catalogue endpoint. No made-up host/key or unsigned fallback is introduced. Until THEGODMODS provisions and pins its Ed25519 public key and approved host, remote delivery remains unavailable by design; local package scanning and installation continue to work as before. A passing test with generated test-only keys is not evidence that a production publisher is trusted.
+
+
+### Phase 2 release operations and validation
+
+The phase now also includes `tools/sign-package-release.mjs` and the `npm run sign:package -- ...` command. This offline publisher utility calculates archive size and SHA-256 from the actual ZIP bytes, creates the same canonical signing payload used by the verifier, and emits an Ed25519-signed release record without overwriting an existing output. `docs/PACKAGE_RELEASE_OPERATIONS.md` documents offline key generation/custody, release signing, application-side trust pinning, key rotation and incident response. A dedicated Vitest integration test generates an ephemeral test key, signs a fixture archive through the CLI, and verifies the resulting release through the production validator.
+
+The current downloader is bounded and integrity-checked but is **not resumable**: an interrupted transfer is discarded and must be restarted. Resumable transfer support remains a follow-on hardening item; it is not represented as implemented. Production remote delivery also remains deliberately disabled until the real host and official public key are provisioned and pinned. These are external publisher prerequisites, not values that can safely be fabricated in source control.
+
+The Phase 2 Quality run for commit `4abdb918a6d458867b07d96976b954a0088f2472` completed successfully: TypeScript validation, native Node ESM smoke test, unit tests and production build passed. The Windows NSIS installer and artifact upload steps were skipped because the workflow was triggered by a pull request. New release-operations code/tests added after that run require their own CI run before sign-off.
+
+
+## Phase 4 implementation record — curated content release gates
+
+Added a strict release-candidate contract and evaluator in src/catalogue/release-gates.ts. Release state is derived from metadata and evidence; a caller-supplied verified label is ignored.
+
+The evaluator requires:
+- Stable package ID/version, department, ownership lane, publisher, author, licence, explicit redistribution permission and attribution.
+- PES 2017 executable, explicit tested patch/data-pack versions and Sider range.
+- Supported deployment strategy and immutable HTTPS package metadata (exact size, SHA-256 and signing-key ID).
+- Manifest and payload-hash validation, Windows CI evidence, automated test evidence and rollback testing.
+- Real-game evidence. A pending game test can reach automated-ready but never verified; a failed game test blocks release. A passed test must record timestamp, game build, Sider version, tester and evidence URL.
+
+Added tests for full approval, pending and failed real-game status, rights and attribution failures, insecure URLs, malformed digests, wrong-game compatibility and incomplete evidence. Added docs/CONTENT_RELEASE_QUALITY_GATES.md with the required QA matrix and department-specific acceptance checks.
+
+**Content publication remains gated.** Existing department cards remain discovery/studio-roadmap entries. This phase does not invent mod assets or claim third-party redistribution permission. No actual content package is approved by this implementation; production package hosting and pinned signing trust configuration are still required. Real PES 2017 + Sider validation must be performed against actual content before a package can be marked verified.
+
+
+## Phase 5 implementation record — THEGODMODS original content library
+
+Added src/catalogue/original-content.ts as the production-brief registry for all ten original product lines across all six departments: GOD VISUALS, GOD CINEMATIC, GOD NATURAL, GOD TURF, GOD STADIUMS, GOD PITCH LAB, GOD KITS, GOD FACES, GOD ATMOSPHERE and GOD GAMEPLAY.
+
+Each brief now records a stable package identity, department, product line, production state, creative direction, deliverables, required source assets, acceptance checks, rights policy and preview plan. The Originals catalogue exposes these concrete briefs rather than a generic project placeholder. The brief view clearly distinguishes production briefs from downloadable content and continues to withhold install actions.
+
+Added tests to ensure every original project has a corresponding complete brief, all six departments are represented, IDs are unique, and no brief is represented as released content. Added docs/PHASE_5_CONTENT_LIBRARY.md and the content/originals workspace rights/asset policy.
+
+**Actual asset limitation:** the repository still has no authorized source art, audio recordings, player likeness assets, club marks or user-provided PES resource mappings. This implementation creates the production library and its acceptance framework, not fictional binary mods. GOD PITCH LAB is tooling-prototype only; it needs a real stadium pitch inventory and rights-cleared source textures before a pack can be built. All packs remain non-installable until real assets, provenance, package hashes, signing, automated rollback and real PES 2017/Sider validation are complete.
