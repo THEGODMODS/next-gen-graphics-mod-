@@ -337,6 +337,18 @@ function registerIpc() {
     catch (error) { siderSyncWarning = error instanceof Error ? error.message : "Sider synchronization failed."; }
     return { ...result, siderSyncWarning };
   });
+  ipcMain.handle("modules:set-package-lua-enabled", async (event, moduleId: unknown, enabled: unknown) => {
+    assertTrustedSender(event);
+    if (typeof moduleId !== "string" || !/^[a-z0-9][a-z0-9._-]*$/.test(moduleId) || typeof enabled !== "boolean") throw new Error("Invalid package activation request.");
+    if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
+    const journal = await new JournalStore(stateDirectory()).read();
+    const module = journal.modules.find(item => item.id === moduleId);
+    if (!module) throw new Error("That package is not installed.");
+    const targets = module.files.map(file => file.target.replace(/\\/g, "/"));
+    const luaNames = targets.filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target)).map(target => target.slice("modules/".length));
+    if (!luaNames.length || luaNames.length !== targets.length) throw new Error("Package-wide activation is currently supported only for Lua-only packages. Direct and LiveCPK assets require a separate reversible file-activation adapter.");
+    return new SiderConfigManager(gameDirectory, stateDirectory()).setLuaModulesEnabled(luaNames, enabled);
+  });
   ipcMain.handle("modules:set-lua-enabled", async (event, moduleName: unknown, enabled: unknown) => {
     assertTrustedSender(event);
     if (typeof moduleName !== "string" || typeof enabled !== "boolean") throw new Error("Invalid module activation request.");
