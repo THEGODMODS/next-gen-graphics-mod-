@@ -45,3 +45,7 @@ To download a test build:
 4. Extract the ZIP and run the installer.
 
 A workflow artifact is a development test build, not a stable public release. Do not install it over a production PES setup without a backup. A release is not considered validated until the packaged application is launched on Windows and its Sider/PES workflows are tested on a real installation.
+
+## Versioned Windows releases
+
+Versioned release tags run the Windows release pipeline described in [Release Engineering](docs/RELEASE_ENGINEERING.md). The pipeline validates the tagged version and source branch, runs checks, builds the NSIS installer, creates SHA-256 checksums and opens a **draft** GitHub release for human review. It does not publish automatically. The installer is not Authenticode-signed until an official code-signing certificate is provisioned. Real PES 2017 + Sider testing remains a required manual release gate.
