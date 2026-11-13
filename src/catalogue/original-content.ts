@@ -50,7 +50,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Neutral daylight", "Overcast conditions", "Player close-up", "Kit colour reference"]
   },
   {
-    id: "thegodmods.god-turf", name: "GOD TURF", department: "stadiums",
+    id: "thegodmods.god-turf", name: "GOD TURF", department: "stadiums", productLine: "Stadiums & Turf",
     productionState: "brief-ready",
     goal: "A family of original pitch surfaces and grass looks with consistent mapping and stadium compatibility.",
     styleDirection: "Natural grass variation, controlled wear, believable mowing patterns and stadium-specific colour calibration.",
@@ -61,7 +61,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Centre circle", "Touchline and goal area", "Wide gameplay camera", "Rain/wet conditions where supported"]
   },
   {
-    id: "thegodmods.god-stadiums", name: "GOD STADIUMS", department: "stadiums",
+    id: "thegodmods.god-stadiums", name: "GOD STADIUMS", department: "stadiums", productLine: "Stadiums & Turf",
     productionState: "brief-ready",
     goal: "Original stadium presentation add-ons such as adboards, lighting and atmosphere modules, kept separate from stadium geometry owned by others.",
     styleDirection: "Authentic matchday presentation, coherent sponsor-neutral or properly licensed branding and stable stadium identity.",
@@ -72,7 +72,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Wide stadium panorama", "Pitch-side adboards", "Night lighting", "Stadium-specific identity details"]
   },
   {
-    id: "thegodmods.god-pitch-lab", name: "GOD PITCH LAB", department: "stadiums",
+    id: "thegodmods.god-pitch-lab", name: "GOD PITCH LAB", department: "stadiums", productLine: "Stadiums & Turf",
     productionState: "tooling-prototype",
     goal: "An authoring and validation workbench for building pitch packages from user-supplied, rights-cleared source textures.",
     styleDirection: "Repeatable, measurable texture production rather than a pre-made texture pack.",
@@ -83,7 +83,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Inventory report", "DDS preview", "Mapping comparison", "Generated module contents"]
   },
   {
-    id: "thegodmods.god-kits", name: "GOD KITS", department: "kits",
+    id: "thegodmods.god-kits", name: "GOD KITS", department: "kits", productLine: "Kits & Equipment",
     productionState: "brief-ready",
     goal: "Original kit and equipment collections with accurate team, season and slot mapping.",
     styleDirection: "Clean fabric detail, realistic folds and colour accuracy, with consistent home/away/third/keeper sets.",
@@ -94,7 +94,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Front/back kit render", "In-game player view", "Home/away/keeper variants", "Team and season label"]
   },
   {
-    id: "thegodmods.god-faces", name: "GOD FACES", department: "players",
+    id: "thegodmods.god-faces", name: "GOD FACES", department: "players", productLine: "Players",
     productionState: "brief-ready",
     goal: "High-quality original player appearance packages with reliable player ID mapping and transparent creator provenance.",
     styleDirection: "Consistent in-game likeness quality, realistic skin response and clean hairline/texture transitions.",
@@ -105,7 +105,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Face close-up", "In-game broadcast camera", "Lighting variation", "Player ID and roster context"]
   },
   {
-    id: "thegodmods.god-atmosphere", name: "GOD ATMOSPHERE", department: "audio",
+    id: "thegodmods.god-atmosphere", name: "GOD ATMOSPHERE", department: "audio", productLine: "Audio & Atmosphere",
     productionState: "brief-ready",
     goal: "A matchday audio library with properly licensed or original anthems, chants, crowd beds and event sounds.",
     styleDirection: "Clear, stadium-scale sound with consistent loudness and smooth transitions; preserve commentary intelligibility.",
@@ -116,7 +116,7 @@ export const originalContentProjects: OriginalContentProject[] = [
     previewPlan: ["Short authorized audio preview", "Event trigger demonstration", "Loudness/format report", "Rights and creator credit"]
   },
   {
-    id: "thegodmods.god-gameplay", name: "GOD GAMEPLAY", department: "gameplay",
+    id: "thegodmods.god-gameplay", name: "GOD GAMEPLAY", department: "gameplay", productLine: "Gameplay",
     productionState: "brief-ready",
     goal: "Versioned gameplay tuning and extensions with repeatable scenario testing and clear compatibility boundaries.",
     styleDirection: "Believable match tempo and player response; avoid arbitrary claims of realism without repeatable evidence.",
