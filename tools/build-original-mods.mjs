@@ -37,7 +37,9 @@ function makeGrassPixels(size, style, seed = 11, wear = 0.08) {
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
     const grain = hash32(x, y, seed + (style === "natural" ? 11 : style === "emerald" ? 29 : 47));
     const clump = hash32(Math.floor(x / 5), Math.floor(y / 5), seed + 83);
-    const mowing = Math.sin((x / size) * Math.PI * 18 + seed * 0.013) * p.stripe;\n    const wearPatch = hash32(Math.floor(x / 11), Math.floor(y / 9), seed + 191) < wear ? -9 : 0;\n    const broad = mowing + wearPatch;
+    const mowing = Math.sin((x / size) * Math.PI * 18 + seed * 0.013) * p.stripe;
+    const wearPatch = hash32(Math.floor(x / 11), Math.floor(y / 9), seed + 191) < wear ? -9 : 0;
+    const broad = mowing + wearPatch;
     const variation = (grain - 0.5) * 24 + (clump - 0.5) * 16 + broad;
     const blade = hash32(x * 7 + y, y * 3 + x, seed + 131);
     const index = (y * size + x) * 4;
