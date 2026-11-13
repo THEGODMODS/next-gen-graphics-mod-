@@ -189,8 +189,8 @@ export default function App() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><span>NG</span></div>
-          <div><div className="brand-name">NEXT GEN</div><div className="brand-sub">PES 2017 PROJECT</div></div>
+          <div className="brand-mark"><span>G</span></div>
+          <div><div className="brand-name">THEGODMODS</div><div className="brand-sub">PES 2017 NEXT GEN MANAGER</div></div>
         </div>
         <div className="sidebar-rule" />
         {["WORKSPACE", "CONTENT", "MANAGEMENT", "SYSTEM"].map(group => (
@@ -220,13 +220,13 @@ export default function App() {
           {active === "Overview" ? <>
             <section className="hero">
               <div className="hero-copy">
-                <div className="eyebrow"><span className="eyebrow-line" /> THE NEXT GENERATION STARTS HERE</div>
-                <h1>MAKE EVERY<br /><em>MATCH</em> MATTER.</h1>
-                <p>Your PES 2017 enhancement hub. Build your setup, manage every module and take control of your matchday experience.</p>
+                <div className="eyebrow"><span className="eyebrow-line" /> THEGODMODS · PREMIUM EDITION · EAFC 27 INSPIRED</div>
+                <h1>THE NEXT<br /><em>GENERATION</em><br />OF PES 2017.</h1>
+                <p>Six departments. One premium ecosystem. Upgrade the look, feel and atmosphere of every match—with safe, transparent mod management.</p>
                 <div className="hero-actions"><button className="primary-button" onClick={chooseFolder}><FolderOpen size={17} /> {ready ? "CHANGE GAME FOLDER" : "LOCATE PES 2017"}</button><button className="secondary-button" onClick={() => setActive("Modules")}>EXPLORE MODULES <ChevronRight size={16} /></button></div>
               </div>
-              <div className="hero-art"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-ball"><div className="ball-panel" /><div className="ball-panel second" /><div className="ball-seam" /></div><div className="hero-tag">ENGINEERED<br />FOR THE PITCH</div><div className="hero-index">01 <span>/</span> 04</div></div>
-              <div className="hero-footer"><span>BUILT FOR PES 2017</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
+              <div className="hero-art"><div className="hero-tag">MORE REALISM.<br />MORE IMMERSION.<br />MORE FOOTBALL.</div><div className="hero-index">THEGODMODS <span>/</span> 2017</div></div>
+              <div className="hero-footer"><span>BUILT FOR PES 2017 · INSPIRED BY THE NEXT GENERATION</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
             </section>
 
             <div className="section-heading"><div><div className="eyebrow">SYSTEM OVERVIEW</div><h2>Your setup</h2></div><button className="text-button" disabled={busy} onClick={() => void refresh()}>REFRESH STATUS <RefreshCw size={14} /></button></div>
