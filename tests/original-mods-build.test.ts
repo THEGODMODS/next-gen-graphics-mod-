@@ -35,8 +35,8 @@ describe("THEGODMODS original six-department asset build", () => {
     expect((await readdir(path.join(dir, "GOD-KITS", "designs"))).length).toBe(8);
     expect((await readdir(path.join(dir, "GOD-STADIUMS", "artwork"))).length).toBeGreaterThanOrEqual(5);
     expect((await readdir(path.join(dir, "GOD-VISUALS", "luts"))).length).toBe(6);
-    expect((await readdir(path.join(dir, "GOD-FACES", "textures"))).length).toBe(5);\n    const turfPack = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
+    expect((await readdir(path.join(dir, "GOD-FACES", "textures"))).length).toBe(10);\n    const turfPack = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
     expect(turfPack.textures).toHaveLength(6);
-    expect(turfPack.assets).toHaveLength(18);
+    expect(turfPack.assets).toHaveLength(18);\n    expect((await readdir(path.join(dir, "GOD-KITS", "materials"))).filter(x => x.endsWith(".dds"))).toHaveLength(12);\n    expect((await readdir(path.join(dir, "GOD-VISUALS", "sider", "modules")))).toContain("godmods_gfx.lua");\n    expect((await readdir(path.join(dir, "GOD-GAMEPLAY", "sider", "modules")))).toContain("godmods_gameplay.lua");\n    expect((await readdir(path.join(dir, "GOD-STADIUMS", "sider", "modules")))).toContain("godmods_conditions.lua");
   });
 });
