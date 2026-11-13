@@ -85,13 +85,13 @@ export const originalContentProjects: OriginalContentProject[] = [
   {
     id: "thegodmods.god-kits", name: "GOD KITS", department: "kits", productLine: "Kits & Equipment",
     productionState: "brief-ready",
-    goal: "Original kit and equipment collections with accurate team, season and slot mapping.",
-    styleDirection: "Clean fabric detail, realistic folds and colour accuracy, with consistent home/away/third/keeper sets.",
-    deliverables: ["Team/season kit packs", "Kit-server mapping files", "Kit preview sheets", "Versioned update and removal manifests"],
-    assetRequirements: ["Original kit artwork and templates", "Team IDs, season and slot mapping", "Licensed fonts/marks or original substitutes", "Texture exports in verified game-compatible formats"],
-    acceptanceChecks: ["Correct team and kit slot assignment", "Numbers, names and sponsor placement are readable", "No incorrect team marks or colour shifts", "Install/uninstall affects only declared kit resources"],
-    rightsPolicy: "Club crests, sponsor marks, manufacturer marks and fonts require documented rights or original replacements.",
-    previewPlan: ["Front/back kit render", "In-game player view", "Home/away/keeper variants", "Team and season label"]
+    goal: "Upgrade the appearance of the kits players already wear: more believable fabric response, weave detail, seams, folds, collar/cuff definition and accurate colour reproduction.",
+    styleDirection: "EAFC-inspired premium material presentation without replacing club identity or inventing new team kits; restrained cloth texture, crisp printed details and natural highlights.",
+    deliverables: ["Reusable fabric enhancement source maps", "Masked UV overlay workflow for existing kit textures", "Material/shader compatibility notes", "Before/after player-view comparison and rollback-safe texture package"],
+    assetRequirements: ["Existing kit UV textures supplied by the installed patch or user", "Original procedural fabric weave, stitching and material source maps", "Verified texture dimensions, alpha handling and DDS format", "Known kit texture paths/IDs before any automated replacement"],
+    acceptanceChecks: ["Existing club kits remain unchanged in design and identity", "Fabric details follow the correct UV islands without bleeding", "Crests, sponsors, names and numbers remain crisp", "No plastic shine, moire, seams or visible texture tiling", "Uninstall restores the exact previous kit textures"],
+    rightsPolicy: "Do not redistribute extracted third-party kit textures; apply original enhancement layers to user-owned or properly licensed kit assets.",
+    previewPlan: ["Close-up shirt fabric under daylight", "Night-match floodlight comparison", "Sleeve/collar/cuff and shorts detail", "Same player and same existing kit before/after"]
   },
   {
     id: "thegodmods.god-faces", name: "GOD FACES", department: "players", productLine: "Players",
@@ -138,15 +138,15 @@ export interface GeneratedAssetStatus {
   readiness: string;
 }
 const generatedAssetStatus: Record<string, GeneratedAssetStatus> = {
-  "GOD VISUALS": { summary: "Six original creative profiles and six 17³ colour LUTs.", files: ["profiles.json", "luts/*.cube"], readiness: "Source grades generated; post-processing adapter and PES 2017 visual validation pending." },
+  "GOD VISUALS": { summary: "Six original 17³ LUT grades plus six native Sider 3.5 graphics profiles and a Lua adapter for brightness, sharpness, player-shadow softness and reflection.", files: ["profiles.json", "luts/*.cube", "sider/modules/godmods_gfx.lua", "sider/content/godmods/profiles/*.ini"], readiness: "Native Sider controls are implemented against documented APIs; validate each profile in daylight, night, rain and replay on the target PES 2017/Sider build." },
   "GOD CINEMATIC": { summary: "Cinematic matchday profile and original 3D LUT source.", files: ["profiles.json", "luts/cinematic-matchday.cube", "luts/european-evening.cube"], readiness: "Source grades generated; supported shader adapter and in-game validation pending." },
   "GOD NATURAL": { summary: "Natural realism, daylight and overcast profiles with original LUT sources.", files: ["profiles.json", "luts/natural-realism.cube", "luts/sunlit-daylight.cube", "luts/overcast-realism.cube"], readiness: "Source grades generated; supported shader adapter and in-game validation pending." },
   "GOD TURF": { summary: "Six original pitch looks with 18 DDS source maps: albedo, normal and roughness.", files: ["pack.json", "surface-library.json", "textures/*-albedo.dds", "textures/*-normal-source.dds", "textures/*-roughness-source.dds"], readiness: "Source maps generated; PES material channels, DDS target format and stadium resource mapping need verification." },
-  "GOD STADIUMS": { summary: "Five original sponsor-neutral LED/adboard SVG masters.", files: ["artwork/led-board-*.svg"], readiness: "Artwork generated; export to target UV dimensions and map stadium resources before install." },
-  "GOD KITS": { summary: "Eight original fictional, sponsor-free kit design plates.", files: ["designs/concept-*.svg"], readiness: "Design artwork generated; kit UV conversion and kit-server slot mapping pending." },
+  "GOD STADIUMS": { summary: "Five original sponsor-neutral LED/adboard SVG masters plus a disabled-by-default Sider weather/time/season conditions adapter.", files: ["artwork/led-board-*.svg", "sider/modules/godmods_conditions.lua"], readiness: "Conditions adapter uses documented Sider events; stadium artwork still needs stadium-specific texture mapping and real-game verification." },
+  "GOD KITS": { summary: "Four original fabric families with 12 DDS source maps: diffuse weave overlays, normal and roughness sources, designed to enhance existing kit textures rather than create new kits.", files: ["materials/*-diffuse-overlay.dds", "materials/*-normal-source.dds", "materials/*-roughness-source.dds", "materials/material-library.json"], readiness: "Material source layers generated. Apply as masked layers to existing kit UV textures; confirm kit shader channels and texture path mappings before any automated installation." },
   "GOD FACES": { summary: "Four procedural skin-tone textures and one hair-detail texture.", files: ["textures/*-detail-source.dds", "textures/procedural-hair-detail-source.dds"], readiness: "Generic texture sources generated; no face meshes, player likenesses or roster IDs included." },
   "GOD ATMOSPHERE": { summary: "Five original synthesized WAV source clips.", files: ["audio/*.wav"], readiness: "Audio sources generated; mastering, PES codec and event mapping pending." },
-  "GOD GAMEPLAY": { summary: "Three tactical/tempo design profiles and a safe Lua stub.", files: ["profiles/*.json", "lua/god_gameplay_status.lua"], readiness: "Design profiles generated; no physics/AI hooks applied until a supported adapter is validated." }
+  "GOD GAMEPLAY": { summary: "Three conservative Sider gameplay-library profiles and a Lua adapter using documented ball and player tuning properties.", files: ["profiles/*.json", "sider/modules/godmods_gameplay.lua", "sider/content/godmods/gameplay/*.ini"], readiness: "Adapter is opt-in and disabled by default. Sider marks these gameplay controls experimental; match-scenario testing is mandatory." }
 };
 export function getGeneratedAssetStatus(name: string): GeneratedAssetStatus | undefined {
   return generatedAssetStatus[name];
