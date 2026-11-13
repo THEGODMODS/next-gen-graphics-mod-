@@ -35,9 +35,11 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
         <div className="catalogue-card-foot"><span><BadgeCheck size={14}/> Original content programme</span><button onClick={() => setSelected(selected === item.name ? null : item.name)}>{selected === item.name ? "HIDE DETAILS" : "PROJECT DETAILS"}</button></div>
         {selected === item.name && (() => {
           const brief = getOriginalContentProject(item.name);
+          const generated = getGeneratedAssetStatus(item.name);
           if (!brief) return <div className="catalogue-detail"><b>Production brief unavailable</b><p>This project cannot be released until its content brief is completed.</p></div>;
           return <div className="catalogue-detail">
-            <div className="catalogue-brief-state">{generated ? "ORIGINAL SOURCE ASSETS GENERATED · GAME INTEGRATION PENDING" : brief.productionState === "tooling-prototype" ? "AUTHORING TOOLING PROTOTYPE · NOT A CONTENT PACK" : "PRODUCTION BRIEF · ASSETS NOT YET RELEASED"}</div>\n            {generated && <><b>Generated premium source assets</b><p>{generated.summary}</p><ul>{generated.files.map(file => <li key={file}><code>{file}</code></li>)}</ul><b>Compatibility status</b><p>{generated.readiness}</p></>}
+            <div className="catalogue-brief-state">{generated ? "ORIGINAL SOURCE ASSETS GENERATED · GAME INTEGRATION PENDING" : brief.productionState === "tooling-prototype" ? "AUTHORING TOOLING PROTOTYPE · NOT A CONTENT PACK" : "PRODUCTION BRIEF · ASSETS NOT YET RELEASED"}</div>
+            {generated && <><b>Generated premium source assets</b><p>{generated.summary}</p><ul>{generated.files.map(file => <li key={file}><code>{file}</code></li>)}</ul><b>Compatibility status</b><p>{generated.readiness}</p></>}
             <b>Production goal</b><p>{brief.goal}</p>
             <b>Style direction</b><p>{brief.styleDirection}</p>
             <div className="catalogue-brief-grid">
