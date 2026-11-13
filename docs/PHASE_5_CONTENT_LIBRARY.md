@@ -99,3 +99,18 @@ These assets are materially richer authoring deliverables, but they are still no
 
 
 The Windows app build now runs the original asset generator before packaging and includes `content/originals/generated/**/*` in the Electron application payload. The catalogue project-detail panel reports which original source files exist and clearly separates generated source assets from game-ready, one-click installable mods.
+
+
+## EA SPORTS FC 27-inspired / PES 2017-native upgrade tranche
+
+Research and implementation notes: see [EAFC27_PES2017_RESEARCH_UPGRADE.md](EAFC27_PES2017_RESEARCH_UPGRADE.md).
+
+- GOD KITS is explicitly an **existing kit appearance enhancement**, not a new-kit generator. Four fabric families provide 12 DDS source maps (diffuse weave overlay, normal and roughness). They must be UV-masked onto existing kit textures; no blind/global replacement or unsupported material channel is assumed.
+- GOD VISUALS now includes six native Sider 3.5 graphics profiles and a Lua adapter for documented brightness, sharpness, player-shadow softness and reflection properties, in addition to the 17³ LUT source grades.
+- GOD GAMEPLAY now includes a documented Sider gameplay-library adapter and three conservative profiles. It is disabled by default because Sider's own guide labels these properties experimental and warns about side effects.
+- GOD STADIUMS includes a disabled-by-default adapter for documented time-of-day/weather/season conditions; it never invents stadium IDs.
+- GOD TURF uses seeded pitch generation so the six variants have distinct mowing/wear patterns; each has albedo, normal-source and roughness-source DDS maps.
+- GOD FACES adds procedural skin micro-normal and hair detail sources. No real-player likenesses or face meshes are claimed.
+- All Sider Lua modules use documented PES 2017 Sider 3.5 events/APIs. Manual Sider registration is described; no automatic module activation is forced.
+
+Still required before one-click releases: inspect the actual installed PES 2017 patch's kit UVs, LiveCPK paths, stadium texture resource IDs, Sider build and shader channel support; perform identical-condition before/after match captures, performance checks and rollback validation. No unsupported EAFC proprietary assets or third-party mod packages are copied.
