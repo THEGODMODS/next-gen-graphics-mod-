@@ -17,7 +17,7 @@ describe("THEGODMODS original six-department asset build", () => {
     expect(result.products.map((p: { department: string }) => p.department).sort()).toEqual(
       ["audio", "gameplay", "graphics", "kits", "players", "stadiums"].sort()
     );
-    expect(result.products).toHaveLength(6);
+    expect(result.products).toHaveLength(7);
     for (const product of result.products) {
       expect(product.files.length).toBeGreaterThan(0);
       for (const entry of product.files) {
@@ -26,7 +26,7 @@ describe("THEGODMODS original six-department asset build", () => {
       }
     }
     const catalogue = JSON.parse(await readFile(path.join(dir, "catalogue.json"), "utf8"));
-    expect(catalogue.products).toHaveLength(6);
+    expect(catalogue.products).toHaveLength(7);
     expect(catalogue.products.every((p: { installable: boolean }) => p.installable === false)).toBe(true);
     const turf = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
     expect(turf.textures).toHaveLength(3);
