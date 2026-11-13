@@ -63,3 +63,10 @@ The module engine now resolves package manifests through explicit deployment ada
 Legacy manifests retain automatic routing so existing local packages continue to work. Adapter validation and path-boundary tests cover legacy direct/LiveCPK routing, explicit LiveCPK constraints, Lua mapping, configuration safety and required manual instructions.
 
 This is the first Phase 3 increment, not the completed phase. Full module update transactions, generic enable/disable, transactional Sider/config application, and end-to-end UI workflows remain to be implemented and tested before Phase 3 sign-off.
+
+
+## Package-wide Lua activation
+
+Lua-only packages can be enabled or disabled as a group. The main process resolves the package ID against the install journal and verifies every owned target is a managed Lua module before applying the request. The Sider manager validates the complete group, updates activation state in one operation, backs up and verifies the INI change, and restores the previous activation state if synchronization fails. The Modules screen exposes this action for Lua-only packages.
+
+Packages containing direct or LiveCPK files are deliberately excluded: package-wide activation for those assets requires a separate reversible file adapter. Transactional version upgrades also remain unimplemented and are not represented as supported.
