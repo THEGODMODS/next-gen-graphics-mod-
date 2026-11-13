@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ArrowUpRight, BadgeCheck, Blocks, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { getDepartment } from "../catalogue/departments";
-import { getOriginalContentProject } from "../catalogue/original-content";
+import { getGeneratedAssetStatus, getOriginalContentProject } from "../catalogue/original-content";
 
 type Props = { departmentId: string; onOpenSource: (sourceId: string) => void };
 
@@ -37,7 +37,7 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
           const brief = getOriginalContentProject(item.name);
           if (!brief) return <div className="catalogue-detail"><b>Production brief unavailable</b><p>This project cannot be released until its content brief is completed.</p></div>;
           return <div className="catalogue-detail">
-            <div className="catalogue-brief-state">{brief.productionState === "tooling-prototype" ? "AUTHORING TOOLING PROTOTYPE · NOT A CONTENT PACK" : "PRODUCTION BRIEF · ASSETS NOT YET RELEASED"}</div>
+            <div className="catalogue-brief-state">{generated ? "ORIGINAL SOURCE ASSETS GENERATED · GAME INTEGRATION PENDING" : brief.productionState === "tooling-prototype" ? "AUTHORING TOOLING PROTOTYPE · NOT A CONTENT PACK" : "PRODUCTION BRIEF · ASSETS NOT YET RELEASED"}</div>\n            {generated && <><b>Generated premium source assets</b><p>{generated.summary}</p><ul>{generated.files.map(file => <li key={file}><code>{file}</code></li>)}</ul><b>Compatibility status</b><p>{generated.readiness}</p></>}
             <b>Production goal</b><p>{brief.goal}</p>
             <b>Style direction</b><p>{brief.styleDirection}</p>
             <div className="catalogue-brief-grid">
@@ -47,7 +47,7 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
               <div><b>Preview plan</b><ul>{brief.previewPlan.map(value => <li key={value}>{value}</li>)}</ul></div>
             </div>
             <b>Rights policy</b><p>{brief.rightsPolicy}</p>
-            <b>Install status</b><p>No downloadable payload is approved. Installation remains locked until real assets, rights, compatibility, package hashes, rollback tests and real-game evidence pass release gates.</p>
+            <b>Install status</b><p>{generated ? "Original source assets are generated and included in the Windows build pipeline, but they are not yet approved for one-click PES installation. Target conversion, resource mapping, compatibility, package validation, rollback tests and real-game evidence must pass first." : "No downloadable payload is approved. Installation remains locked until real assets, rights, compatibility, package hashes, rollback tests and real-game evidence pass release gates."}</p>
           </div>;
         })()}
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching original projects</b><span>Try a different search.</span></div>}
