@@ -398,6 +398,7 @@ export async function buildOriginalAssets(output = OUT) {
   const products = await buildSixDepartments(output);
   await buildPremiumUpgrades(output);
   for (let i = 0; i < products.length; i++) Object.assign(products[i], JSON.parse(await readFile(path.join(output, products[i].name.split(" — ")[0].replaceAll(" ", "-"), "package.json"), "utf8")));
+  await writeFile(path.join(output, "catalogue.json"), JSON.stringify({ schemaVersion: 1, title: "THEGODMODS Original Content Collection", version: "0.2.0", status: "premium six-department source collection; game integration pending", products: products.map(p => ({ id: p.id, name: p.name, department: p.department, version: p.version, files: p.files.length, installable: p.installable })) }, null, 2) + "\n");
   return { output, products, departments: [...new Set(products.map(product => product.department))] };
 }
 
