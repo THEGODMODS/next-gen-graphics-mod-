@@ -224,6 +224,8 @@ async function buildSixDepartments(output) {
   ];
   const turfFiles = ["README.md", "surface-library.json", "pack.json"];
   const turfAssetRecords = [];
+  // The turf DDS writer uses writeFile directly, so create its parent first.
+  await mkdir(path.join(output, "GOD-TURF", "textures"), { recursive: true });
   for (const item of turfPremium) {
     const albedo = makeGrassPixels(SIZE, item.style, item.seed, item.wear);
     const height = makeHeightField(SIZE, item.seed, item.wear);
