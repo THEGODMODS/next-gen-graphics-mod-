@@ -108,3 +108,21 @@ A record without a trusted immutable package URL, digest, compatible manifest an
 The current app already has an Electron/React shell, local module-library scanning, manifest and SHA-256 validation, an install preview, a module installer/journal, Sider configuration synchronization, startup recovery, a DDS inspection/comparison workbench and a read-only Stadium Server pitch inventory/module builder.
 
 The current library is local-folder based. The repository README states that no game replacement assets are bundled. Remote downloads are intentionally disabled in the current UI. Most of the six content navigation destinations are not yet complete catalogue experiences. The next implementation work must preserve these safety boundaries and close those gaps without presenting community links as verified installable packages.
+
+
+## Catalogue ownership lanes
+
+Every department exposes two distinct catalogue lanes:
+
+- **THEGODMODS Originals** — projects created and packaged by THEGODMODS. Project concepts and active tooling are visibly labelled as roadmap/in-development until the actual assets have been authored, tested and released.
+- **Third-Party** — creator and publisher catalogues opened at their original source. These listings remain external-source information; they are not mirrored, endorsed, redistributed or treated as manager-verified packages.
+
+Initial original-product lines include GOD VISUALS, GOD CINEMATIC and GOD NATURAL (Graphics); GOD TURF, GOD STADIUMS and GOD PITCH LAB (Stadiums & Turf); GOD KITS; GOD FACES; GOD ATMOSPHERE; and GOD GAMEPLAY. These are production tracks, not claims that downloadable packs already exist. The first original releases must be created from assets we have rights to use, with source provenance and repeatable validation.
+
+Each department has a focused subcategory taxonomy. Graphics includes complete overhauls, eFootball/FC-inspired directions, natural realism, lighting/weather and broadcast presentation. Stadiums & Turf includes turf/pitch textures, grass patterns, stadium environments, adboards, lighting and Stadium Server modules. The remaining departments similarly separate their own content types.
+
+## Phase 1 implementation record
+
+The src/catalogue/departments.ts registry now defines the six department identities, descriptions, subcategories, original production tracks and allowed third-party source references. DepartmentCatalogue renders the Originals and Third-Party lanes, searchable cards, ownership/status labels and a strict release-gate explanation. The Graphics DDS workbench and Stadium Pitch Builder remain available beneath their new catalogues. Kits & Equipment, Players, Audio & Atmosphere and Gameplay now use the same catalogue component instead of the former generic placeholder.
+
+The initial registry intentionally contains no installable catalogue package. Third-party cards open external publisher/community pages; original tracks are labelled as studio roadmap or development work. The local manifest scanner and safe installer remain the only current installation path. This avoids conflating discovery metadata with trusted packages.
