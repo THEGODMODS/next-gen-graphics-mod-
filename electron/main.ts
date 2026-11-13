@@ -206,9 +206,19 @@ function registerIpc() {
   });
   ipcMain.handle("modules:scan-library", async event => {
     assertTrustedSender(event);
-    const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a folder containing module packages", properties: ["openDirectory"] });
-    if (picked.canceled || !picked.filePaths[0]) return [];
-    const root = await fsp.realpath(picked.filePaths[0]);
+    // Prefer the first-party GODMODS packages bundled with the installed app.
+    // Fall back to a user-selected folder for community/local modules.
+    const bundledRoot = path.join(app.getAppPath(), "content", "packs");
+    let root: string;
+    try {
+      const bundledStat = await fsp.stat(bundledRoot);
+      if (!bundledStat.isDirectory()) throw new Error("Bundled package folder is unavailable.");
+      root = await fsp.realpath(bundledRoot);
+    } catch {
+      const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select a folder containing module packages", properties: ["openDirectory"] });
+      if (picked.canceled || !picked.filePaths[0]) return [];
+      root = await fsp.realpath(picked.filePaths[0]);
+    }
     const entries = await fsp.readdir(root, { withFileTypes: true });
     const installed = await new JournalStore(stateDirectory()).read();
     const installedIds = new Set(installed.modules.map(item => item.id));
