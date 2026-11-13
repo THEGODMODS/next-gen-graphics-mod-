@@ -128,11 +128,11 @@ const gameplayConflict = ["thegodmods.god-gameplay-balanced", "thegodmods.god-ga
 
 const definitions = [
   {
-    folder: "GOD-VISUALS-NATURAL", id: visualConflict[0], name: "GOD VISUALS — Natural Realism",
+    folder: "GOD-VISUALS-NATURAL", id: visualConflict[0], name: "GOD NATURAL — Natural Realism",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[0]),
     moduleName: "godmods_god_visuals_natural.lua",
     module: visualModule("GOD VISUALS / NATURAL", { brightness: 1.0, sharpness: 0.145, shadow_softness: 0.58, reflection: 1.0 }),
-    description: "Original, restrained Sider 3.5 graphics profile for PES 2017. Adjusts documented brightness, sharpness, player-shadow softness and reflection controls.",
+    description: "GOD NATURAL original restrained Sider 3.5 graphics profile for PES 2017. Adjusts documented brightness, sharpness, player-shadow softness and reflection controls.",
     readme: "# GOD VISUALS — Natural Realism\n\nInstall this module through the manager's local package library, then synchronize Sider modules. It applies restrained, documented Sider 3.5 gfx settings at match setup. It does not inject shaders, LUTs, or proprietary EA assets. Remove the module and synchronize Sider to revert."
   },
   {
