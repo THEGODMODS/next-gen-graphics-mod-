@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from "vitest";
 import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
-const builderUrl = pathToFileURL(path.resolve(process.cwd(), "tools/build-original-mods.mjs")).href;
-const { buildOriginalAssets } = await import(builderUrl);
+const execFileAsync = promisify(execFile);
 
 const tempDirs: string[] = [];
 afterEach(async () => {
@@ -16,7 +16,8 @@ describe("THEGODMODS original six-department asset build", () => {
   it("generates source deliverables and integrity metadata for all six departments", async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "godmods-originals-"));
     tempDirs.push(dir);
-    const result = await buildOriginalAssets(dir);
+    const { stdout } = await execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/build-original-mods.mjs"), dir], { maxBuffer: 8 * 1024 * 1024 });
+    const result = JSON.parse(stdout);
     expect(result.products.map((p: { department: string }) => p.department).sort()).toEqual(
       ["audio", "gameplay", "graphics", "kits", "players", "stadiums"].sort()
     );
