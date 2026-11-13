@@ -49,6 +49,15 @@ For every asset, retain:
 
 GOD PITCH LAB is the most tooling-ready candidate because the repository already contains pitch inventory, DDS inspection/comparison, pitch mapping and module-builder workflows. It still requires a real PES 2017 stadium inventory and rights-cleared source textures before a content package can be built or verified. Do not mistake the authoring tool for a completed turf pack.
 
-## Current limitation
+## Original assets now generated
 
-This phase creates the content production library and its concrete briefs, not binary mod assets. The repository currently has no authorized source artwork/audio/likeness assets and no real-game test environment in CI. The next content-production work must start from user/creator-supplied or newly authored source assets; it must not invent mappings or reuse proprietary PES files.
+Run `npm run mods:build-original` to create deterministic, original source assets under `content/originals/generated/`:
+
+- **GOD TURF:** three 512×512 RGBA8 DDS grass surfaces (Natural Cut, Stadium Emerald and Heritage Worn), each with a complete mip chain and SHA-256 record.
+- **GOD VISUALS / GOD NATURAL / GOD CINEMATIC:** three authored creative preset profiles with restrained broadcast, neutral realism and cinematic-matchday directions.
+
+The generator uses only Node built-ins and is executed by the Windows quality workflow. These are genuine THEGODMODS-created source assets, not borrowed game files. The generated turf textures are uncompressed RGBA8 DDS; a target PES shader may require another format or resource layout, so conversion/mapping and in-game verification remain mandatory. The profiles are creative parameter targets, not claims that PES 2017 exposes those controls directly.
+
+## Remaining production work
+
+These generated assets are the first real content tranche, not all ten finished product lines. GOD STADIUMS still needs original stadium artwork and verified stadium resource IDs; GOD KITS needs original kit designs and slot mappings; GOD FACES needs commissioned/authorized likeness assets; GOD ATMOSPHERE needs original recordings and event mappings; GOD GAMEPLAY needs a verified Sider API/config adapter and repeatable in-game tests. No package is labelled installable until its actual deployment mapping, compatibility, rights and rollback are validated.
