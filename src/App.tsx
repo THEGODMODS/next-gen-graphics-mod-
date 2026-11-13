@@ -144,6 +144,17 @@ export default function App() {
     } finally { setModuleActionBusy(null); }
   };
 
+  const setPackageLuaEnabled = async (module: InstalledModule, enabled: boolean) => {
+    if (moduleActionBusy) return;
+    setModuleActionBusy(module.id);
+    try {
+      const result = await window.nextgen.setPackageLuaEnabled(module.id, enabled);
+      setNotice(module.id + (enabled ? " enabled" : " disabled") + " as a package. " + (result.changed ? "Sider configuration backed up and updated." : "Sider configuration already matched."));
+      await refresh();
+    } catch (error) { setNotice(error instanceof Error ? error.message : "Could not change package activation."); }
+    finally { setModuleActionBusy(null); }
+  };
+
   const uninstallModule = async (module: InstalledModule) => {
     if (moduleActionBusy) return;
     const dependents = installedModules.filter(item => item.dependencies.includes(module.id));
@@ -327,6 +338,10 @@ export default function App() {
                 <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
                 <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
                 <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
+                {module.luaModules.length > 0 && module.files.every(file => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(file)) && <div className="action-row">
+                  <div className="action-copy"><strong>Package activation</strong><span>Lua-only package · changes all its Lua registrations together</span></div>
+                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.luaModules.every(name => status?.luaModules.includes(name)))}>{moduleActionBusy === module.id ? "SAVING" : module.luaModules.every(name => status?.luaModules.includes(name)) ? "DISABLE PACKAGE" : "ENABLE PACKAGE"}</button>
+                </div>}
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
                   return <div className="action-row" key={name}><div className="action-icon"><Activity size={17} /></div><div className="action-copy"><strong>{name}</strong><span>{enabled ? "Registered in Sider configuration" : "Not currently registered"}</span></div><button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setLuaEnabled(name, !enabled)}>{moduleActionBusy === name ? "SAVING" : enabled ? "DISABLE" : "ENABLE"}</button></div>;
