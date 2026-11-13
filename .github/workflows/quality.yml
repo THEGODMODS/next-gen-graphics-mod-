@@ -45,6 +45,10 @@ jobs:
           './tools/pitch-inventory.mjs',
           './tools/pitch-module-builder.mjs'
           ].map((file) => import(file)))"
+      - name: Syntax-check asset generators
+        run: |
+          node --check tools/build-original-mods.mjs
+          node --check tools/build-premium-upgrades.mjs
       - name: Unit tests
         run: npm test
       - name: Production build
