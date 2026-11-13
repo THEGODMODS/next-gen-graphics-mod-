@@ -96,3 +96,6 @@ The original asset workshop now expands the source collection substantially:
 Every product descriptor records source ownership, version, per-file size and SHA-256, scope and explicit integration status. CI tests the expected asset counts and publishes the generated source library as an artifact.
 
 These assets are materially richer authoring deliverables, but they are still not falsely marked as game-ready. .cube LUTs need a supported post-processing adapter; turf normal/roughness channels need a verified PES material shader; stadium boards and kit plates need UV conversion and resource mapping; face sources need proper commissioned meshes/likeness permissions; audio needs PES event mapping and mastering; gameplay profiles need a supported adapter and repeatable match tests.
+
+
+The Windows app build now runs the original asset generator before packaging and includes `content/originals/generated/**/*` in the Electron application payload. The catalogue project-detail panel reports which original source files exist and clearly separates generated source assets from game-ready, one-click installable mods.
