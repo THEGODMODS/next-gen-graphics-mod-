@@ -106,34 +106,41 @@ export class ModuleInstaller {
   private async rollbackPending(root: string, journal: Awaited<ReturnType<JournalStore["read"]>>): Promise<string[]> {
     const pending = journal.pendingTransaction;
     if (!pending) return [];
+
+    // Preflight the entire recovery set before changing any game file. A later
+    // missing/corrupt backup must not leave an earlier subset half-restored.
+    for (const item of pending.files) {
+      const relative = normalizeSafeRelativePath(item.target);
+      await assertNoSymlinkPath(root, relative, true);
+      if (!item.backupPath) continue;
+      const backupRelative = path.relative(this.stateDirectory, item.backupPath);
+      if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
+        throw new Error("Pending transaction backup escapes the manager state directory; recovery is blocked.");
+      }
+      if (!(await exists(item.backupPath))) {
+        throw new Error("Pending transaction backup is missing; recovery is blocked: " + relative);
+      }
+      const stat = await fs.lstat(item.backupPath);
+      if (stat.isSymbolicLink() || !stat.isFile()) {
+        throw new Error("Pending transaction backup is not a regular file; recovery is blocked.");
+      }
+      if (!item.backupSha256 || !(await verifySha256(item.backupPath, item.backupSha256))) {
+        throw new Error("Pending transaction backup integrity check failed; recovery is blocked.");
+      }
+    }
+
     const recovered: string[] = [];
     for (const item of [...pending.files].reverse()) {
       const relative = normalizeSafeRelativePath(item.target);
-      await assertNoSymlinkPath(root, relative, true);
       const target = resolveInsideRoot(root, relative);
       const backup = item.backupPath;
-      const backupExists = backup ? await exists(backup) : false;
-      if (backup) {
-        const backupRelative = path.relative(this.stateDirectory, backup);
-        if (!backupRelative || backupRelative.startsWith("..") || path.isAbsolute(backupRelative)) {
-          throw new Error("Pending transaction backup escapes the manager state directory; recovery is blocked.");
-        }
-        if (backupExists) {
-          const stat = await fs.lstat(backup);
-          if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Pending transaction backup is not a regular file.");
-          if (!item.backupSha256 || !(await verifySha256(backup, item.backupSha256))) {
-            throw new Error("Pending transaction backup integrity check failed; recovery is blocked.");
-          }
-        }
-      }
-
       const targetExists = await exists(target);
       if (targetExists) {
         const stat = await fs.lstat(target);
         if (stat.isSymbolicLink() || !stat.isFile()) continue;
         if (!(await verifySha256(target, item.installedSha256))) continue;
       }
-      if (backup && backupExists) {
+      if (backup) {
         await ensureSafeParents(root, relative);
         const restoreTemp = target + `.nextgen-recovery-${pending.id}.tmp`;
         await fs.copyFile(backup, restoreTemp);
@@ -143,7 +150,7 @@ export class ModuleInstaller {
         }
         await fs.rename(restoreTemp, target);
         recovered.push(relative);
-      } else if (!backup && targetExists) {
+      } else if (targetExists) {
         await fs.unlink(target);
         recovered.push(relative);
       }
