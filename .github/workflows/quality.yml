@@ -26,6 +26,13 @@ jobs:
         run: npm install
       - name: Build original GODMODS source assets
         run: npm run mods:build-original
+      - name: Upload generated original GODMODS content
+        uses: actions/upload-artifact@v4
+        with:
+          name: thegodmods-original-content-${{ github.sha }}
+          path: content/originals/generated/**
+          if-no-files-found: error
+          retention-days: 30
       - name: TypeScript validation
         run: npm run typecheck
       - name: Native Node ESM smoke test
