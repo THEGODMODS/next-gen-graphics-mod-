@@ -58,6 +58,14 @@ describe("curated content release gates", () => {
     expect(result.state).toBe("blocked");
     expect(result.blockers).toContain("Only PES 2017-targeted releases are accepted.");
   });
+  it("blocks a release when real-game validation failed", () => {
+    const candidate = structuredClone(validCandidate);
+    candidate.evidence.realGame.status = "failed";
+    const result = evaluateContentRelease(candidate);
+    expect(result.eligible).toBe(false);
+    expect(result.state).toBe("blocked");
+    expect(result.blockers).toContain("Real PES 2017 game validation failed; the release is blocked.");
+  });
   it("requires a recorded game build, Sider version, tester and evidence URL", () => {
     const candidate = structuredClone(validCandidate);
     candidate.evidence.realGame = { status: "passed", testedAt: "", gameBuild: "",
