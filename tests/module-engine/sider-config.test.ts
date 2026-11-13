@@ -130,7 +130,7 @@ describe("Sider configuration sync", () => {
   it("rejects a Lua activation group containing an unmanaged module", async () => {
     const f = await fixture();
     await expect(new SiderConfigManager(f.root, f.state).setLuaModulesEnabled(["missing.lua"], false))
-      .rejects.toThrow("must be installed");
+      .rejects.toThrow("not installed");
   });
 
 });
