@@ -75,7 +75,7 @@ function conditionsModule(name, values) {
 
 function gameplayModule(name, values, configFolder) {
   const keys = ["ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
-  const defaults = keys.map((key, index) => "  " + key + " = " + luaNumber(values[index])).join(",\\n");
+  const defaults = keys.map((key, index) => "  " + key + " = " + luaNumber(values[index])).join(",\n");
   return [
     "-- THEGODMODS original PES 2017 gameplay profile: " + name,
     "-- Sider 3.5 gameplay library; reads an editable game-root INI on match setup.",
@@ -122,7 +122,7 @@ function gameplayModule(name, values, configFolder) {
     "end",
     "return M",
     ""
-  ].join("\\n");
+  ].join("\n");
 }
 
 async function writePackage(definition) {
