@@ -422,7 +422,7 @@ const definitions = [
     moduleName: "godmods_atmosphere_matchday.lua",
     conflicts: [],
     module: audioModule("GOD ATMOSPHERE — Matchday Audio Cue", "GOD-ATMOSPHERE-MATCHDAY"),
-    description: "An original Sider 3.5 audio module that plays one configurable synthesized WAV cue when a stadium is assigned. Additive audio; no LiveCPK.",
+    description: "An original Sider 3.5 audio module that plays one configurable synthesized WAV cue when the home team is selected. Additive audio; no LiveCPK.",
     configDepartment: "Audio",
     configFilename: "audio.ini",
     configIni: "# GODMODS matchday audio settings\nenabled = 1\nvolume = 0.22\n# 1 = crowd swell, 2 = matchday horn, 3 = whistle tone\nsound = 1\n",
