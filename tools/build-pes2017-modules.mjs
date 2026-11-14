@@ -21,32 +21,52 @@ function luaNumber(value) {
   return String(value);
 }
 
-function visualModule(name, settings) {
-  const lines = [
+function visualModule(name, settings, configFolder) {
+  const keys = ["brightness", "sharpness", "shadow_softness", "reflection"];
+  const defaults = keys.map(key => "  " + key + " = " + luaNumber(settings[key])).join(",\\n");
+  return [
     "-- THEGODMODS original PES 2017 graphics profile: " + name,
-    "-- Sider 3.5 API: gfx library + set_home_team/set_away_team events.",
-    "-- Profile values are deliberately restrained and can be reverted by uninstalling.",
+    "-- Sider 3.5 gfx library; reads editable game-root graphics.ini at match setup.",
     "local M = {}",
-    "local applied = false",
-    "local function apply(ctx, team_id)",
-    "  gfx.brightness = " + luaNumber(settings.brightness),
-    "  gfx.sharpness = " + luaNumber(settings.sharpness),
-    "  gfx.shadow_softness = " + luaNumber(settings.shadow_softness),
-    "  gfx.reflection = " + luaNumber(settings.reflection),
-    "  if not applied then",
-    "    log(\"THEGODMODS " + name + ": graphics profile active\")",
-    "    applied = true",
+    "local defaults = {",
+    defaults,
+    "}",
+    "local limits = { brightness = {0.5, 1.5}, sharpness = {0, 1}, shadow_softness = {0, 1}, reflection = {-2, 3} }",
+    "local config_path = nil",
+    "local function read_settings()",
+    "  local settings = {}",
+    "  for key, value in pairs(defaults) do settings[key] = value end",
+    "  local file, open_error = io.open(config_path, \"r\")",
+    "  if not file then log(\"THEGODMODS " + name + ": graphics INI unavailable; using profile defaults: \" .. tostring(open_error)); return settings end",
+    "  for line in file:lines() do",
+    "    local key, raw = string.match(line, \"^%s*([%w_]+)%s*=%s*([%+%-]?[%d%.]+)%s*$\")",
+    "    if key and defaults[key] ~= nil then",
+    "      local value = tonumber(raw)",
+    "      local range = limits[key]",
+    "      if value and value == value and value ~= math.huge and value ~= -math.huge and value >= range[1] and value <= range[2] then settings[key] = value",
+    "      else log(\"THEGODMODS " + name + ": ignored invalid graphics INI value for \" .. key) end",
+    "    end",
     "  end",
+    "  file:close()",
+    "  return settings",
+    "end",
+    "local function apply(ctx, team_id)",
+    "  local settings = read_settings()",
+    "  gfx.brightness = settings.brightness",
+    "  gfx.sharpness = settings.sharpness",
+    "  gfx.shadow_softness = settings.shadow_softness",
+    "  gfx.reflection = settings.reflection",
+    "  log(\"THEGODMODS " + name + ": graphics profile applied from game-root INI\")",
     "end",
     "function M.init(ctx)",
+    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Graphics\\\\\" .. configFolder .. \"\\\\graphics.ini\"",
     "  ctx.register(\"set_home_team\", apply)",
     "  ctx.register(\"set_away_team\", apply)",
-    "  log(\"THEGODMODS " + name + ": loaded; values apply at match setup\")",
+    "  log(\"THEGODMODS " + name + ": loaded; config: \" .. config_path)",
     "end",
     "return M",
     ""
-  ];
-  return lines.join("\n");
+  ].join("\\n");
 }
 
 function conditionsModule(name, values) {
@@ -154,7 +174,7 @@ async function writePackage(definition) {
     const configSource = "payload/gameplay.ini";
     const configBytes = text(definition.configIni);
     await writeFile(path.join(root, configSource), configBytes);
-    files.push({ source: configSource, target: "GODMODS/Gameplay/" + definition.folder + "/gameplay.ini", sha256: sha256(configBytes) });
+    files.push({ source: configSource, target: "GODMODS/" + (definition.configDepartment || "Gameplay") + "/" + definition.folder + "/" + (definition.configFilename || "gameplay.ini"), sha256: sha256(configBytes) });
   }
   const manifest = {
     schemaVersion: 1,
@@ -185,57 +205,78 @@ const definitions = [
     department: "Graphics", folder: "GOD-VISUALS-NATURAL", id: visualConflict[0], name: "GOD NATURAL — Natural Realism",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[0]),
     moduleName: "godmods_god_visuals_natural.lua",
-    module: visualModule("GOD VISUALS / NATURAL", { brightness: 1.0, sharpness: 0.145, shadow_softness: 0.58, reflection: 1.0 }),
+    module: visualModule("GOD VISUALS / NATURAL", { brightness: 1.0, sharpness: 0.145, shadow_softness: 0.58, reflection: 1.0 }, "GOD-VISUALS-NATURAL"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-NATURAL\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.145\nshadow_softness = 0.58\nreflection = 1\n",
     description: "GOD NATURAL original restrained Sider 3.5 graphics profile for PES 2017. Adjusts documented brightness, sharpness, player-shadow softness and reflection controls.",
-    readme: "# GOD VISUALS — Natural Realism\n\nInstall this module through the manager's local package library, then synchronize Sider modules. It applies restrained, documented Sider 3.5 gfx settings at match setup. It does not inject shaders, LUTs, or proprietary EA assets. Remove the module and synchronize Sider to revert."
+    readme: "# GOD VISUALS NATURAL — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-NATURAL/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-NATURAL/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-VISUALS-CINEMATIC", id: visualConflict[1], name: "GOD CINEMATIC — Matchday",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[1]),
     moduleName: "godmods_god_cinematic.lua",
-    module: visualModule("GOD CINEMATIC", { brightness: 0.985, sharpness: 0.155, shadow_softness: 0.62, reflection: 1.0 }),
+    module: visualModule("GOD CINEMATIC", { brightness: 0.985, sharpness: 0.155, shadow_softness: 0.62, reflection: 1.0 }, "GOD-VISUALS-CINEMATIC"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-CINEMATIC\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.985\nsharpness = 0.155\nshadow_softness = 0.62\nreflection = 1\n",
     description: "Original cinematic Sider 3.5 graphics profile with restrained brightness, sharpness and shadow softness settings.",
-    readme: "# GOD CINEMATIC — Matchday\n\nA subtle matchday profile using only documented Sider 3.5 gfx controls. No post-processing shader or proprietary assets are included. Remove the module and synchronize Sider to revert."
+    readme: "# GOD VISUALS CINEMATIC — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-CINEMATIC/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-CINEMATIC/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-VISUALS-BROADCAST", id: visualConflict[2], name: "GOD VISUALS — Broadcast Balanced",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[2]),
     moduleName: "godmods_god_visuals_broadcast.lua",
-    module: visualModule("GOD VISUALS / BROADCAST", { brightness: 1.0, sharpness: 0.166, shadow_softness: 0.52, reflection: 1.0 }),
+    module: visualModule("GOD VISUALS / BROADCAST", { brightness: 1.0, sharpness: 0.166, shadow_softness: 0.52, reflection: 1.0 }, "GOD-VISUALS-BROADCAST"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-BROADCAST\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.166\nshadow_softness = 0.52\nreflection = 1\n",
     description: "Original balanced broadcast-style Sider 3.5 graphics profile using documented PES 2017 gfx controls.",
-    readme: "# GOD VISUALS — Broadcast Balanced\n\nBalanced Sider 3.5 graphics settings. This is a real Lua graphics module, not a shader replacement. Remove the module and synchronize Sider to revert."
+    readme: "# GOD VISUALS BROADCAST — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-BROADCAST/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-BROADCAST/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-EAFC27-INSPIRED", id: visualConflict[3], name: "GOD GRAPHICS — EA FC 27 Inspired",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[3]),
     moduleName: "godmods_eafc27_inspired.lua",
-    module: visualModule("EA FC 27 INSPIRED", { brightness: 0.992, sharpness: 0.19, shadow_softness: 0.48, reflection: 1.0 }),
+    module: visualModule("EA FC 27 INSPIRED", { brightness: 0.992, sharpness: 0.19, shadow_softness: 0.48, reflection: 1.0 }, "GOD-EAFC27-INSPIRED"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-EAFC27-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.992\nsharpness = 0.19\nshadow_softness = 0.48\nreflection = 1\n",
     description: "Original EA FC 27-inspired visual tuning profile for PES 2017 using documented Sider 3.5 graphics controls. No EA assets or shaders.",
-    readme: "# GOD GRAPHICS — EA FC 27 Inspired\n\nAn original visual tuning profile inspired by the crisp, high-contrast presentation of modern football games. It uses documented Sider gfx controls only; it does not contain EA assets or inject shaders."
+    readme: "# GOD EAFC27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EAFC27-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-EAFC27-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-EFOOTBALL27-INSPIRED", id: visualConflict[4], name: "GOD GRAPHICS — eFootball 27 Inspired",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[4]),
     moduleName: "godmods_ef27_inspired.lua",
-    module: visualModule("EFOOTBALL 27 INSPIRED", { brightness: 1.005, sharpness: 0.135, shadow_softness: 0.68, reflection: 1.0 }),
+    module: visualModule("EFOOTBALL 27 INSPIRED", { brightness: 1.005, sharpness: 0.135, shadow_softness: 0.68, reflection: 1.0 }, "GOD-EFOOTBALL27-INSPIRED"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-EFOOTBALL27-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1.005\nsharpness = 0.135\nshadow_softness = 0.68\nreflection = 1\n",
     description: "Original eFootball 27-inspired softer natural visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD GRAPHICS — eFootball 27 Inspired\n\nAn original soft, natural visual tuning profile inspired by contemporary eFootball presentation. No eFootball assets are included."
+    readme: "# GOD EFOOTBALL27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-UFL-INSPIRED", id: visualConflict[5], name: "GOD GRAPHICS — UFL Inspired",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[5]),
     moduleName: "godmods_ufl_inspired.lua",
-    module: visualModule("UFL INSPIRED", { brightness: 0.998, sharpness: 0.175, shadow_softness: 0.55, reflection: 1.0 }),
+    module: visualModule("UFL INSPIRED", { brightness: 0.998, sharpness: 0.175, shadow_softness: 0.55, reflection: 1.0 }, "GOD-UFL-INSPIRED"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-UFL-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.998\nsharpness = 0.175\nshadow_softness = 0.55\nreflection = 1\n",
     description: "Original UFL-inspired balanced broadcast visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD GRAPHICS — UFL Inspired\n\nAn original balanced visual tuning profile inspired by UFL's contemporary broadcast presentation. No UFL assets are included."
+    readme: "# GOD UFL INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-UFL-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-UFL-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-ISS-PURE", id: visualConflict[6], name: "GOD GRAPHICS — ISS Pure",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[6]),
     moduleName: "godmods_iss_pure.lua",
-    module: visualModule("ISS PURE", { brightness: 1.0, sharpness: 0.105, shadow_softness: 0.72, reflection: 1.0 }),
+    module: visualModule("ISS PURE", { brightness: 1.0, sharpness: 0.105, shadow_softness: 0.72, reflection: 1.0 }, "GOD-ISS-PURE"),
+    configDepartment: "Graphics",
+    configFilename: "graphics.ini",
+    configIni: "# THEGODMODS graphics configuration — GOD-ISS-PURE\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.105\nshadow_softness = 0.72\nreflection = 1\n",
     description: "Original ISS/Pure-inspired restrained, clean football visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD GRAPHICS — ISS Pure\n\nA restrained, clean and natural visual tuning profile. It is an original GODMODS module, not an ISS/Pure asset conversion."
+    readme: "# GOD ISS PURE — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-ISS-PURE/`. It also installs an editable `GODMODS/Graphics/GOD-ISS-PURE/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
