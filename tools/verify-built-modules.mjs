@@ -39,7 +39,7 @@ for (const dir of dirs) {
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
-        if (manifest.category === "gameplay" && (!lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path") || !lua.includes("set_home_team"))) throw new Error("gameplay module must read its game-root INI on match setup");
+        if (manifest.category === "gameplay" && (!lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path") || (!lua.includes("set_home_team") || !lua.includes("set_match_time")))) throw new Error("gameplay module must read its game-root INI on match setup");
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness"))) throw new Error("graphics module does not use documented gfx controls");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather"))) throw new Error("stadium module does not use documented conditions event");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay.ball_weight") || !lua.includes("gameplay.ball_bounce"))) throw new Error("gameplay module does not use documented gameplay controls");
@@ -49,7 +49,7 @@ for (const dir of dirs) {
         if (!readme.startsWith("# ") || readme.length < 80) throw new Error("installed README is missing or incomplete");
       } else if (item.target.startsWith("GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
         const ini = bytes.toString("utf8");
-        const requiredKeys = ["ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
+        const requiredKeys = ["match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
         iniCount += 1;
       } else {
