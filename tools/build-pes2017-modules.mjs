@@ -100,8 +100,12 @@ async function writePackage(definition) {
   await rm(root, { recursive: true, force: true });
   await mkdir(path.join(root, "payload"), { recursive: true });
   const payloadPath = "payload/" + definition.moduleName;
+  const readmePath = "payload/README.md";
   const payload = text(definition.module);
+  const readme = text(definition.readme + "\n");
   await writeFile(path.join(root, payloadPath), payload);
+  await writeFile(path.join(root, readmePath), readme);
+  const installRoot = "content/GODMODS/" + (definition.department || definition.category) + "/" + definition.folder + "/";
   const manifest = {
     schemaVersion: 1,
     id: definition.id,
@@ -109,11 +113,14 @@ async function writePackage(definition) {
     version: "0.1.0",
     description: definition.description,
     category: definition.category,
-    deployment: { strategy: "direct", manualSteps: ["Copy the installed Lua file from this package folder into Sider/modules yourself, then add its filename to lua.module in sider.ini. This package does not edit sider.ini."] },
+    deployment: { strategy: "direct", manualSteps: ["Open the installed folder under content/GODMODS and read README.md first.", "Copy the listed Lua module into your Sider/modules folder.", "Add lua.module = \"<module filename>\" to the Extension modules section of sider.ini. This package does not edit sider.ini or enable LiveCPK."] },
     game: { title: "PES 2017", executable: ["PES2017.exe", "PES2017patched.exe"], sider: ">=3.5.0 <4.0.0" },
     dependencies: [],
     conflicts: definition.conflicts,
-    files: [{ source: payloadPath, target: "content/GODMODS/" + (definition.department || definition.category) + "/" + definition.folder + "/" + definition.moduleName, sha256: sha256(payload) }],
+    files: [
+      { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
+      { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
+    ],
     luaModules: [],
     license: { id: "THEGODMODS-ORIGINAL-1.0", redistributionAllowed: true }
   };
