@@ -9,6 +9,7 @@ export type RecoveryStatus = { status: "not-needed" | "recovered" | "blocked"; f
 export type ModulePreview = {
   id: string; name: string; version: string; category: string; description: string;
   license: { id: string; redistributionAllowed: boolean };
+  deployment: { strategy: string; manualSteps: string[] };
   dependencies: string[]; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean;
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
