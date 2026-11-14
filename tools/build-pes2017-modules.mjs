@@ -122,7 +122,7 @@ async function writePackage(definition) {
   return { id: manifest.id, name: manifest.name, moduleName: definition.moduleName, sha256: sha256(payload) };
 }
 
-const visualConflict = ["thegodmods.god-visuals-natural", "thegodmods.god-visuals-cinematic", "thegodmods.god-visuals-broadcast"];
+const visualConflict = ["thegodmods.god-visuals-natural", "thegodmods.god-visuals-cinematic", "thegodmods.god-visuals-broadcast", "thegodmods.eafc27-inspired", "thegodmods.ef27-inspired", "thegodmods.ufl-inspired", "thegodmods.iss-pure"];
 const conditionConflict = ["thegodmods.god-stadiums-summer-day", "thegodmods.god-stadiums-night", "thegodmods.god-stadiums-rainy-evening"];
 const gameplayConflict = ["thegodmods.god-gameplay-balanced", "thegodmods.god-gameplay-grounded", "thegodmods.god-gameplay-quick-transition"];
 
@@ -150,6 +150,38 @@ const definitions = [
     module: visualModule("GOD VISUALS / BROADCAST", { brightness: 1.0, sharpness: 0.166, shadow_softness: 0.52, reflection: 1.0 }),
     description: "Original balanced broadcast-style Sider 3.5 graphics profile using documented PES 2017 gfx controls.",
     readme: "# GOD VISUALS — Broadcast Balanced\n\nBalanced Sider 3.5 graphics settings. This is a real Lua graphics module, not a shader replacement. Remove the module and synchronize Sider to revert."
+  },
+  {
+    department: "Graphics", folder: "GOD-EAFC27-INSPIRED", id: visualConflict[3], name: "GOD GRAPHICS — EA FC 27 Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[3]),
+    moduleName: "godmods_eafc27_inspired.lua",
+    module: visualModule("EA FC 27 INSPIRED", { brightness: 0.992, sharpness: 0.19, shadow_softness: 0.48, reflection: 1.0 }),
+    description: "Original EA FC 27-inspired visual tuning profile for PES 2017 using documented Sider 3.5 graphics controls. No EA assets or shaders.",
+    readme: "# GOD GRAPHICS — EA FC 27 Inspired\n\nAn original visual tuning profile inspired by the crisp, high-contrast presentation of modern football games. It uses documented Sider gfx controls only; it does not contain EA assets or inject shaders."
+  },
+  {
+    department: "Graphics", folder: "GOD-EFOOTBALL27-INSPIRED", id: visualConflict[4], name: "GOD GRAPHICS — eFootball 27 Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[4]),
+    moduleName: "godmods_ef27_inspired.lua",
+    module: visualModule("EFOOTBALL 27 INSPIRED", { brightness: 1.005, sharpness: 0.135, shadow_softness: 0.68, reflection: 1.0 }),
+    description: "Original eFootball 27-inspired softer natural visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — eFootball 27 Inspired\n\nAn original soft, natural visual tuning profile inspired by contemporary eFootball presentation. No eFootball assets are included."
+  },
+  {
+    department: "Graphics", folder: "GOD-UFL-INSPIRED", id: visualConflict[5], name: "GOD GRAPHICS — UFL Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[5]),
+    moduleName: "godmods_ufl_inspired.lua",
+    module: visualModule("UFL INSPIRED", { brightness: 0.998, sharpness: 0.175, shadow_softness: 0.55, reflection: 1.0 }),
+    description: "Original UFL-inspired balanced broadcast visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — UFL Inspired\n\nAn original balanced visual tuning profile inspired by UFL's contemporary broadcast presentation. No UFL assets are included."
+  },
+  {
+    department: "Graphics", folder: "GOD-ISS-PURE", id: visualConflict[6], name: "GOD GRAPHICS — ISS Pure",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[6]),
+    moduleName: "godmods_iss_pure.lua",
+    module: visualModule("ISS PURE", { brightness: 1.0, sharpness: 0.105, shadow_softness: 0.72, reflection: 1.0 }),
+    description: "Original ISS/Pure-inspired restrained, clean football visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — ISS Pure\n\nA restrained, clean and natural visual tuning profile. It is an original GODMODS module, not an ISS/Pure asset conversion."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
