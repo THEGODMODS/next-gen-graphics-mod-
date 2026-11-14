@@ -47,7 +47,7 @@ for (const dir of dirs) {
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_stadium"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done"))) throw new Error("audio module must use documented Sider audio playback APIs");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done"))) throw new Error("audio module must use documented Sider audio playback APIs");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
