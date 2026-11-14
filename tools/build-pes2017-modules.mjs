@@ -412,7 +412,7 @@ const definitions = [
     description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
     configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / QUICK TRANSITION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\n# Set match_minutes = 0 to keep the in-game duration, or 5-90 to override it.\nmatch_minutes = 0\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.205\nspeed_global = 5\n",
     readme: "# GOD GAMEPLAY — QUICK TRANSITION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
-  }
+  },
   {
     id: "thegodmods.god-atmosphere-matchday",
     name: "GOD ATMOSPHERE — Matchday Audio Cue",
