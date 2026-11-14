@@ -12,6 +12,7 @@ let packageCount = 0;
 let luaCount = 0;
 let gameplayIniCount = 0;
 let graphicsIniCount = 0;
+let stadiumIniCount = 0;
 
 for (const dir of dirs) {
   const packageRoot = path.join(root, dir.name);
@@ -36,13 +37,13 @@ for (const dir of dirs) {
       const bytes = await readFile(payloadPath);
       const digest = createHash("sha256").update(bytes).digest("hex");
       if (digest !== item.sha256) throw new Error("payload hash mismatch: " + item.source);
-      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/") && !item.target.startsWith("GODMODS/Graphics/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
+      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/") && !item.target.startsWith("GODMODS/Graphics/") && !item.target.startsWith("GODMODS/Stadiums/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
         if (manifest.category === "gameplay" && (!lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path") || (!lua.includes("set_home_team") || !lua.includes("set_match_time")))) throw new Error("gameplay module must read its game-root INI on match setup");
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
-        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather"))) throw new Error("stadium module does not use documented conditions event");
+        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay.ball_weight") || !lua.includes("gameplay.ball_bounce"))) throw new Error("gameplay module does not use documented gameplay controls");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
@@ -58,6 +59,10 @@ for (const dir of dirs) {
         const requiredKeys = ["brightness", "sharpness", "shadow_softness", "reflection"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
         graphicsIniCount += 1;
+      } else if (item.target.startsWith("GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
+        const ini = bytes.toString("utf8");
+        for (const key of ["timeofday", "weather", "season"]) if (!new RegExp("^" + key + "\\s*=\\s*[01]$", "m").test(ini)) throw new Error("stadium INI missing valid " + key);
+        stadiumIniCount += 1;
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
@@ -71,9 +76,10 @@ if (packageCount !== 13) failures.push("Expected 13 original content-folder pack
 if (luaCount !== 13) failures.push("Expected 13 original installable Lua modules, found " + luaCount);
 if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
 if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
+if (stadiumIniCount !== 3) failures.push("Expected 3 editable game-root stadium INI files, found " + stadiumIniCount);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + graphicsIniCount + " graphics INIs and " + gameplayIniCount + " gameplay INIs.");
+  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs.");
 }
