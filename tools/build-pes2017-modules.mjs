@@ -175,6 +175,54 @@ function gameplayModule(name, values, configFolder) {
   ].join("\n");
 }
 
+function audioModule(name, folder) {
+  return [
+    "-- THEGODMODS original PES 2017 matchday audio cue: " + name,
+    "-- Sider 3.5 audio library; plays one selected WAV when the home team is selected.",
+    "-- This is an additive one-shot cue. It does not replace commentary or require LiveCPK.",
+    "local M = {}",
+    "local active_sound = nil",
+    "local config_path = nil",
+    "local sound_files = { [1] = \"synthetic-crowd-swell.wav\", [2] = \"synthetic-matchday-horn.wav\", [3] = \"synthetic-whistle-tone.wav\" }",
+    "local function read_settings()",
+    "  local settings = { enabled = 1, volume = 0.22, sound = 1 }",
+    "  local file, open_error = io.open(config_path, \"r\")",
+    "  if not file then log(\"THEGODMODS " + name + ": audio INI unavailable; using defaults: \" .. tostring(open_error)); return settings end",
+    "  for line in file:lines() do",
+    "    local key, raw = string.match(line, \"^%s*([%w_]+)%s*=%s*([%+%-]?[%d%.]+)%s*$\")",
+    "    local value = tonumber(raw)",
+    "    if key == \"enabled\" and value and (value == 0 or value == 1) then settings.enabled = value",
+    "    elseif key == \"volume\" and value and value >= 0 and value <= 1 then settings.volume = value",
+    "    elseif key == \"sound\" and value and value == math.floor(value) and value >= 1 and value <= 3 then settings.sound = value",
+    "    elseif key then log(\"THEGODMODS " + name + ": ignored invalid audio INI value for \" .. key) end",
+    "  end",
+    "  file:close()",
+    "  return settings",
+    "end",
+    "local function play_matchday_cue(ctx, stadium)",
+    "  if active_sound then return nil end",
+    "  local settings = read_settings()",
+    "  if settings.enabled == 0 then return nil end",
+    "  local filename = ctx.sider_dir .. \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\\" .. sound_files[settings.sound]",
+    "  local sound, audio_error = audio.new(filename)",
+    "  if not sound then log(\"THEGODMODS " + name + ": could not load WAV: \" .. tostring(audio_error)); return nil end",
+    "  active_sound = sound",
+    "  active_sound:set_volume(settings.volume)",
+    "  active_sound:when_done(function() active_sound = nil end)",
+    "  active_sound:play()",
+    "  log(\"THEGODMODS " + name + ": playing \" .. sound_files[settings.sound] .. \" at volume \" .. tostring(settings.volume))",
+    "  return nil",
+    "end",
+    "function M.init(ctx)",
+    "  config_path = ctx.sider_dir .. \"GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\audio.ini\"",
+    "  ctx.register(\"set_home_team\", play_matchday_cue)",
+    "  log(\"THEGODMODS " + name + ": loaded; additive home-team audio cue\")",
+    "end",
+    "return M",
+    ""
+  ].join("\n");
+}
+
 async function writePackage(definition) {
   const root = path.join(OUT, definition.folder);
   await rm(root, { recursive: true, force: true });
@@ -190,11 +238,18 @@ async function writePackage(definition) {
     { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
     { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
   ];
+  for (const asset of definition.assets || []) {
+    const assetBytes = await readFile(path.resolve(ROOT, asset.source));
+    const assetSource = "payload/" + asset.filename;
+    await writeFile(path.join(root, assetSource), assetBytes);
+    files.push({ source: assetSource, target: installRoot + asset.filename, sha256: sha256(assetBytes) });
+  }
   if (definition.configIni) {
-    const configSource = "payload/gameplay.ini";
+    const configFilename = definition.configFilename || "gameplay.ini";
+    const configSource = "payload/" + configFilename;
     const configBytes = text(definition.configIni);
     await writeFile(path.join(root, configSource), configBytes);
-    files.push({ source: configSource, target: "GODMODS/" + (definition.configDepartment || "Gameplay") + "/" + definition.folder + "/" + (definition.configFilename || "gameplay.ini"), sha256: sha256(configBytes) });
+    files.push({ source: configSource, target: "GODMODS/" + (definition.configDepartment || "Gameplay") + "/" + definition.folder + "/" + configFilename, sha256: sha256(configBytes) });
   }
   const manifest = {
     schemaVersion: 1,
@@ -357,7 +412,27 @@ const definitions = [
     description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
     configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / QUICK TRANSITION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\n# Set match_minutes = 0 to keep the in-game duration, or 5-90 to override it.\nmatch_minutes = 0\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.205\nspeed_global = 5\n",
     readme: "# GOD GAMEPLAY — QUICK TRANSITION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
-  }
+  },
+  {
+    id: "thegodmods.god-atmosphere-matchday",
+    name: "GOD ATMOSPHERE — Matchday Audio Cue",
+    folder: "GOD-ATMOSPHERE-MATCHDAY",
+    category: "audio",
+    department: "Audio",
+    moduleName: "godmods_atmosphere_matchday.lua",
+    conflicts: [],
+    module: audioModule("GOD ATMOSPHERE — Matchday Audio Cue", "GOD-ATMOSPHERE-MATCHDAY"),
+    description: "An original Sider 3.5 audio module that plays one configurable synthesized WAV cue when the home team is selected. Additive audio; no LiveCPK.",
+    configDepartment: "Audio",
+    configFilename: "audio.ini",
+    configIni: "# GODMODS matchday audio settings\nenabled = 1\nvolume = 0.22\n# 1 = crowd swell, 2 = matchday horn, 3 = whistle tone\nsound = 1\n",
+    assets: [
+      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-crowd-swell.wav", filename: "synthetic-crowd-swell.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-matchday-horn.wav", filename: "synthetic-matchday-horn.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-whistle-tone.wav", filename: "synthetic-whistle-tone.wav" }
+    ],
+    readme: "# GOD ATMOSPHERE — Matchday Audio Cue\n\nThis package installs the Lua module, this README and three original synthesized WAV cues under `content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/`. It also installs an editable `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini` in the PES 2017 game root.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`.\n\nThe module uses Sider 3.5's documented `audio.new`, `set_volume`, `play` and `when_done` audio object methods. It plays one short additive cue when the home team is selected; it does not replace commentary, loop crowd ambience continuously, or use LiveCPK.\n\nEdit the game-root `audio.ini`: `enabled` is 0 or 1, `volume` is 0.0–1.0, and `sound` selects 1=crowd swell, 2=matchday horn or 3=whistle tone. The WAV files are original synthesized audio, not sampled chants or club anthems."
+  },
 ];
 
 await mkdir(OUT, { recursive: true });
