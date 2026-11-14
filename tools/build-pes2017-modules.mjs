@@ -73,26 +73,56 @@ function conditionsModule(name, values) {
   ].join("\n");
 }
 
-function gameplayModule(name, values) {
+function gameplayModule(name, values, configFolder) {
   const keys = ["ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
+  const defaults = keys.map((key, index) => "  " + key + " = " + luaNumber(values[index])).join(",\\n");
   return [
     "-- THEGODMODS original PES 2017 gameplay profile: " + name,
-    "-- Sider 3.5 gameplay library. These controls are documented as experimental.",
-    "-- Install only if you accept experimental gameplay tuning; remove to restore defaults.",
+    "-- Sider 3.5 gameplay library; reads an editable game-root INI on match setup.",
+    "-- Sider 3.5 explicitly labels these gameplay controls experimental.",
     "local M = {}",
-    "local applied = false",
+    "local defaults = {",
+    defaults,
+    "}",
+    "local limits = {",
+    "  ball_weight = {100, 5000}, ball_physics = {-5, 5}, ball_bounce = {0, 3},",
+    "  ball_friction = {-5, 5}, ball_magnus = {-2, 2}, shooting_power = {0.1, 2},",
+    "  speed = {0.05, 1}, speed_global = {0.5, 20}",
+    "}",
+    "local config_path = nil",
+    "local function read_settings()",
+    "  local settings = {}",
+    "  for key, value in pairs(defaults) do settings[key] = value end",
+    "  local file, open_error = io.open(config_path, \"r\")",
+    "  if not file then log(\"THEGODMODS " + name + ": INI unavailable; using profile defaults: \" .. tostring(open_error)); return settings end",
+    "  for line in file:lines() do",
+    "    local key, raw = string.match(line, \"^%s*([%w_]+)%s*=%s*([%+%-]?[%d%.]+)%s*$\")",
+    "    if key and defaults[key] ~= nil then",
+    "      local value = tonumber(raw)",
+    "      local range = limits[key]",
+    "      if value and value == value and value ~= math.huge and value ~= -math.huge and value >= range[1] and value <= range[2] then",
+    "        settings[key] = value",
+    "      else",
+    "        log(\"THEGODMODS " + name + ": ignored invalid or out-of-range INI value for \" .. key)",
+    "      end",
+    "    end",
+    "  end",
+    "  file:close()",
+    "  return settings",
+    "end",
     "local function apply(ctx, team_id)",
-    ...keys.map((key, index) => "  gameplay." + key + " = " + luaNumber(values[index])),
-    "  if not applied then log(\"THEGODMODS " + name + ": experimental profile active\"); applied = true end",
+    "  local settings = read_settings()",
+    "  for key, value in pairs(settings) do gameplay[key] = value end",
+    "  log(\"THEGODMODS " + name + ": profile applied from game-root INI\")",
     "end",
     "function M.init(ctx)",
+    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Gameplay\\\\\" .. configFolder .. \"\\\\gameplay.ini\"",
     "  ctx.register(\"set_home_team\", apply)",
-    "  ctx.register(\"set_away_team\", apply)",
-    "  log(\"THEGODMODS " + name + ": loaded; experimental controls\")",
+    "  log(\"THEGODMODS " + name + ": loaded; config: \" .. config_path)",
     "end",
     "return M",
     ""
-  ].join("\n");
+  ].join("\\n");
 }
 
 async function writePackage(definition) {
@@ -106,6 +136,16 @@ async function writePackage(definition) {
   await writeFile(path.join(root, payloadPath), payload);
   await writeFile(path.join(root, readmePath), readme);
   const installRoot = "content/GODMODS/" + (definition.department || definition.category) + "/" + definition.folder + "/";
+  const files = [
+    { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
+    { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
+  ];
+  if (definition.configIni) {
+    const configSource = "payload/gameplay.ini";
+    const configBytes = text(definition.configIni);
+    await writeFile(path.join(root, configSource), configBytes);
+    files.push({ source: configSource, target: "GODMODS/Gameplay/" + definition.folder + "/gameplay.ini", sha256: sha256(configBytes) });
+  }
   const manifest = {
     schemaVersion: 1,
     id: definition.id,
@@ -117,10 +157,7 @@ async function writePackage(definition) {
     game: { title: "PES 2017", executable: ["PES2017.exe", "PES2017patched.exe"], sider: ">=3.5.0 <4.0.0" },
     dependencies: [],
     conflicts: definition.conflicts,
-    files: [
-      { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
-      { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
-    ],
+    files,
     luaModules: [],
     license: { id: "THEGODMODS-ORIGINAL-1.0", redistributionAllowed: true }
   };
@@ -218,25 +255,28 @@ const definitions = [
     department: "Gameplay", folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[0]),
     moduleName: "godmods_gameplay_balanced.lua",
-    module: gameplayModule("GOD GAMEPLAY / BALANCED SIMULATION", [1000, 0.4, 1.0, -0.5, 0.108685933, 0.85, 0.2, 5.0]),
-    description: "Opt-in Sider 3.5 gameplay library profile using documented baseline simulation values. Gameplay controls are experimental in Sider documentation.",
-    readme: "# GOD GAMEPLAY — Balanced Simulation\n\nThis profile uses the documented Sider 3.5 gameplay baseline values. It is opt-in and removable. Sider labels gameplay controls experimental; test in offline matches before keeping."
+    module: gameplayModule("GOD GAMEPLAY / BALANCED SIMULATION", [1000, 0.4, 1, -0.5, 0.108685933, 0.85, 0.2, 5], "GOD-GAMEPLAY-BALANCED"),
+    description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
+    configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / BALANCED SIMULATION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.2\nspeed_global = 5\n",
+    readme: "# GOD GAMEPLAY — BALANCED SIMULATION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys. Values outside conservative safety bounds are ignored. Sider labels these controls experimental; test offline and keep backups."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-GROUNDED", id: gameplayConflict[1], name: "GOD GAMEPLAY — Grounded Match",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[1]),
     moduleName: "godmods_gameplay_grounded.lua",
-    module: gameplayModule("GOD GAMEPLAY / GROUNDED MATCH", [1000, 0.4, 0.985, -0.52, 0.108685933, 0.84, 0.2, 5.0]),
-    description: "Opt-in conservative gameplay tuning profile; experimental Sider 3.5 gameplay controls. Test offline before keeping.",
-    readme: "# GOD GAMEPLAY — Grounded Match\n\nA conservative variation around documented baseline values. Sider labels gameplay controls experimental; test passing, trapping, bounce, shooting and player movement in offline matches."
+    module: gameplayModule("GOD GAMEPLAY / GROUNDED MATCH", [1000, 0.4, 0.985, -0.52, 0.108685933, 0.84, 0.2, 5], "GOD-GAMEPLAY-GROUNDED"),
+    description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
+    configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / GROUNDED MATCH\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 0.985\nball_friction = -0.52\nball_magnus = 0.108685933\nshooting_power = 0.84\nspeed = 0.2\nspeed_global = 5\n",
+    readme: "# GOD GAMEPLAY — GROUNDED MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys. Values outside conservative safety bounds are ignored. Sider labels these controls experimental; test offline and keep backups."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-QUICK-TRANSITION", id: gameplayConflict[2], name: "GOD GAMEPLAY — Quick Transition",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[2]),
     moduleName: "godmods_gameplay_quick_transition.lua",
-    module: gameplayModule("GOD GAMEPLAY / QUICK TRANSITION", [1000, 0.4, 1.0, -0.5, 0.108685933, 0.85, 0.205, 5.0]),
-    description: "Opt-in, slightly quicker player response profile; experimental Sider 3.5 gameplay controls. Test offline before keeping.",
-    readme: "# GOD GAMEPLAY — Quick Transition\n\nA small movement tuning variation around documented baseline values. Sider labels gameplay controls experimental; test offline and remove if trapping or animation artifacts appear."
+    module: gameplayModule("GOD GAMEPLAY / QUICK TRANSITION", [1000, 0.4, 1, -0.5, 0.108685933, 0.85, 0.205, 5], "GOD-GAMEPLAY-QUICK-TRANSITION"),
+    description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
+    configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / QUICK TRANSITION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.205\nspeed_global = 5\n",
+    readme: "# GOD GAMEPLAY — QUICK TRANSITION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys. Values outside conservative safety bounds are ignored. Sider labels these controls experimental; test offline and keep backups."
   }
 ];
 
