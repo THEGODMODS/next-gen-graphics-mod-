@@ -337,6 +337,9 @@ function registerIpc() {
     const installed = await installer.install(selected.root, manifest, {
       approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
     });
+    // Content-folder packages deliberately leave Sider registration to the user.
+    // Only legacy packages that explicitly declare luaModules use manager sync.
+    if (manifest.luaModules.length === 0) return installed;
     try {
       await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
       return installed;
