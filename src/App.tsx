@@ -343,6 +343,7 @@ export default function App() {
               <div className="integrity-row"><span>Module ID / category</span><b>{modulePreview.id} · {modulePreview.category}</b></div>
               <div className="integrity-row"><span>License</span><b>{modulePreview.license.id} · {modulePreview.license.redistributionAllowed ? "REDISTRIBUTION ALLOWED BY DECLARATION" : "PRIVATE / NO REDISTRIBUTION"}</b></div>
               <div className="integrity-row"><span>New files / replacements</span><b>{modulePreview.files.filter(file => file.action === "add").length} / {modulePreview.files.filter(file => file.action === "replace").length}</b></div>
+              <div className="integrity-note"><b>After installation</b>{modulePreview.deployment.manualSteps.map((step, index) => <div key={index}>{index + 1}. {step}</div>)}</div>
               {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill safe-pill"}>{file.action.toUpperCase()}</b></div>)}
               {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {modulePreview.missingDependencies.join(", ")}</div>}
               {modulePreview.conflicts.length > 0 && <div className="integrity-note">Conflicts: {modulePreview.conflicts.join(", ")}</div>}

@@ -320,7 +320,7 @@ function registerIpc() {
     }
     pendingPackage = { root: packageRoot, id: manifest.id, version: manifest.version };
     return { id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category,
-      description: manifest.description, license: manifest.license, dependencies: manifest.dependencies,
+      description: manifest.description, license: manifest.license, deployment: manifest.deployment ?? { strategy: "direct", manualSteps: [] }, dependencies: manifest.dependencies,
       missingDependencies, conflicts, alreadyInstalled, files };
   });
   ipcMain.handle("modules:install-previewed", async event => {
