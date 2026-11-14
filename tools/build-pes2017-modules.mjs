@@ -178,7 +178,7 @@ function gameplayModule(name, values, configFolder) {
 function audioModule(name, folder) {
   return [
     "-- THEGODMODS original PES 2017 matchday audio cue: " + name,
-    "-- Sider 3.5 audio library; plays one selected WAV when the stadium is assigned.",
+    "-- Sider 3.5 audio library; plays one selected WAV when the home team is selected.",
     "-- This is an additive one-shot cue. It does not replace commentary or require LiveCPK.",
     "local M = {}",
     "local active_sound = nil",
@@ -215,7 +215,7 @@ function audioModule(name, folder) {
     "end",
     "function M.init(ctx)",
     "  config_path = ctx.sider_dir .. \"GODMODS\\\\Audio\\\\\" .. folder .. \"\\\\audio.ini\"",
-    "  ctx.register(\"set_stadium\", play_matchday_cue)",
+    "  ctx.register(\"set_home_team\", play_matchday_cue)",
     "  log(\"THEGODMODS " + name + ": loaded; additive stadium-assignment audio cue\")",
     "end",
     "return M",
@@ -431,7 +431,7 @@ const definitions = [
       { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-matchday-horn.wav", filename: "synthetic-matchday-horn.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-whistle-tone.wav", filename: "synthetic-whistle-tone.wav" }
     ],
-    readme: "# GOD ATMOSPHERE — Matchday Audio Cue\n\nThis package installs the Lua module, this README and three original synthesized WAV cues under `content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/`. It also installs an editable `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini` in the PES 2017 game root.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`. If you use Stadium Server, put this module's line below `StadiumServer.lua`.\n\nThe module uses Sider 3.5's documented `audio.new`, `set_volume`, `play` and `when_done` audio object methods. It plays one short additive cue when Sider assigns the stadium; it does not replace commentary, loop crowd ambience continuously, or use LiveCPK.\n\nEdit the game-root `audio.ini`: `enabled` is 0 or 1, `volume` is 0.0–1.0, and `sound` selects 1=crowd swell, 2=matchday horn or 3=whistle tone. The WAV files are original synthesized audio, not sampled chants or club anthems."
+    readme: "# GOD ATMOSPHERE — Matchday Audio Cue\n\nThis package installs the Lua module, this README and three original synthesized WAV cues under `content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/`. It also installs an editable `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini` in the PES 2017 game root.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`.\n\nThe module uses Sider 3.5's documented `audio.new`, `set_volume`, `play` and `when_done` audio object methods. It plays one short additive cue when the home team is selected; it does not replace commentary, loop crowd ambience continuously, or use LiveCPK.\n\nEdit the game-root `audio.ini`: `enabled` is 0 or 1, `volume` is 0.0–1.0, and `sound` selects 1=crowd swell, 2=matchday horn or 3=whistle tone. The WAV files are original synthesized audio, not sampled chants or club anthems."
   },
 ];
 
