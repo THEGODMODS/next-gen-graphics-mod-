@@ -75,5 +75,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + iniCount + " game-root gameplay INI files.");
+  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + graphicsIniCount + " graphics INIs and " + gameplayIniCount + " gameplay INIs.");
 }
