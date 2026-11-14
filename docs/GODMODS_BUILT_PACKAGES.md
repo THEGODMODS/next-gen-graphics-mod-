@@ -16,7 +16,7 @@ The current build contains thirteen Sider 3.5 Lua modules:
 - Stadium conditions: Summer Day, Night Match and Rainy Evening.
 - Gameplay: Balanced Simulation, Grounded Match and Quick Transition.
 
-Gameplay modules read their own editable game-root INI at each `set_home_team` event. Settings include ball weight, physics, bounce, friction, Magnus effect, shooting power and player speed. Numeric values are checked against conservative safety bounds; missing or invalid values fall back to profile defaults.
+Gameplay modules read their own editable game-root INI at each `set_home_team` event. Settings include ball weight, physics, bounce, friction, Magnus effect, shooting power and player speed. The INI also supports `match_minutes = 0` to retain the game's duration, or an integer from 5 to 90 to override it through Sider's documented `set_match_time` event. Numeric gameplay values are checked against conservative safety bounds; missing or invalid values fall back to profile defaults.
 
 **Compatibility warning:** Sider 3.5 explicitly describes gameplay controls as experimental and warns of unexpected side effects. The memory API is powerful and dangerous; these packages do not use arbitrary memory writes.
 
