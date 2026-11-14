@@ -45,7 +45,7 @@ for (const dir of dirs) {
     failures.push(dir.name + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
-if (count !== 9) failures.push("Expected 9 original installable content-folder Lua modules, found " + count);
+if (count !== 13) failures.push("Expected 13 original installable content-folder Lua modules, found " + count);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
