@@ -10,7 +10,8 @@ const ids = new Set();
 const failures = [];
 let packageCount = 0;
 let luaCount = 0;
-let iniCount = 0;
+let gameplayIniCount = 0;
+let graphicsIniCount = 0;
 
 for (const dir of dirs) {
   const packageRoot = path.join(root, dir.name);
@@ -35,12 +36,12 @@ for (const dir of dirs) {
       const bytes = await readFile(payloadPath);
       const digest = createHash("sha256").update(bytes).digest("hex");
       if (digest !== item.sha256) throw new Error("payload hash mismatch: " + item.source);
-      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
+      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/") && !item.target.startsWith("GODMODS/Graphics/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
         if (manifest.category === "gameplay" && (!lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path") || (!lua.includes("set_home_team") || !lua.includes("set_match_time")))) throw new Error("gameplay module must read its game-root INI on match setup");
-        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness"))) throw new Error("graphics module does not use documented gfx controls");
+        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather"))) throw new Error("stadium module does not use documented conditions event");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay.ball_weight") || !lua.includes("gameplay.ball_bounce"))) throw new Error("gameplay module does not use documented gameplay controls");
         luaCount += 1;
@@ -51,7 +52,12 @@ for (const dir of dirs) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
-        iniCount += 1;
+        gameplayIniCount += 1;
+      } else if (item.target.startsWith("GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
+        const ini = bytes.toString("utf8");
+        const requiredKeys = ["brightness", "sharpness", "shadow_softness", "reflection"];
+        for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
+        graphicsIniCount += 1;
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
@@ -63,7 +69,8 @@ for (const dir of dirs) {
 }
 if (packageCount !== 13) failures.push("Expected 13 original content-folder packages, found " + packageCount);
 if (luaCount !== 13) failures.push("Expected 13 original installable Lua modules, found " + luaCount);
-if (iniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + iniCount);
+if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
+if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
