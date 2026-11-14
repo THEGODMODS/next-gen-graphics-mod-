@@ -6,7 +6,7 @@ THEGODMODS enhances PES 2017 while preserving the user's existing patch and stad
 
 Each package installs its Lua module and a `README.md` into its own folder under the existing `content/GODMODS` directory. The README explains the exact Sider registration and supporting files.
 
-Graphics packages also install editable `graphics.ini` files under `PES 2017/GODMODS/Graphics/<ModName>/`; Sider's official guide documents reading `gfx.ini` and applying the values at match setup. Gameplay packages install editable `gameplay.ini` files under `PES 2017/GODMODS/Gameplay/<ModName>/`; Sider's official `gameplay2.lua` example documents that same pattern. Stadium-condition packages install editable `stadium.ini` files under `PES 2017/GODMODS/Stadiums/<ModName>/`; their Lua modules read the day/night, weather and season values before returning the documented `set_conditions` event result. The Lua modules read their own game-root configuration files at match setup.
+Graphics packages also install editable `graphics.ini` files under `PES 2017/GODMODS/Graphics/<ModName>/`; Sider's official guide documents reading `gfx.ini` and applying the values at match setup. Audio packages install original synthesized WAV files under `content/GODMODS/Audio/<ModName>/` and an editable `audio.ini` under `PES 2017/GODMODS/Audio/<ModName>/`. Sider 3.5's audio API supports WAV decoding and the `audio.new`, `set_volume`, `play` and `when_done` methods; the module triggers an additive cue on the documented `set_home_team` event. Gameplay packages install editable `gameplay.ini` files under `PES 2017/GODMODS/Gameplay/<ModName>/`; Sider's official `gameplay2.lua` example documents that same pattern. Stadium-condition packages install editable `stadium.ini` files under `PES 2017/GODMODS/Stadiums/<ModName>/`; their Lua modules read the day/night, weather and season values before returning the documented `set_conditions` event result. The Lua modules read their own game-root configuration files at match setup.
 
 ## Current Lua package library
 
@@ -15,6 +15,7 @@ The current build contains thirteen Sider 3.5 Lua modules:
 - Graphics: Natural, Cinematic, Broadcast, EA FC 27 Inspired, eFootball 27 Inspired, UFL Inspired and ISS Pure.
 - Stadium conditions: Summer Day, Night Match and Rainy Evening.
 - Gameplay: Balanced Simulation, Grounded Match and Quick Transition.
+- Audio: GOD ATMOSPHERE Matchday Audio Cue, an original Sider audio module with three selectable WAV cues (crowd swell, matchday horn, whistle tone) and an editable volume/enable/sound INI. It plays one additive cue when the home team is selected; it does not replace commentary or provide a continuous crowd loop.
 
 Graphics, gameplay and stadium-condition modules read their own editable game-root INI at match setup. Settings include ball weight, physics, bounce, friction, Magnus effect, shooting power and player speed. The INI also supports `match_minutes = 0` to retain the game's duration, or an integer from 5 to 90 to override it through Sider's documented `set_match_time` event. Numeric gameplay values are checked against conservative safety bounds; missing or invalid values fall back to profile defaults.
 
@@ -36,5 +37,5 @@ Sider 3.5 documents LiveCPK as the general mechanism for replacing arbitrary gam
 
 - `npm run mods:build-original` generates original source-asset libraries.
 - `npm run mods:build-packs` generates installable packages.
-- `npm run mods:verify-packs` verifies manifests, Lua structure, README payloads, seven graphics INIs, three gameplay INIs, three stadium INIs, target paths and SHA-256 hashes.
+- `npm run mods:verify-packs` verifies manifests, Lua structure, README payloads, seven graphics INIs, three gameplay INIs, three stadium INIs, the audio INI, three WAV payloads, target paths and SHA-256 hashes.
 - CI validates package integrity and installer construction, not in-game behavior. Final acceptance still requires PES 2017/Sider 3.5 in-game testing.
