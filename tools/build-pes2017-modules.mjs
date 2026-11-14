@@ -109,12 +109,12 @@ async function writePackage(definition) {
     version: "0.1.0",
     description: definition.description,
     category: definition.category,
-    deployment: { strategy: "lua" },
+    deployment: { strategy: "direct", manualSteps: ["Copy the installed Lua file from this package folder into Sider/modules yourself, then add its filename to lua.module in sider.ini. This package does not edit sider.ini."] },
     game: { title: "PES 2017", executable: ["PES2017.exe", "PES2017patched.exe"], sider: ">=3.5.0 <4.0.0" },
     dependencies: [],
     conflicts: definition.conflicts,
-    files: [],
-    luaModules: [{ source: payloadPath, moduleName: definition.moduleName, sha256: sha256(payload) }],
+    files: [{ source: payloadPath, target: "content/GODMODS/" + (definition.department || definition.category) + "/" + definition.folder + "/" + definition.moduleName, sha256: sha256(payload) }],
+    luaModules: [],
     license: { id: "THEGODMODS-ORIGINAL-1.0", redistributionAllowed: true }
   };
   await writeFile(path.join(root, "module.json"), JSON.stringify(manifest, null, 2) + "\n");
@@ -122,13 +122,13 @@ async function writePackage(definition) {
   return { id: manifest.id, name: manifest.name, moduleName: definition.moduleName, sha256: sha256(payload) };
 }
 
-const visualConflict = ["thegodmods.god-visuals-natural", "thegodmods.god-visuals-cinematic", "thegodmods.god-visuals-broadcast"];
+const visualConflict = ["thegodmods.god-visuals-natural", "thegodmods.god-visuals-cinematic", "thegodmods.god-visuals-broadcast", "thegodmods.eafc27-inspired", "thegodmods.ef27-inspired", "thegodmods.ufl-inspired", "thegodmods.iss-pure"];
 const conditionConflict = ["thegodmods.god-stadiums-summer-day", "thegodmods.god-stadiums-night", "thegodmods.god-stadiums-rainy-evening"];
 const gameplayConflict = ["thegodmods.god-gameplay-balanced", "thegodmods.god-gameplay-grounded", "thegodmods.god-gameplay-quick-transition"];
 
 const definitions = [
   {
-    folder: "GOD-VISUALS-NATURAL", id: visualConflict[0], name: "GOD NATURAL — Natural Realism",
+    department: "Graphics", folder: "GOD-VISUALS-NATURAL", id: visualConflict[0], name: "GOD NATURAL — Natural Realism",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[0]),
     moduleName: "godmods_god_visuals_natural.lua",
     module: visualModule("GOD VISUALS / NATURAL", { brightness: 1.0, sharpness: 0.145, shadow_softness: 0.58, reflection: 1.0 }),
@@ -136,7 +136,7 @@ const definitions = [
     readme: "# GOD VISUALS — Natural Realism\n\nInstall this module through the manager's local package library, then synchronize Sider modules. It applies restrained, documented Sider 3.5 gfx settings at match setup. It does not inject shaders, LUTs, or proprietary EA assets. Remove the module and synchronize Sider to revert."
   },
   {
-    folder: "GOD-VISUALS-CINEMATIC", id: visualConflict[1], name: "GOD CINEMATIC — Matchday",
+    department: "Graphics", folder: "GOD-VISUALS-CINEMATIC", id: visualConflict[1], name: "GOD CINEMATIC — Matchday",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[1]),
     moduleName: "godmods_god_cinematic.lua",
     module: visualModule("GOD CINEMATIC", { brightness: 0.985, sharpness: 0.155, shadow_softness: 0.62, reflection: 1.0 }),
@@ -144,7 +144,7 @@ const definitions = [
     readme: "# GOD CINEMATIC — Matchday\n\nA subtle matchday profile using only documented Sider 3.5 gfx controls. No post-processing shader or proprietary assets are included. Remove the module and synchronize Sider to revert."
   },
   {
-    folder: "GOD-VISUALS-BROADCAST", id: visualConflict[2], name: "GOD VISUALS — Broadcast Balanced",
+    department: "Graphics", folder: "GOD-VISUALS-BROADCAST", id: visualConflict[2], name: "GOD VISUALS — Broadcast Balanced",
     category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[2]),
     moduleName: "godmods_god_visuals_broadcast.lua",
     module: visualModule("GOD VISUALS / BROADCAST", { brightness: 1.0, sharpness: 0.166, shadow_softness: 0.52, reflection: 1.0 }),
@@ -152,7 +152,39 @@ const definitions = [
     readme: "# GOD VISUALS — Broadcast Balanced\n\nBalanced Sider 3.5 graphics settings. This is a real Lua graphics module, not a shader replacement. Remove the module and synchronize Sider to revert."
   },
   {
-    folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
+    department: "Graphics", folder: "GOD-EAFC27-INSPIRED", id: visualConflict[3], name: "GOD GRAPHICS — EA FC 27 Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[3]),
+    moduleName: "godmods_eafc27_inspired.lua",
+    module: visualModule("EA FC 27 INSPIRED", { brightness: 0.992, sharpness: 0.19, shadow_softness: 0.48, reflection: 1.0 }),
+    description: "Original EA FC 27-inspired visual tuning profile for PES 2017 using documented Sider 3.5 graphics controls. No EA assets or shaders.",
+    readme: "# GOD GRAPHICS — EA FC 27 Inspired\n\nAn original visual tuning profile inspired by the crisp, high-contrast presentation of modern football games. It uses documented Sider gfx controls only; it does not contain EA assets or inject shaders."
+  },
+  {
+    department: "Graphics", folder: "GOD-EFOOTBALL27-INSPIRED", id: visualConflict[4], name: "GOD GRAPHICS — eFootball 27 Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[4]),
+    moduleName: "godmods_ef27_inspired.lua",
+    module: visualModule("EFOOTBALL 27 INSPIRED", { brightness: 1.005, sharpness: 0.135, shadow_softness: 0.68, reflection: 1.0 }),
+    description: "Original eFootball 27-inspired softer natural visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — eFootball 27 Inspired\n\nAn original soft, natural visual tuning profile inspired by contemporary eFootball presentation. No eFootball assets are included."
+  },
+  {
+    department: "Graphics", folder: "GOD-UFL-INSPIRED", id: visualConflict[5], name: "GOD GRAPHICS — UFL Inspired",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[5]),
+    moduleName: "godmods_ufl_inspired.lua",
+    module: visualModule("UFL INSPIRED", { brightness: 0.998, sharpness: 0.175, shadow_softness: 0.55, reflection: 1.0 }),
+    description: "Original UFL-inspired balanced broadcast visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — UFL Inspired\n\nAn original balanced visual tuning profile inspired by UFL's contemporary broadcast presentation. No UFL assets are included."
+  },
+  {
+    department: "Graphics", folder: "GOD-ISS-PURE", id: visualConflict[6], name: "GOD GRAPHICS — ISS Pure",
+    category: "graphics", conflicts: visualConflict.filter(id => id !== visualConflict[6]),
+    moduleName: "godmods_iss_pure.lua",
+    module: visualModule("ISS PURE", { brightness: 1.0, sharpness: 0.105, shadow_softness: 0.72, reflection: 1.0 }),
+    description: "Original ISS/Pure-inspired restrained, clean football visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
+    readme: "# GOD GRAPHICS — ISS Pure\n\nA restrained, clean and natural visual tuning profile. It is an original GODMODS module, not an ISS/Pure asset conversion."
+  },
+  {
+    department: "Stadiums", folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[0]),
     moduleName: "godmods_stadiums_summer_day.lua",
     module: conditionsModule("GOD STADIUMS / SUMMER DAY", { timeofday: 0, weather: 0, season: 0 }),
@@ -160,7 +192,7 @@ const definitions = [
     readme: "# GOD STADIUMS — Summer Day\n\nApplies documented Sider 3.5 match conditions: day, fine weather, summer. It does not add stadium models or texture replacements."
   },
   {
-    folder: "GOD-STADIUMS-NIGHT", id: conditionConflict[1], name: "GOD STADIUMS — Night Match",
+    department: "Stadiums", folder: "GOD-STADIUMS-NIGHT", id: conditionConflict[1], name: "GOD STADIUMS — Night Match",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[1]),
     moduleName: "godmods_stadiums_night.lua",
     module: conditionsModule("GOD STADIUMS / NIGHT MATCH", { timeofday: 1, weather: 0, season: 0 }),
@@ -168,7 +200,7 @@ const definitions = [
     readme: "# GOD STADIUMS — Night Match\n\nApplies documented Sider 3.5 match conditions: night, fine weather, summer. It does not add stadium models or texture replacements."
   },
   {
-    folder: "GOD-STADIUMS-RAINY-EVENING", id: conditionConflict[2], name: "GOD STADIUMS — Rainy Evening",
+    department: "Stadiums", folder: "GOD-STADIUMS-RAINY-EVENING", id: conditionConflict[2], name: "GOD STADIUMS — Rainy Evening",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[2]),
     moduleName: "godmods_stadiums_rainy_evening.lua",
     module: conditionsModule("GOD STADIUMS / RAINY EVENING", { timeofday: 1, weather: 1, season: 0 }),
@@ -176,7 +208,7 @@ const definitions = [
     readme: "# GOD STADIUMS — Rainy Evening\n\nApplies documented Sider 3.5 match conditions: night, rain, summer. It does not add stadium models or texture replacements."
   },
   {
-    folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
+    department: "Gameplay", folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[0]),
     moduleName: "godmods_gameplay_balanced.lua",
     module: gameplayModule("GOD GAMEPLAY / BALANCED SIMULATION", [1000, 0.4, 1.0, -0.5, 0.108685933, 0.85, 0.2, 5.0]),
@@ -184,7 +216,7 @@ const definitions = [
     readme: "# GOD GAMEPLAY — Balanced Simulation\n\nThis profile uses the documented Sider 3.5 gameplay baseline values. It is opt-in and removable. Sider labels gameplay controls experimental; test in offline matches before keeping."
   },
   {
-    folder: "GOD-GAMEPLAY-GROUNDED", id: gameplayConflict[1], name: "GOD GAMEPLAY — Grounded Match",
+    department: "Gameplay", folder: "GOD-GAMEPLAY-GROUNDED", id: gameplayConflict[1], name: "GOD GAMEPLAY — Grounded Match",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[1]),
     moduleName: "godmods_gameplay_grounded.lua",
     module: gameplayModule("GOD GAMEPLAY / GROUNDED MATCH", [1000, 0.4, 0.985, -0.52, 0.108685933, 0.84, 0.2, 5.0]),
@@ -192,7 +224,7 @@ const definitions = [
     readme: "# GOD GAMEPLAY — Grounded Match\n\nA conservative variation around documented baseline values. Sider labels gameplay controls experimental; test passing, trapping, bounce, shooting and player movement in offline matches."
   },
   {
-    folder: "GOD-GAMEPLAY-QUICK-TRANSITION", id: gameplayConflict[2], name: "GOD GAMEPLAY — Quick Transition",
+    department: "Gameplay", folder: "GOD-GAMEPLAY-QUICK-TRANSITION", id: gameplayConflict[2], name: "GOD GAMEPLAY — Quick Transition",
     category: "gameplay", conflicts: gameplayConflict.filter(id => id !== gameplayConflict[2]),
     moduleName: "godmods_gameplay_quick_transition.lua",
     module: gameplayModule("GOD GAMEPLAY / QUICK TRANSITION", [1000, 0.4, 1.0, -0.5, 0.108685933, 0.85, 0.205, 5.0]),
