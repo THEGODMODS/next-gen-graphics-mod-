@@ -23,7 +23,7 @@ function luaNumber(value) {
 
 function visualModule(name, settings, configFolder) {
   const keys = ["brightness", "sharpness", "shadow_softness", "reflection"];
-  const defaults = keys.map(key => "  " + key + " = " + luaNumber(settings[key])).join(",\\n");
+  const defaults = keys.map(key => "  " + key + " = " + luaNumber(settings[key])).join(",\n");
   return [
     "-- THEGODMODS original PES 2017 graphics profile: " + name,
     "-- Sider 3.5 gfx library; reads editable game-root graphics.ini at match setup.",
@@ -66,7 +66,7 @@ function visualModule(name, settings, configFolder) {
     "end",
     "return M",
     ""
-  ].join("\\n");
+  ].join("\n");
 }
 
 function conditionsModule(name, values) {
