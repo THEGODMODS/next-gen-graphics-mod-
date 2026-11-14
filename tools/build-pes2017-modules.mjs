@@ -69,24 +69,44 @@ function visualModule(name, settings, configFolder) {
   ].join("\n");
 }
 
-function conditionsModule(name, values) {
+function conditionsModule(name, values, configFolder) {
   return [
     "-- THEGODMODS original PES 2017 matchday conditions profile: " + name,
-    "-- Sider 3.5 set_conditions API. No stadium IDs are changed.",
+    "-- Sider 3.5 set_conditions API; reads an editable game-root stadium.ini.",
     "local M = {}",
+    "local defaults = { timeofday = " + values.timeofday + ", weather = " + values.weather + ", season = " + values.season + " }",
+    "local config_path = nil",
+    "local function read_settings()",
+    "  local settings = {}",
+    "  for key, value in pairs(defaults) do settings[key] = value end",
+    "  local file, open_error = io.open(config_path, \"r\")",
+    "  if not file then log(\"THEGODMODS " + name + ": stadium INI unavailable; using defaults: \" .. tostring(open_error)); return settings end",
+    "  for line in file:lines() do",
+    "    local key, raw = string.match(line, \"^%s*([%w_]+)%s*=%s*([%+%-]?[%d%.]+)%s*$\")",
+    "    if key and defaults[key] ~= nil then",
+    "      local value = tonumber(raw)",
+    "      if value and value == math.floor(value) and (value == 0 or value == 1) then settings[key] = value",
+    "      else log(\"THEGODMODS " + name + ": ignored invalid stadium INI value for \" .. key) end",
+    "    end",
+    "  end",
+    "  file:close()",
+    "  return settings",
+    "end",
     "local function apply(ctx, options)",
     "  if type(options) ~= \"table\" then return nil end",
+    "  local settings = read_settings()",
     "  local changed = {}",
     "  for k, v in pairs(options) do changed[k] = v end",
-    "  changed.timeofday = " + values.timeofday,
-    "  changed.weather = " + values.weather,
-    "  changed.season = " + values.season,
+    "  changed.timeofday = settings.timeofday",
+    "  changed.weather = settings.weather",
+    "  changed.season = settings.season",
     "  return changed",
     "end",
     "function M.init(ctx)",
+    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Stadiums\\\\\" .. configFolder .. \"\\\\stadium.ini\"",
     "  ctx.register(\"set_conditions\", apply)",
     "  ctx.register(\"set_conditions_for_replay\", apply)",
-    "  log(\"THEGODMODS " + name + ": matchday conditions active\")",
+    "  log(\"THEGODMODS " + name + ": matchday conditions loaded; config: \" .. config_path)",
     "end",
     "return M",
     ""
@@ -282,25 +302,34 @@ const definitions = [
     department: "Stadiums", folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[0]),
     moduleName: "godmods_stadiums_summer_day.lua",
-    module: conditionsModule("GOD STADIUMS / SUMMER DAY", { timeofday: 0, weather: 0, season: 0 }),
+    module: conditionsModule("GOD STADIUMS / SUMMER DAY", { timeofday: 0, weather: 0, season: 0 }, "GOD-STADIUMS-SUMMER-DAY"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-SUMMER-DAY\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 0\nweather = 0\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: day, fine weather and summer. Does not change stadium IDs or geometry.",
-    readme: "# GOD STADIUMS — Summer Day\n\nApplies documented Sider 3.5 match conditions: day, fine weather, summer. It does not add stadium models or texture replacements."
+    readme: "# GOD STADIUMS — SUMMER DAY\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-NIGHT", id: conditionConflict[1], name: "GOD STADIUMS — Night Match",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[1]),
     moduleName: "godmods_stadiums_night.lua",
-    module: conditionsModule("GOD STADIUMS / NIGHT MATCH", { timeofday: 1, weather: 0, season: 0 }),
+    module: conditionsModule("GOD STADIUMS / NIGHT MATCH", { timeofday: 1, weather: 0, season: 0 }, "GOD-STADIUMS-NIGHT"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-NIGHT\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 1\nweather = 0\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: night, fine weather and summer.",
-    readme: "# GOD STADIUMS — Night Match\n\nApplies documented Sider 3.5 match conditions: night, fine weather, summer. It does not add stadium models or texture replacements."
+    readme: "# GOD STADIUMS — NIGHT MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-NIGHT/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-NIGHT/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-RAINY-EVENING", id: conditionConflict[2], name: "GOD STADIUMS — Rainy Evening",
     category: "stadiums", conflicts: conditionConflict.filter(id => id !== conditionConflict[2]),
     moduleName: "godmods_stadiums_rainy_evening.lua",
-    module: conditionsModule("GOD STADIUMS / RAINY EVENING", { timeofday: 1, weather: 1, season: 0 }),
+    module: conditionsModule("GOD STADIUMS / RAINY EVENING", { timeofday: 1, weather: 1, season: 0 }, "GOD-STADIUMS-RAINY-EVENING"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-RAINY-EVENING\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 1\nweather = 1\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: night, rain and summer.",
-    readme: "# GOD STADIUMS — Rainy Evening\n\nApplies documented Sider 3.5 match conditions: night, rain, summer. It does not add stadium models or texture replacements."
+    readme: "# GOD STADIUMS — RAINY EVENING\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
