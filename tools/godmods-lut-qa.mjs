@@ -66,5 +66,18 @@ export async function auditLutPack(root){
  const valid=errors.length===0&&results.length>0;
  return {valid,status:valid?"lut-source-qa-passed-host-unverified":"blocked",profiles:results.length,luts:results,colourSpaceVerified:false,errors};
 }
-async function main(args){const root=args[0];if(!root){console.error("Usage: node tools/godmods-lut-qa.mjs <GOD-VISUALS-ELITE|GOD-CINEMATIC-PREMIUM|GOD-NATURAL-PREMIUM> [report.json]");process.exitCode=2;return;}const result=await auditLutPack(root);if(args[1]){const dest=path.resolve(args[1]);if(dest.startsWith(path.resolve(root)+path.sep))throw new Error("Report must be outside the LUT pack.");await writeFile(dest,JSON.stringify(result,null,2)+"\n",{flag:"wx"});}else process.stdout.write(JSON.stringify(result,null,2)+"\n");if(!result.valid)process.exitCode=1;}
+export async function auditAllLutPacks(generatedRoot=path.resolve("content/originals/generated")){
+ const root=path.resolve(generatedRoot);
+ const names=["GOD-VISUALS-ELITE","GOD-CINEMATIC-PREMIUM","GOD-NATURAL-PREMIUM"];
+ const packs=await Promise.all(names.map(name=>auditLutPack(path.join(root,name))));
+ const errors=packs.flatMap((p,index)=>p.errors.map(e=>names[index]+": "+e));
+ return {valid:packs.every(p=>p.valid),status:packs.every(p=>p.valid)?"all-lut-source-qa-passed-host-unverified":"blocked",packs,errors};
+}
+async function main(args){
+ const result=args[0]?await auditLutPack(args[0]):await auditAllLutPacks();
+ const output=args[1];
+ if(output){const dest=path.resolve(output);const root=path.resolve(args[0]||"content/originals/generated");if(dest.startsWith(root+path.sep))throw new Error("Report must be outside the LUT pack/root.");await writeFile(dest,JSON.stringify(result,null,2)+"\\n",{flag:"wx"});}
+ else process.stdout.write(JSON.stringify(result,null,2)+"\\n");
+ if(!result.valid)process.exitCode=1;
+}
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href)main(process.argv.slice(2)).catch(e=>{console.error(e);process.exitCode=1;});
