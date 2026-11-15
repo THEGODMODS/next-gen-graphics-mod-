@@ -36,8 +36,7 @@ describe("GOD CINEMATIC Premium Matchday Suite",()=>{
       if(entry.file.endsWith(".cube")){
         const lines=raw.toString("utf8").trimEnd().split("\n");
         expect(lines[3]).toBe("LUT_3D_SIZE 33");
-        const values=lines.slice(6).map(line=>line.split(/\\s+/).map(Number));
-        expect(values).toHaveLength(35937);
+        const values=lines.slice(6).map(line=>line.trim().split(" ").map(Number));   expect(values).toHaveLength(35937);
         expect(values.every(row=>row.length===3&&row.every(v=>Number.isFinite(v)&&v>=0&&v<=1))).toBe(true);
       }
     }
