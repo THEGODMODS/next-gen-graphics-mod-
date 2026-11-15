@@ -13,7 +13,7 @@ const MAX_FILES = 100000;
 const MAX_FILE_BYTES = 512 * 1024 * 1024;
 const SHA256 = /^[a-f0-9]{64}$/;
 const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
-const normalize = value => String(value).replaceAll("\\\\", "/");
+const normalize = value => String(value).replaceAll(String.fromCharCode(92), "/");
 
 function classifyResource(relativePath) {
   const p = normalize(relativePath).toLowerCase();
@@ -213,4 +213,6 @@ async function main(args) {
   console.error("Usage:\n  node tools/pes2017-resource-audit.mjs scan <game-or-stadium-root> [report.json]\n  node tools/pes2017-resource-audit.mjs validate <binding-manifest.json> <game-or-stadium-root>");
   process.exitCode = 2;
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main(process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
+}
