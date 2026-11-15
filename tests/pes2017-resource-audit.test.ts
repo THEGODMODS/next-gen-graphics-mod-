@@ -106,4 +106,4 @@ describe("PES 2017 read-only resource audit", () => {
     expect(inspectDds(face).format).toBe("RGBA8_UNORM");
     expect(inspectDds(face).valid).toBe(true);
   });
-});\n
+});
