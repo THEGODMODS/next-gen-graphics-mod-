@@ -128,6 +128,16 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
     if (!SHA256.test(item.sourceSha256 || "")) rowErrors.push("sourceSha256 must be a lowercase SHA-256 digest.");
     if (!["diffuse", "normal", "roughness", "mask", "adboard", "pitch", "face-detail", "hair-detail", "other"].includes(item.resourceRole)) rowErrors.push("resourceRole is missing or unsupported.");
     if (!isObject(item.mappingEvidence) || !["sider-log", "controlled-overlay-test", "creator-resource-map", "manual-inspection"].includes(item.mappingEvidence.method) || !safeRelative(item.mappingEvidence.evidenceRelativePath)) rowErrors.push("Mapping evidence must identify an allowed method and a safe evidence file path.");
+    if (isObject(item.mappingEvidence) && safeRelative(item.mappingEvidence.evidenceRelativePath)) {
+      const evidencePath = path.resolve(root, item.mappingEvidence.evidenceRelativePath);
+      if (!evidencePath.startsWith(root + path.sep)) rowErrors.push("Evidence path escapes the selected resource root.");
+      else {
+        try {
+          const evidenceStat = await lstat(evidencePath);
+          if (!evidenceStat.isFile() || evidenceStat.isSymbolicLink()) rowErrors.push("Mapping evidence is not a regular file.");
+        } catch { rowErrors.push("Mapping evidence file does not exist in the selected resource root."); }
+      }
+    }
     if (safeRelative(item.targetRelativePath)) {
       const target = path.resolve(root, item.targetRelativePath);
       if (!target.startsWith(root + path.sep)) rowErrors.push("Target path escapes the selected resource root.");
