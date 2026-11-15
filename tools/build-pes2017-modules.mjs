@@ -444,23 +444,24 @@ const definitions = [
   },
   {
     id: "thegodmods.god-atmosphere-matchday",
-    name: "GOD ATMOSPHERE — Matchday Audio Cue",
+    name: "GOD ATMOSPHERE — Continuous Matchday Crowd",
     folder: "GOD-ATMOSPHERE-MATCHDAY",
     category: "audio",
     department: "Audio",
     moduleName: "godmods_atmosphere_matchday.lua",
     conflicts: [],
-    module: audioModule("GOD ATMOSPHERE — Matchday Audio Cue", "GOD-ATMOSPHERE-MATCHDAY"),
-    description: "An original Sider 3.5 audio module that plays one configurable synthesized WAV cue when the home team is selected. Additive audio; no LiveCPK.",
+    module: audioModule("GOD ATMOSPHERE — Continuous Matchday Crowd", "GOD-ATMOSPHERE-MATCHDAY"),
+    description: "An original Sider 3.5 atmosphere engine that continuously layers a synthesized crowd bed and low-level stadium texture. Match-event cues are not enabled until their PES 2017 signals are verified.",
     configDepartment: "Audio",
     configFilename: "audio.ini",
-    configIni: "# GODMODS matchday audio settings\nenabled = 1\nvolume = 0.22\n# 1 = crowd swell, 2 = matchday horn, 3 = whistle tone\nsound = 1\n",
+    configIni: "# GODMODS continuous crowd atmosphere settings\n# enabled and ambience: 0=off, 1=on\n# volume and texture_volume: 0.0-1.0\nenabled = 1\nambience = 1\nvolume = 0.16\ntexture_volume = 0.055\n",
     assets: [
-      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-crowd-swell.wav", filename: "synthetic-crowd-swell.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-crowd-bed.wav", filename: "synthetic-crowd-bed.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-stadium-bed-alt.wav", filename: "synthetic-stadium-bed-alt.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-matchday-horn.wav", filename: "synthetic-matchday-horn.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-whistle-tone.wav", filename: "synthetic-whistle-tone.wav" }
     ],
-    readme: "# GOD ATMOSPHERE — Matchday Audio Cue\n\nThis package installs the Lua module, this README and three original synthesized WAV cues under `content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/`. It also installs an editable `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini` in the PES 2017 game root.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`.\n\nThe module uses Sider 3.5's documented `audio.new`, `set_volume`, `play` and `when_done` audio object methods. It plays one short additive cue when the home team is selected; it does not replace commentary, loop crowd ambience continuously, or use LiveCPK.\n\nEdit the game-root `audio.ini`: `enabled` is 0 or 1, `volume` is 0.0–1.0, and `sound` selects 1=crowd swell, 2=matchday horn or 3=whistle tone. The WAV files are original synthesized audio, not sampled chants or club anthems."
+    readme: "# GOD ATMOSPHERE — Continuous Matchday Crowd\n\nThis package installs an original Sider 3.5 atmosphere module and four synthesized WAV assets. It starts two continuous, independently controlled crowd layers after the home team is selected: a main crowd bed and a quieter stadium texture. Each layer restarts when its WAV finishes, using Sider's audio completion callback.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`. The module does not edit `sider.ini`, replace commentary, use LiveCPK or hook undocumented game memory.\n\nEdit the game-root `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini`: `enabled` and `ambience` are 0 or 1; `volume` and `texture_volume` are 0.0–1.0. Defaults are intentionally restrained. Set `ambience = 0` to stop both loops.\n\nAll bundled WAVs are procedurally synthesized originals, not sampled supporter chants, club anthems or commentary. Club-specific identities and goal/half-time/full-time cues remain separate work and will only be enabled after patch team IDs and game-event signals are verified. Real-game loop-gap and long-session stability testing is still required."
   },
 ];
 
