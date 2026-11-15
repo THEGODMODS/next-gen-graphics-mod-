@@ -53,9 +53,9 @@ function writeDds(pixels) {
   header.writeUInt32LE(0x41, 80);
   header.writeUInt32LE(0, 84);
   header.writeUInt32LE(32, 88);
-  header.writeUInt32LE(0x00ff0000, 92);
+  header.writeUInt32LE(0x000000ff, 92);
   header.writeUInt32LE(0x0000ff00, 96);
-  header.writeUInt32LE(0x000000ff, 100);
+  header.writeUInt32LE(0x00ff0000, 100);
   header.writeUInt32LE(0xff000000, 104);
   header.writeUInt32LE(0x00401008, 108);
   return Buffer.concat([header, ...levels]);

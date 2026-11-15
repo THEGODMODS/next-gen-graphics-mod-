@@ -6,7 +6,7 @@ const DXGI=new Map([[71,"BC1_UNORM"],[72,"BC1_UNORM_SRGB"],[74,"BC2_UNORM"],[75,
 const FOURCC=new Map([["DXT1","BC1"],["DXT3","BC2"],["DXT5","BC3"],["ATI2","BC5"],["BC5U","BC5"],["BC5S","BC5_SNORM"]]);
 function blockBytes(format){return format.startsWith("BC1")?8:format.startsWith("BC2")||format.startsWith("BC3")||format.startsWith("BC5")||format.startsWith("BC7")?16:0;}
 function expectedPayloadBytes(width,height,mipCount,format){
- const bytes=blockBytes(format);if(!bytes)return 0;let total=0,w=width,h=height;
+ const bytes=blockBytes(format);if(format==="RGBA8_UNORM"||format==="BGRA8_UNORM"){let total=0,w=width,h=height;for(let level=0;level<mipCount;level++){total+=w*h*4;w=Math.max(1,Math.floor(w/2));h=Math.max(1,Math.floor(h/2));}return total;}if(!bytes)return 0;let total=0,w=width,h=height;
  for(let level=0;level<mipCount;level++){total+=Math.max(1,Math.ceil(w/4))*Math.max(1,Math.ceil(h/4))*bytes;w=Math.max(1,Math.floor(w/2));h=Math.max(1,Math.floor(h/2));}
  return total;
 }
@@ -22,7 +22,12 @@ export function inspectDds(buffer,totalBytes=buffer.length){
  if(mipCount>maxMips)errors.push("Mip count exceeds the complete mip chain.");
  const flags=buffer.readUInt32LE(80);let format="UNKNOWN",dataOffset=128;
  if(flags&4){const code=buffer.toString("ascii",84,88);if(code==="DX10"){if(buffer.length<148)errors.push("Truncated DDS DX10 extension header.");else{const dxgi=buffer.readUInt32LE(128);format=DXGI.get(dxgi)??"UNSUPPORTED_DXGI_"+dxgi;dataOffset=148;}}else format=FOURCC.get(code)??"UNSUPPORTED_FOURCC_"+code;}
- else if(flags&0x40)format="UNSUPPORTED_UNCOMPRESSED_RGB";
+ else if(flags&0x40){
+  const bits=buffer.readUInt32LE(88),r=buffer.readUInt32LE(92),g=buffer.readUInt32LE(96),b=buffer.readUInt32LE(100),a=buffer.readUInt32LE(104);
+  if(bits===32&&r===0x000000ff&&g===0x0000ff00&&b===0x00ff0000&&a===0xff000000)format="RGBA8_UNORM";
+  else if(bits===32&&r===0x00ff0000&&g===0x0000ff00&&b===0x000000ff&&a===0xff000000)format="BGRA8_UNORM";
+  else format="UNSUPPORTED_UNCOMPRESSED_RGB";
+ }
  if(format.startsWith("UNSUPPORTED")||format==="UNKNOWN")errors.push("Texture format is not in the audited allowlist.");
  const dimensionsSane=width>0&&height>0&&width<=MAX_DIMENSION&&height<=MAX_DIMENSION;
  const mipChainSane=mipCount<=maxMips;

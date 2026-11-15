@@ -82,9 +82,9 @@ function makeDdsRgba(base, size) {
   header.writeUInt32LE(0x41, 80); // RGB | ALPHAPIXELS
   header.writeUInt32LE(0, 84); // no FourCC: uncompressed
   header.writeUInt32LE(32, 88);
-  header.writeUInt32LE(0x00ff0000, 92); // R
+  header.writeUInt32LE(0x000000ff, 92); // R: byte 0 in the emitted RGBA payload
   header.writeUInt32LE(0x0000ff00, 96); // G
-  header.writeUInt32LE(0x000000ff, 100); // B
+  header.writeUInt32LE(0x00ff0000, 100); // B: byte 2 in the emitted RGBA payload
   header.writeUInt32LE(0xff000000, 104); // A
   header.writeUInt32LE(0x00401008, 108); // texture | complex | mipmap
   header.writeUInt32LE(0, 112);

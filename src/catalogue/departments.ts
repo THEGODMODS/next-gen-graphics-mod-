@@ -31,9 +31,9 @@ export const departments: DepartmentDefinition[] = [
     id: "graphics", title: "Graphics", strapline: "THE VISUAL ENGINE", description: "Build a complete visual identity for PES 2017: natural colour, lighting, weather, broadcast presentation and high-resolution texture work.",
     subcategories: ["Complete Graphics Overhauls", "eFootball-Inspired Visuals", "FC-Inspired Visuals", "Natural Colour & Realism", "Lighting & Weather", "Stadium Atmosphere", "Scoreboards & Broadcast", "Boots, Balls & Texture Packs"],
     originals: [
-      { name: "GOD VISUALS", focus: "A THEGODMODS visual identity: balanced colour, realistic lighting and carefully tested texture replacements.", status: "studio-planned", categories: ["Complete Graphics Overhauls", "Natural Colour & Realism", "Lighting & Weather"] },
-      { name: "GOD CINEMATIC", focus: "A cinematic presentation direction for matchday lighting, contrast and broadcast atmosphere.", status: "studio-planned", categories: ["Lighting & Weather", "Stadium Atmosphere", "Scoreboards & Broadcast"] },
-      { name: "GOD NATURAL", focus: "A restrained, natural-colour graphics direction designed to avoid over-saturation.", status: "studio-planned", categories: ["Natural Colour & Realism", "Complete Graphics Overhauls"] }
+      { name: "GOD VISUALS", focus: "Original colour LUTs and optional Sider graphics profiles; host colour pipeline and target-build validation remain in progress.", status: "in-development", categories: ["Complete Graphics Overhauls", "Natural Colour & Realism", "Lighting & Weather"] },
+      { name: "GOD CINEMATIC", focus: "Original 33-cube cinematic LUT library and scene QA; PES 2017 colour adapter and matched in-game validation remain in progress.", status: "in-development", categories: ["Lighting & Weather", "Stadium Atmosphere", "Scoreboards & Broadcast"] },
+      { name: "GOD NATURAL", focus: "Original natural-response LUT library and scene QA; target colour-space integration and in-game validation remain in progress.", status: "in-development", categories: ["Natural Colour & Realism", "Complete Graphics Overhauls"] }
     ],
     thirdParty: [
       { id: "pesmodding", name: "PES Modding", focus: "Graphics, patches and visual releases", note: "External creator catalogue; each release needs its own compatibility and permission review.", categories: ["Complete Graphics Overhauls", "eFootball-Inspired Visuals", "FC-Inspired Visuals", "Natural Colour & Realism", "Lighting & Weather", "Stadium Atmosphere", "Scoreboards & Broadcast", "Boots, Balls & Texture Packs"] },
@@ -45,8 +45,8 @@ export const departments: DepartmentDefinition[] = [
     id: "stadiums", title: "Stadiums & Turf", strapline: "THE MATCHDAY ENVIRONMENT", description: "Shape the entire stadium experience: pitch textures, turf tones, patterns, stadium environments, adboards, lighting and atmosphere.",
     subcategories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass", "eFootball Turf Styles", "Stadium Environments", "Adboards & LED Boards", "Stadium Lighting", "Stadium Server Modules"],
     originals: [
-      { name: "GOD TURF", focus: "Original THEGODMODS pitch and turf collection, developed around real DDS resources and controlled in-game testing.", status: "studio-planned", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass", "eFootball Turf Styles"] },
-      { name: "GOD STADIUMS", focus: "An original stadium environment programme covering atmosphere, presentation and compatible stadium assets.", status: "studio-planned", categories: ["Stadium Environments", "Adboards & LED Boards", "Stadium Lighting", "Stadium Server Modules"] },
+      { name: "GOD TURF", focus: "Six original turf surface families with DDS source maps and an additive Stadium Server sidecar builder; exact stadium resource mapping remains in progress.", status: "in-development", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass", "eFootball Turf Styles"] },
+      { name: "GOD STADIUMS", focus: "Original LED-board and fascia artwork with matchday art-direction profiles; stadium-specific texture export and resource mapping remain in progress.", status: "in-development", categories: ["Stadium Environments", "Adboards & LED Boards", "Stadium Lighting", "Stadium Server Modules"] },
       { name: "GOD PITCH LAB", focus: "Our in-house pitch texture development line, built with the existing inventory and DDS validation tools.", status: "in-development", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass"] }
     ],
     thirdParty: [
@@ -58,7 +58,7 @@ export const departments: DepartmentDefinition[] = [
   {
     id: "kits", title: "Kits & Equipment", strapline: "EVERY DETAIL COUNTS", description: "Discover and manage team kits, goalkeeper kits, boots, balls, gloves and equipment collections.",
     subcategories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Gloves & Equipment", "Kit Fonts & Numbers", "Classic Kits"],
-    originals: [{ name: "GOD KITS", focus: "Premium material and fabric-detail upgrades for the existing kits worn by players—without replacing club designs.", status: "studio-planned", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Kit Fonts & Numbers", "Classic Kits"] }],
+    originals: [{ name: "GOD KITS", focus: "Six original fabric families with weave, normal-source and roughness-source DDS maps for optional enhancement of existing kit UVs; kit-specific mapping remains in progress.", status: "in-development", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Kit Fonts & Numbers", "Classic Kits"] }],
     thirdParty: [
       { id: "moddingway", name: "ModdingWay", focus: "Kits, boots, balls and equipment", note: "External creator catalogue; verify season, patch and kit-server requirements.", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Gloves & Equipment", "Kit Fonts & Numbers", "Classic Kits"] },
       { id: "pesmodding", name: "PES Modding", focus: "Community kit and equipment releases", note: "External creator catalogue; review author instructions and redistribution terms.", categories: ["Club Kits", "National Team Kits", "Goalkeeper Kits", "Boots", "Balls", "Kit Fonts & Numbers", "Classic Kits"] }
@@ -67,7 +67,7 @@ export const departments: DepartmentDefinition[] = [
   {
     id: "players", title: "Players", strapline: "BRING THE GAME TO LIFE", description: "Player appearance collections spanning faces, hair, tattoos, boots, body details and individual player updates.",
     subcategories: ["Player Faces", "Face Updates", "Hair & Beards", "Tattoos", "Boots & Accessories", "Classic Players", "Squad Appearance Packs"],
-    originals: [{ name: "GOD FACES", focus: "Original player appearance work with consistent previews, player IDs and versioned update notes.", status: "studio-planned", categories: ["Player Faces", "Face Updates", "Hair & Beards", "Tattoos", "Classic Players", "Squad Appearance Packs"] }],
+    originals: [{ name: "GOD FACES", focus: "Five original skin-detail and four hair-detail profiles with neutral overlay, normal-source and roughness-source DDS maps; face/hair UV and roster mapping remain in progress.", status: "in-development", categories: ["Player Faces", "Face Updates", "Hair & Beards", "Tattoos", "Classic Players", "Squad Appearance Packs"] }],
     thirdParty: [
       { id: "profacemods", name: "ProFaceMods", focus: "PES 2017 player face library", note: "External face library; check player IDs, patch compatibility and creator permissions.", categories: ["Player Faces", "Face Updates", "Hair & Beards", "Classic Players", "Squad Appearance Packs"] },
       { id: "pesmodding", name: "PES Modding", focus: "Faces, hair and player updates", note: "External creator catalogue; releases are not automatically validated by this manager.", categories: ["Player Faces", "Face Updates", "Hair & Beards", "Tattoos", "Boots & Accessories", "Classic Players", "Squad Appearance Packs"] }
