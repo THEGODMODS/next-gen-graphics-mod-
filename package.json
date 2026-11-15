@@ -21,7 +21,8 @@
     "sign:package": "node tools/sign-package-release.mjs",
     "mods:build-original": "node tools/build-original-mods.mjs",
     "mods:build-packs": "node tools/build-pes2017-modules.mjs",
-    "mods:verify-packs": "node tools/verify-built-modules.mjs"
+    "mods:verify-packs": "node tools/verify-built-modules.mjs",
+    "mods:check-lua": "node tools/check-lua-syntax.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
