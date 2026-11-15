@@ -95,14 +95,14 @@ export const originalContentProjects: OriginalContentProject[] = [
   },
   {
     id: "thegodmods.god-faces", name: "GOD FACES", department: "players", productLine: "Players",
-    productionState: "brief-ready",
-    goal: "High-quality original player appearance packages with reliable player ID mapping and transparent creator provenance.",
-    styleDirection: "Consistent in-game likeness quality, realistic skin response and clean hairline/texture transitions.",
-    deliverables: ["Player appearance modules", "Player ID and roster compatibility map", "Creator credits and update history", "In-game preview captures"],
-    assetRequirements: ["Original or licensed face/hair source assets", "Player identity and ID mapping", "Texture/mesh format notes", "Explicit likeness and redistribution rights"],
-    acceptanceChecks: ["Correct player ID and roster assignment", "No face/hair mismatch or broken model references", "Texture quality and skin tone reviewed in-game", "No unlicensed third-party face assets"],
-    rightsPolicy: "Use only commissioned, creator-authorized or otherwise rights-cleared likeness assets; public availability is not permission.",
-    previewPlan: ["Face close-up", "In-game broadcast camera", "Lighting variation", "Player ID and roster context"]
+    productionState: "tooling-prototype",
+    goal: "Premium skin microdetail and hair-fibre material enhancements for existing player appearances, without replacing player identity.",
+    styleDirection: "Broadcast-ready close-camera realism: restrained pore scale, believable skin response, clean hair-fibre definition and stable daylight/night appearance.",
+    deliverables: ["Five original skin microdetail profiles and four hair-fibre profiles", "Neutral overlay, normal-source and roughness-source maps with SHA-256 manifest", "Verified UV/material mapping workflow for existing faces and hair", "Matched in-game before/after captures and rollback-safe optional package"],
+    assetRequirements: ["THEGODMODS-authored skin and hair microdetail maps", "Rights-cleared existing player face/hair source supplied by the user or patch owner", "Verified face/hair UV layout, resource path and material channel conventions", "Explicit likeness and redistribution rights for any future player-specific work"],
+    acceptanceChecks: ["Existing player identity, skin colour, tattoos, facial hair and hairline remain intact", "No UV seams, pore tiling or hair-pattern moiré at close and broadcast camera distances", "Normal/roughness channels match the target shader", "Correct roster/resource mapping is evidenced before install", "Disable restores the untouched player appearance", "No unlicensed third-party likeness assets"],
+    rightsPolicy: "The current lab contains only neutral original procedural microdetail, not likenesses. Any player-specific appearance asset must be commissioned or explicitly authorized for redistribution; public availability is not permission.",
+    previewPlan: ["Skin detail close-up under daylight", "Night floodlight close-up", "Hairline/fibre detail", "Same existing player and camera before/after"]
   },
   {
     id: "thegodmods.god-atmosphere", name: "GOD ATMOSPHERE", department: "audio", productLine: "Audio & Atmosphere",
