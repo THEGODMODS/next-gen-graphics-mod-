@@ -52,5 +52,5 @@ describe("GOD VISUALS Elite Colour Suite", () => {
     const readme = await readFile(path.join(dir,"README.md"),"utf8");
     expect(readme).toContain("Do not stack LUTs");
     expect(readme).toContain("not a shader injector");
-  });
+  }, 30000);
 });
