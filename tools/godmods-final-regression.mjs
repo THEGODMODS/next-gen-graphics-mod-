@@ -26,7 +26,8 @@ export async function runGodmodsFinalRegression(generatedRoot=path.resolve("cont
   {id:"players",name:"Players / GOD FACES",sourceQa:dds.length>0&&ddsFailures.length===0,gameIntegration:"pending",blocker:"Exact face/hair UV, player roster mapping, material channels and close-up game test are not yet evidenced."},
   {id:"audio-atmosphere",name:"Audio & Atmosphere",sourceQa:audio.valid,gameIntegration:"pending",blocker:"PES 2017 audio slots, patch team IDs, commentary mix and event routing are not yet verified."},
   {id:"gameplay",name:"Gameplay",sourceQa:gameplay.valid,gameIntegration:"pending",blocker:"Full-match repeatability, exact patch/Sider build and rollback evidence are not yet recorded."},
-  {id:"graphics-premium-grades",name:"Cinematic & Natural Colour",sourceQa:cinematic.valid&&natural.valid,gameIntegration:"pending",blocker:"Compatible host adapter and verified colour-space conversion are not yet established."}
+  {id:"graphics-premium-grades",name:"Cinematic & Natural Colour",sourceQa:cinematic.valid&&natural.valid,gameIntegration:"pending",blocker:"Compatible host adapter and verified colour-space conversion are not yet established."},
+  {id:"final-compatibility-regression",name:"Final cross-department compatibility regression",sourceQa:sourceQaPassed,gameIntegration:"pending",blocker:"Exact target build, patch, Sider version, full-system interaction tests and rollback evidence remain outstanding."}
  ];
  const blockers=[
   "Exact PES 2017 executable filename/build, patch and Sider version must be recorded.",
