@@ -11,7 +11,7 @@ describe("GOD NATURAL Premium Realism Suite",()=>{it("generates six bounded natu
  const dir=await mkdtemp(path.join(os.tmpdir(),"god-natural-"));tempDirs.push(dir);
  const {stdout}=await execFileAsync(process.execPath,[path.resolve(process.cwd(),"tools/build-god-natural-premium.mjs"),dir],{maxBuffer:2*1024*1024});
  const result=JSON.parse(stdout);expect(result.profiles).toBe(6);expect(result.entriesPerProfile).toBe(35937);expect(result.totalLutEntries).toBe(215622);expect(result.chartPatches).toBe(24);expect(result.sceneChecks).toBe(5);
- const manifest=JSON.parse(await readFile(path.join(dir,"manifest.json"),"utf8"));expect(manifest.installable).toBe(false);expect(manifest.files).toHaveLength(9);
+ const manifest=JSON.parse(await readFile(path.join(dir,"manifest.json"),"utf8"));expect(manifest.installable).toBe(false);expect(manifest.files).toHaveLength(10);
  const index=JSON.parse(await readFile(path.join(dir,"profiles.json"),"utf8"));expect(index.profiles).toHaveLength(6);expect(index.sceneGuidance).toHaveLength(5);expect(index.calibration.patchCount).toBe(24);expect(index.colourPipeline.rule).toContain("Do not stack");
  for(const entry of manifest.files){const file=path.join(dir,entry.file),raw=await readFile(file);expect((await stat(file)).isFile()).toBe(true);expect(createHash("sha256").update(raw).digest("hex")).toBe(entry.sha256);
   if(entry.file.endsWith(".cube")){const lines=raw.toString("utf8").trimEnd().split("\n");expect(lines[3]).toBe("LUT_3D_SIZE 33");const values=lines.slice(6).map(line=>line.trim().split(" ").map(Number));expect(values).toHaveLength(35937);expect(values.every(row=>row.length===3&&row.every(v=>Number.isFinite(v)&&v>=0&&v<=1))).toBe(true);
