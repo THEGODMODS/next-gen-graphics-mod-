@@ -50,7 +50,7 @@ describe("PES 2017 read-only resource audit", () => {
     await writeFile(path.join(root, "source.dds"), source); await writeFile(path.join(game, "pitch.dds"), target);
     await writeFile(path.join(game, "sider.log"), "controlled path evidence");
     const manifest = {
-      schemaVersion: 1, department: "stadiums", target: { game: "PES 2017" },
+      schemaVersion: 1, department: "stadiums", target: { game: "PES 2017", executable: "PES2017.exe", build: "PES 2017 test build" },
       compatibility: { patch: "YosfX test build", siderVersion: "3.5.x" },
       mappings: [{
         sourceRelativePath: "source.dds", sourceSha256: hash(source),
@@ -69,7 +69,7 @@ describe("PES 2017 read-only resource audit", () => {
     const source = Buffer.from("source"); await writeFile(path.join(root, "source.dds"), source);
     await writeFile(path.join(game, "target.dds"), "target");
     const manifest = {
-      schemaVersion: 1, department: "kits", target: { game: "PES 2017" }, compatibility: { patch: "YosfX", siderVersion: "3.5" },
+      schemaVersion: 1, department: "kits", target: { game: "PES 2017", executable: "PES2017.exe", build: "PES 2017 test build" }, compatibility: { patch: "YosfX", siderVersion: "3.5" },
       mappings: [{
         sourceRelativePath: "source.dds", sourceSha256: hash(source), targetRelativePath: "../outside.dds",
         targetSha256: hash("wrong"), resourceRole: "diffuse",
@@ -88,7 +88,7 @@ describe("PES 2017 read-only resource audit", () => {
     await writeFile(path.join(root, "source.dds"), source); await writeFile(path.join(game, "target.dds"), target);
     await writeFile(path.join(game, "evidence.png"), "capture");
     const manifest = {
-      schemaVersion: 1, department: "players", target: { game: "PES 2017" }, compatibility: { patch: "YosfX", siderVersion: "3.5" },
+      schemaVersion: 1, department: "players", target: { game: "PES 2017", executable: "PES2017.exe", build: "PES 2017 test build" }, compatibility: { patch: "YosfX", siderVersion: "3.5" },
       mappings: [{ sourceRelativePath: "source.dds", sourceSha256: hash(source), targetRelativePath: "target.dds", targetSha256: hash(target), resourceRole: "face-detail", mappingEvidence: { method: "controlled-overlay-test", evidenceRelativePath: "evidence.png" }, uvLayoutConfirmed: true, materialRoleConfirmed: true, pixelFormatConfirmed: true }],
       gameValidation: { status: "passed", rollbackTested: false }
     };
