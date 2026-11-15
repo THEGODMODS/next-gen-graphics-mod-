@@ -45,7 +45,7 @@ The pitch module builder converts a manually reviewed inventory mapping and repl
 
 - Each original resource path must exist in the supplied inventory and its SHA-256 must still match. A stale inventory fails closed.
 - Target paths are derived only from the fixed Stadium Server pitch subtree and the exact inventory path: `LiveCPK/common/bg/model/bg/pitch/<inventoryPath>`. The descriptor cannot redirect a package to an arbitrary game path.
-- Replacement paths cannot traverse outside the descriptor folder or follow symbolic links.
+- Replacement paths cannot traverse outside the descriptor folder or follow symbolic links. Empty replacement files and inputs larger than 512 MiB are rejected before staging.
 - Replacement extension must match the original resource extension. DDS replacements must pass the conservative DDS header and complete compressed mip-payload audit.
 - The builder copies replacement assets into a unique staging folder, hashes and audits the staged bytes, then renames the completed package into place. A failed build cleans up its staging folder. It refuses a non-empty output folder.
 - License metadata is explicit and preserved in the manifest. `redistributionAllowed: false` permits a private/local package workflow but means the package must not be redistributed. The builder does not grant rights or publish assets.
