@@ -97,6 +97,19 @@ export async function scanResourceRoot(inputRoot) {
 }
 
 function isObject(value) { return value !== null && typeof value === "object" && !Array.isArray(value); }
+async function regularFileNoSymlink(root, relativePath) {
+  let current = path.resolve(root);
+  const parts = normalize(relativePath).split("/");
+  for (let i = 0; i < parts.length; i++) {
+    current = path.join(current, parts[i]);
+    let stat;
+    try { stat = await lstat(current); } catch { return false; }
+    if (stat.isSymbolicLink()) return false;
+    if (i < parts.length - 1 && !stat.isDirectory()) return false;
+    if (i === parts.length - 1) return stat.isFile();
+  }
+  return false;
+}
 function safeRelative(value) {
   if (typeof value !== "string" || !value.trim() || path.isAbsolute(value) || /^[A-Za-z]:/.test(value)) return false;
   const parts = normalize(value).split("/");
@@ -133,8 +146,7 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
       if (!evidencePath.startsWith(root + path.sep)) rowErrors.push("Evidence path escapes the selected resource root.");
       else {
         try {
-          const evidenceStat = await lstat(evidencePath);
-          if (!evidenceStat.isFile() || evidenceStat.isSymbolicLink()) rowErrors.push("Mapping evidence is not a regular file.");
+          if (!await regularFileNoSymlink(root, item.mappingEvidence.evidenceRelativePath)) rowErrors.push("Mapping evidence is missing, not a regular file, or traverses a symbolic link.");
         } catch { rowErrors.push("Mapping evidence file does not exist in the selected resource root."); }
       }
     }
@@ -143,8 +155,7 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
       if (!target.startsWith(root + path.sep)) rowErrors.push("Target path escapes the selected resource root.");
       else {
         try {
-          const st = await lstat(target);
-          if (!st.isFile() || st.isSymbolicLink()) rowErrors.push("Target resource is not a regular file.");
+          if (!await regularFileNoSymlink(root, item.targetRelativePath)) rowErrors.push("Target resource is missing, not a regular file, or traverses a symbolic link.");
           else {
             const d = await digestFile(target);
             if (d.sha256 !== item.targetSha256) rowErrors.push("Target SHA-256 does not match the installed resource.");
@@ -155,8 +166,7 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
     if (safeRelative(item.sourceRelativePath)) {
       const source = path.resolve(path.dirname(path.resolve(manifestPath)), item.sourceRelativePath);
       try {
-        const st = await lstat(source);
-        if (!st.isFile() || st.isSymbolicLink()) rowErrors.push("Source asset is not a regular file.");
+        if (!await regularFileNoSymlink(path.dirname(path.resolve(manifestPath)), item.sourceRelativePath)) rowErrors.push("Source asset is missing, not a regular file, or traverses a symbolic link.");
         else {
           const d = await digestFile(source);
           if (d.sha256 !== item.sourceSha256) rowErrors.push("Source SHA-256 does not match the GODMODS asset.");
