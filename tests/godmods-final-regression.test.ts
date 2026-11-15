@@ -9,5 +9,5 @@ describe("GODMODS final cross-department regression",()=>{
   expect(report.releaseReady).toBe(false);
   expect(report.departments).toHaveLength(7);
   expect(report.blockers.length).toBeGreaterThanOrEqual(5);
- });
-},120000);
+ },120000);
+});
