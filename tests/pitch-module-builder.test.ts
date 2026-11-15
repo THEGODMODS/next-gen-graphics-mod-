@@ -1,6 +1,6 @@
 import { buildPitchModule } from "../tools/pitch-module-builder.mjs";
 import { describe, it, expect } from "vitest";
-import { mkdtemp,mkdir,writeFile,readFile,rm } from "node:fs/promises";
+import { mkdtemp,mkdir,writeFile,readFile,rm,open } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
@@ -56,6 +56,19 @@ describe("pitch module builder",()=>{
    await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-test",name:"Pitch Test",version:"1.0.0",license:{id:"restricted",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.bin",originalSha256:digest,replacementFile:"source/replacement.bin"}]}));
    const result=await buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")});
    expect(result.manifest.license.redistributionAllowed).toBe(false);
+  }finally{await rm(root,{recursive:true,force:true});}
+ });
+ it("rejects oversized replacement payloads before staging",async()=>{
+  const root=await mkdtemp(path.join(os.tmpdir(),"pitch-builder-size-"));
+  try{
+   await mkdir(path.join(root,"source"));
+   const replacement=path.join(root,"source","replacement.bin");
+   const handle=await open(replacement,"w");
+   try{await handle.truncate(512*1024*1024+1);}finally{await handle.close();}
+   const digest=createHash("sha256").update("original").digest("hex");
+   await writeFile(path.join(root,"inventory.json"),JSON.stringify({schemaVersion:1,subtree:"common/bg/model/bg/pitch",records:[{path:"pitch.bin",sha256:digest}]}));
+   await writeFile(path.join(root,"descriptor.json"),JSON.stringify({schemaVersion:1,id:"studio.pitch-size",name:"Pitch Size",version:"1.0.0",license:{id:"private test",redistributionAllowed:false},replacements:[{inventoryPath:"pitch.bin",originalSha256:digest,replacementFile:"source/replacement.bin"}]}));
+   await expect(buildPitchModule({descriptorPath:path.join(root,"descriptor.json"),inventoryPath:path.join(root,"inventory.json"),outputPath:path.join(root,"out")})).rejects.toThrow(/512 MiB/);
   }finally{await rm(root,{recursive:true,force:true});}
  });
 });

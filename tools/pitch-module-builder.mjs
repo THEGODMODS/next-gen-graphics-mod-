@@ -9,6 +9,7 @@ import { inspectDds } from "./dds-audit.mjs";
 const PITCH_SUBTREE = "common/bg/model/bg/pitch";
 const ID = /^[a-z0-9]+(?:[.-][a-z0-9]+)+$/;
 const SHA = /^[a-f0-9]{64}$/i;
+const MAX_REPLACEMENT_BYTES = 512 * 1024 * 1024;
 
 function safeRelative(value, label) {
   if (typeof value !== "string" || !value || value.includes("\\") || value.includes("\0") ||
@@ -133,6 +134,9 @@ export async function buildPitchModule({ descriptorPath, inventoryPath, outputPa
 
     const replacementPath = safeRelative(item.replacementFile, "replacements[" + index + "].replacementFile");
     const source = await regularFileNoLinks(descriptorBase, replacementPath, "replacementFile");
+    const sourceStat = await lstat(source);
+    if (sourceStat.size === 0) throw new Error("Replacement file must not be empty: " + replacementPath);
+    if (sourceStat.size > MAX_REPLACEMENT_BYTES) throw new Error("Replacement exceeds the 512 MiB package input limit: " + replacementPath);
     const targetExtension = path.posix.extname(originalPath).toLowerCase();
     if (targetExtension !== path.extname(source).toLowerCase()) {
       throw new Error("Replacement extension must match original resource: " + originalPath);
