@@ -12,6 +12,8 @@ Graphics; Stadiums & Turf; Kits & Equipment; Players.
 - GOD FACES: five skin and four hair detail families with overlay, normal-source and roughness-source maps.
 
 ## New compatibility engineering
+- Masked GODMODS DDS compositor for fabric/skin/hair detail overlays using an exact user-supplied UV mask; it preserves pixels outside the mask, preserves base alpha, processes all mip levels and writes a new file only.
+- Corrected DDS channel masks for generated turf, kit and face RGBA8 textures; the DDS audit now validates uncompressed RGBA8/BGRA8 payload sizes as well as supported BC formats.
 The PES 2017 Resource Compatibility Workbench inventories actual local resources, verifies DDS structure and hashes, and validates explicit source-to-target mapping manifests. It is read-only, symlink-safe, bounded, and rejects unsafe paths or stale hashes. It does not create guessed bindings or modify the user's game.
 
 ## Truthful compatibility state
