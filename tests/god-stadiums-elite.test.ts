@@ -20,7 +20,7 @@ describe("GOD STADIUMS Elite artwork suite", () => {
     expect(result.installable).toBe(false);
     const manifest=JSON.parse(await readFile(path.join(dir,"manifest.json"),"utf8"));
     expect(manifest.gameFilesModified).toBe(false);
-    expect(manifest.assets).toHaveLength(15);
+    expect(manifest.assets).toHaveLength(16);
     for(const a of manifest.assets) {
       const bytes=await readFile(path.join(dir,a.file));
       expect(bytes.length).toBe(a.bytes);
