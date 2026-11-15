@@ -34,12 +34,13 @@ export async function auditLutPack(root){
  const manifest=JSON.parse(await readFile(path.join(packRoot,"manifest.json"),"utf8"));
  let index=null;try{index=JSON.parse(await readFile(path.join(packRoot,"profiles.json"),"utf8"));}catch{}
  if(manifest.installable!==false)errors.push("LUT source packs must not claim installable status.");
- if(!Array.isArray(manifest.profiles)||manifest.profiles.length===0)errors.push("Manifest profile index is missing.");
+ const profileList=Array.isArray(manifest.profiles)?manifest.profiles:index?.profiles;
+ if(!Array.isArray(profileList)||profileList.length===0)errors.push("Manifest/profile index is missing.");
  const pipeline=manifest.colourPipeline||index?.colourPipeline;
  if(!pipeline||!String(pipeline.inputOutputSpace||"").toLowerCase().includes("not encoded"))errors.push("Explicit .cube colour-space limitation is missing.");
  if(!/do not stack|one grade|one lut|one at a time/i.test(JSON.stringify(pipeline||{})))errors.push("Single-LUT/non-stacking guidance is missing.");
  const entries=(manifest.files||[]).filter(f=>typeof f.file==="string"&&f.file.toLowerCase().endsWith(".cube"));
- if(entries.length!==manifest.profiles?.length)errors.push("LUT file count does not match profile count.");
+ if(entries.length!==profileList?.length)errors.push("LUT file count does not match profile count.");
  const actual=(await readdir(packRoot,{withFileTypes:true})).filter(e=>e.isFile()&&e.name.toLowerCase().endsWith(".cube")).map(e=>e.name);
  if(actual.length!==entries.length)errors.push("Unmanifested or missing .cube files exist.");
  const results=[];
@@ -56,12 +57,12 @@ export async function auditLutPack(root){
    const cube=parseCube(bytes.toString("utf8"));
    if(!cube.valid)rowErrors.push(...cube.errors);
    if(cube.size!==33||entry.lattice!=="33x33x33"||entry.entries!==35937)rowErrors.push("Premium LUT must be a complete 33x33x33 lattice with 35,937 entries.");
-   if(entry.profile==="neutral-reference"||(manifest.profiles||[]).some(p=>p.id==="neutral-reference"&&p.file===entry.file))rowErrors.push(...identityErrors(cube));
+   if(entry.profile==="neutral-reference"||(profileList||[]).some(p=>p.id==="neutral-reference"&&p.file===entry.file))rowErrors.push(...identityErrors(cube));
    results.push({file:entry.file,valid:rowErrors.length===0,lattice:cube.size,entries:cube.entries,errors:rowErrors});
   }else results.push({file:entry.file,valid:false,errors:rowErrors});
  }
  for(const r of results)if(!r.valid)errors.push(r.file+": "+r.errors.join(" "));
- if(index&&Array.isArray(index.profiles)&&index.profiles.length!==manifest.profiles?.length)errors.push("profiles.json count differs from manifest.");
+ if(index&&Array.isArray(index.profiles)&&index.profiles.length!==profileList?.length)errors.push("profiles.json count differs from manifest.");
  const valid=errors.length===0&&results.length>0;
  return {valid,status:valid?"lut-source-qa-passed-host-unverified":"blocked",profiles:results.length,luts:results,colourSpaceVerified:false,errors};
 }
