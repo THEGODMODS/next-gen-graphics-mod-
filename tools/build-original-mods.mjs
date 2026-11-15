@@ -318,12 +318,12 @@ async function buildSixDepartments(output) {
   // Audio: synthesized original crowd bed and horn tone, no sampled chants or anthems.
   const audioDir = path.join(output, "GOD-ATMOSPHERE", "audio");
   await mkdir(audioDir, { recursive: true });
-  await writeFile(path.join(audioDir, "synthetic-crowd-bed.wav"), wavTone({ seconds: 12, seed: 73, mode: "crowd" }));
+  await writeFile(path.join(audioDir, "synthetic-crowd-bed.wav"), wavTone({ seconds: 45, seed: 73, mode: "crowd" }));
   await writeFile(path.join(audioDir, "synthetic-matchday-horn.wav"), wavTone({ seconds: 4, seed: 91, mode: "horn" }));
   await writeFile(path.join(audioDir, "synthetic-crowd-swell.wav"), wavTone({ seconds: 10, seed: 137, mode: "crowd" }));
-  await writeFile(path.join(audioDir, "synthetic-stadium-bed-alt.wav"), wavTone({ seconds: 12, seed: 211, mode: "crowd" }));
+  await writeFile(path.join(audioDir, "synthetic-stadium-bed-alt.wav"), wavTone({ seconds: 45, seed: 211, mode: "crowd" }));
   await writeFile(path.join(audioDir, "synthetic-whistle-tone.wav"), wavTone({ seconds: 2, seed: 313, mode: "whistle", sampleRate: 32000 }));
-  await writeText(path.join(output, "GOD-ATMOSPHERE", "README.md"), "# GOD ATMOSPHERE\n\nOriginal synthesized ambience and tonal matchday horn. These are not club anthems, recorded supporter chants or commentary. Audio-event codec conversion, volume mastering and PES event mapping remain to be configured and tested.\n");
+  await writeText(path.join(output, "GOD-ATMOSPHERE", "README.md"), "# GOD ATMOSPHERE\n\nOriginal synthesized 45-second crowd ambience beds and tonal matchday cues. These are not club anthems, recorded supporter chants or commentary. Sider loop playback, volume mastering and PES event mapping remain subject to runtime testing.\n");
   await addProduct("GOD-ATMOSPHERE", "GOD ATMOSPHERE — Original Matchday Sound Suite", "audio", ["audio/synthetic-crowd-bed.wav", "audio/synthetic-crowd-swell.wav", "audio/synthetic-stadium-bed-alt.wav", "audio/synthetic-matchday-horn.wav", "audio/synthetic-whistle-tone.wav", "README.md"], ["All sounds are generated procedurally; no recordings or copyrighted compositions are sampled.", "No PES audio event IDs are guessed."]);
 
   // Gameplay: conservative, documented tuning profile plus a no-op Lua integration stub.
