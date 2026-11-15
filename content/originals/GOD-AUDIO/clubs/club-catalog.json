@@ -1,0 +1,665 @@
+{
+  "schemaVersion": 1,
+  "id": "thegodmods.god-audio-club-catalog",
+  "game": "PES 2017",
+  "targetSider": ">=3.5.0 <4.0.0",
+  "status": "design",
+  "selectionMethod": "biggest — historical honours, long-term domestic stature, continental profile and international recognition; not current league table position",
+  "teamIdPolicy": {
+    "activeTeamIds": "populated from original PES 2017 reference IDs after user confirmation that YosfX Stadium Server map_teams.txt uses those IDs; verify in-game before release",
+    "referenceTeamIds": "referenceTeamId values retained as provenance and cross-check for each active teamIds entry",
+    "patchOverrides": "must be supplied and tested per installed patch/option file; never assume referenceTeamId is active"
+  },
+  "clubs": [
+    {
+      "league": "eng-prem",
+      "name": "Manchester United",
+      "clubKey": "manchester-united",
+      "country": "England",
+      "competitionId": null,
+      "teamIds": [
+        100
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "heritage-terrace-red",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 100,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "eng-prem",
+      "name": "Liverpool",
+      "clubKey": "liverpool",
+      "country": "England",
+      "competitionId": null,
+      "teamIds": [
+        103
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "kop-anthemic-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 103,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "eng-prem",
+      "name": "Arsenal",
+      "clubKey": "arsenal",
+      "country": "England",
+      "competitionId": null,
+      "teamIds": [
+        101
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "north-london-rhythmic-clap",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 101,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "eng-prem",
+      "name": "Chelsea",
+      "clubKey": "chelsea",
+      "country": "England",
+      "competitionId": null,
+      "teamIds": [
+        102
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "west-london-brass-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 102,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "eng-prem",
+      "name": "Manchester City",
+      "clubKey": "manchester-city",
+      "country": "England",
+      "competitionId": null,
+      "teamIds": [
+        173
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "blue-manchester-modern-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 173,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "esp-laliga",
+      "name": "Real Madrid",
+      "clubKey": "real-madrid",
+      "country": "Spain",
+      "competitionId": null,
+      "teamIds": [
+        109
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "madrid-grand-ceremonial",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 109,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "esp-laliga",
+      "name": "FC Barcelona",
+      "clubKey": "barcelona",
+      "country": "Spain",
+      "competitionId": null,
+      "teamIds": [
+        108
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "catalan-call-response",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 108,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "esp-laliga",
+      "name": "Atlético de Madrid",
+      "clubKey": "atletico-madrid",
+      "country": "Spain",
+      "competitionId": null,
+      "teamIds": [
+        172
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "rojiblanco-percussion",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 172,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "esp-laliga",
+      "name": "Valencia CF",
+      "clubKey": "valencia",
+      "country": "Spain",
+      "competitionId": null,
+      "teamIds": [
+        110
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "mestalla-intense-clap",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 110,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "esp-laliga",
+      "name": "Sevilla FC",
+      "clubKey": "sevilla",
+      "country": "Spain",
+      "competitionId": null,
+      "teamIds": [
+        265
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "andalusian-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 265,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "de-bundesliga",
+      "name": "FC Bayern München",
+      "clubKey": "bayern-munich",
+      "country": "Germany",
+      "competitionId": null,
+      "teamIds": [
+        127
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "bavarian-brass-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 127,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "de-bundesliga",
+      "name": "Borussia Dortmund",
+      "clubKey": "borussia-dortmund",
+      "country": "Germany",
+      "competitionId": null,
+      "teamIds": [
+        126
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "yellow-wall-stomp",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 126,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "de-bundesliga",
+      "name": "FC Schalke 04",
+      "clubKey": "schalke-04",
+      "country": "Germany",
+      "competitionId": null,
+      "teamIds": [
+        184
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "ruhr-blue-collar-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 184,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "de-bundesliga",
+      "name": "Hamburger SV",
+      "clubKey": "hamburger-sv",
+      "country": "Germany",
+      "competitionId": null,
+      "teamIds": [
+        129
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "north-german-harbour-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 129,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "de-bundesliga",
+      "name": "SV Werder Bremen",
+      "clubKey": "werder-bremen",
+      "country": "Germany",
+      "competitionId": null,
+      "teamIds": [
+        185
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "weser-green-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 185,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "it-serie-a",
+      "name": "Juventus",
+      "clubKey": "juventus",
+      "country": "Italy",
+      "competitionId": null,
+      "teamIds": [
+        120
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "turin-monochrome-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 120,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "it-serie-a",
+      "name": "AC Milan",
+      "clubKey": "ac-milan",
+      "country": "Italy",
+      "competitionId": null,
+      "teamIds": [
+        121
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "rossoneri-grand-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 121,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "it-serie-a",
+      "name": "Inter",
+      "clubKey": "inter",
+      "country": "Italy",
+      "competitionId": null,
+      "teamIds": [
+        119
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "nerazzurri-percussion-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 119,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "it-serie-a",
+      "name": "AS Roma",
+      "clubKey": "roma",
+      "country": "Italy",
+      "competitionId": null,
+      "teamIds": [
+        125
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "roman-ultras-percussion",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 125,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "it-serie-a",
+      "name": "SSC Napoli",
+      "clubKey": "napoli",
+      "country": "Italy",
+      "competitionId": null,
+      "teamIds": [
+        327
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "naples-southern-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 327,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "fr-ligue-1",
+      "name": "Paris Saint-Germain",
+      "clubKey": "paris-saint-germain",
+      "country": "France",
+      "competitionId": null,
+      "teamIds": [
+        114
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "paris-ultras-electro-percussion",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 114,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "fr-ligue-1",
+      "name": "Olympique de Marseille",
+      "clubKey": "marseille",
+      "country": "France",
+      "competitionId": null,
+      "teamIds": [
+        113
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "marseille-velodrome-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 113,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "fr-ligue-1",
+      "name": "Olympique Lyonnais",
+      "clubKey": "lyon",
+      "country": "France",
+      "competitionId": null,
+      "teamIds": [
+        181
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "lyon-rhone-rhythmic-chant",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 181,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "fr-ligue-1",
+      "name": "AS Monaco",
+      "clubKey": "monaco",
+      "country": "Monaco",
+      "competitionId": null,
+      "teamIds": [
+        112
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "monaco-riviera-brass",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 112,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    },
+    {
+      "league": "fr-ligue-1",
+      "name": "AS Saint-Étienne",
+      "clubKey": "saint-etienne",
+      "country": "France",
+      "competitionId": null,
+      "teamIds": [
+        418
+      ],
+      "patchProfile": null,
+      "originalSoundIdentity": "green-people-heritage-choral",
+      "eventSlots": {
+        "preMatch": null,
+        "kickoff": null,
+        "homeGoal": null,
+        "awayGoal": null,
+        "halfTime": null,
+        "fullTimeWin": null,
+        "fullTimeDraw": null,
+        "fullTimeLoss": null
+      },
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 418,
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
+    }
+  ]
+}

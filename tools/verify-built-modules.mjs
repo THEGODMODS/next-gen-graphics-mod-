@@ -27,7 +27,7 @@ for (const dir of dirs) {
     if (ids.has(manifest.id)) throw new Error("duplicate package ID");
     ids.add(manifest.id);
     if (manifest.game?.title !== "PES 2017" || manifest.game?.sider !== ">=3.5.0 <4.0.0") throw new Error("unexpected game/Sider target");
-    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6].includes(manifest.files?.length) || manifest.luaModules?.length !== 0) throw new Error("package must contain a Lua module, README, and optional game-root INI");
+    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0) throw new Error("package must contain a Lua module, README, and optional game-root INI");
     if (manifest.license?.id !== "THEGODMODS-ORIGINAL-1.0" || manifest.license?.redistributionAllowed !== true) throw new Error("first-party rights metadata missing");
     for (const item of manifest.files) {
       const relative = item.source.replaceAll("\\", "/");
@@ -43,11 +43,11 @@ for (const dir of dirs) {
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
-        if (manifest.category === "gameplay" && (!lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path") || (!lua.includes("set_home_team") || !lua.includes("set_match_time")))) throw new Error("gameplay module must read its game-root INI on match setup");
+        if (manifest.category === "gameplay" && (!lua.includes('config_path = "GODMODS') || !lua.includes('asset_root = "content') || !lua.includes("io.open(config_path") || (!lua.includes("set_home_team") || !lua.includes("set_match_time")))) throw new Error("gameplay module must read its game-root INI on match setup");
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("audio module must read its INI and use documented Sider audio playback APIs");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("synthetic-crowd-bed.wav") || !lua.includes("synthetic-stadium-bed-alt.wav") || !lua.includes('config_path = "GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini"') || !lua.includes('asset_root = "content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY"') || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
@@ -68,10 +68,46 @@ for (const dir of dirs) {
         stadiumIniCount += 1;
       } else if (item.target.startsWith("GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
         const ini = bytes.toString("utf8");
-        for (const key of ["enabled", "volume", "sound"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
+        for (const key of ["enabled", "ambience", "volume", "texture_volume"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
+        for (const key of ["enabled", "ambience"]) {
+          const value = Number(ini.match(new RegExp("^" + key + "\\s*=\\s*([-+]?\\d+(?:\\.\\d+)?)$", "m"))?.[1]);
+          if (![0, 1].includes(value)) throw new Error("audio INI " + key + " must be 0 or 1");
+        }
+        for (const key of ["volume", "texture_volume"]) {
+          const value = Number(ini.match(new RegExp("^" + key + "\\s*=\\s*([-+]?\\d+(?:\\.\\d+)?)$", "m"))?.[1]);
+          if (!Number.isFinite(value) || value < 0 || value > 1) throw new Error("audio INI " + key + " must be within 0.0-1.0");
+        }
         audioIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Audio/") && item.target.endsWith(".wav")) {
         if (bytes.length < 44 || bytes.toString("ascii", 0, 4) !== "RIFF" || bytes.toString("ascii", 8, 12) !== "WAVE") throw new Error("audio asset is not a valid RIFF/WAVE file");
+        if (bytes.readUInt32LE(4) + 8 !== bytes.length) throw new Error("WAV RIFF size does not match file length");
+        if (bytes.toString("ascii", 12, 16) !== "fmt " || bytes.readUInt32LE(16) < 16) throw new Error("WAV fmt chunk is missing or too short");
+        const format = bytes.readUInt16LE(20);
+        const channels = bytes.readUInt16LE(22);
+        const sampleRate = bytes.readUInt32LE(24);
+        const byteRate = bytes.readUInt32LE(28);
+        const blockAlign = bytes.readUInt16LE(32);
+        const bitsPerSample = bytes.readUInt16LE(34);
+        if (format !== 1 || ![1, 2].includes(channels) || ![22050, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
+        if (blockAlign !== channels * bitsPerSample / 8 || byteRate !== sampleRate * blockAlign) throw new Error("WAV block alignment or byte rate is inconsistent");
+        // RIFF chunks begin at byte 12. The fmt chunk header is 8 bytes;
+        // data follows the complete fmt payload (not after its first 8 bytes).
+        let chunkOffset = 12;
+        let dataBytes = null;
+        while (chunkOffset + 8 <= bytes.length) {
+          const chunkId = bytes.toString("ascii", chunkOffset, chunkOffset + 4);
+          const chunkSize = bytes.readUInt32LE(chunkOffset + 4);
+          const payloadOffset = chunkOffset + 8;
+          if (payloadOffset + chunkSize > bytes.length) throw new Error("WAV chunk exceeds file length: " + chunkId);
+          if (chunkId === "data") {
+            dataBytes = chunkSize;
+            if (payloadOffset + chunkSize !== bytes.length) throw new Error("WAV data chunk must be the final chunk");
+            break;
+          }
+          chunkOffset = payloadOffset + chunkSize + (chunkSize % 2);
+        }
+        if (dataBytes === null) throw new Error("WAV data chunk is missing");
+        if (dataBytes % blockAlign !== 0) throw new Error("WAV data chunk size is inconsistent");
         audioAssetCount += 1;
       } else {
         throw new Error("unexpected package payload target: " + item.target);
@@ -88,7 +124,7 @@ if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gamepla
 if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
 if (stadiumIniCount !== 3) failures.push("Expected 3 editable game-root stadium INI files, found " + stadiumIniCount);
 if (audioIniCount !== 1) failures.push("Expected 1 editable game-root audio INI file, found " + audioIniCount);
-if (audioAssetCount !== 3) failures.push("Expected 3 original installable WAV audio assets, found " + audioAssetCount);
+if (audioAssetCount !== 4) failures.push("Expected 4 original installable WAV audio assets, found " + audioAssetCount);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
