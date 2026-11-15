@@ -97,7 +97,6 @@ describe("PES 2017 read-only resource audit", () => {
     expect(result.valid).toBe(false);
     expect(result.status).toBe("blocked");
   });
-}
   it("emits channel-correct RGBA8 DDS assets for GOD KITS and GOD FACES", async () => {
     const root = path.resolve("content/originals/generated");
     const kit = await readFile(path.join(root, "GOD-KITS/addon-layout/GODMODS/Kits/GOD-KITS-PREMIUM/performance-knit/weave-overlay.dds"));
