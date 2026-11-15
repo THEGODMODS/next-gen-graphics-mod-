@@ -36,13 +36,14 @@ See [the GODMODS Add-On Enhancement Standard](docs/GODMODS_ADDON_ENHANCEMENT_STA
 
 ## Existing first-party content
 
-The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, GOD FACES skin/hair microdetail libraries, synthesized ambience/cues, gameplay profile designs, six foundational 17³ LUTs and the eight-look GOD VISUALS Elite 33³ colour suite. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
+The original-content generator creates source assets across all six departments: six turf surface variants, GOD STADIUMS Elite artwork, kit fabric maps, GOD FACES skin/hair microdetail libraries, synthesized ambience/cues, gameplay profile designs, six foundational 17³ LUTs and the eight-look GOD VISUALS Elite 33³ colour suite. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
 
 These are real GODMODS source deliverables, but generated assets are not automatically compatible with every YosfX resource or PES material. A virtual overlay is created only after exact target mapping and format validation. No original game or patch file is overwritten.
 
 ## Build and test
 
-- `npm run mods:build-original` — generate original department source assets, including GOD FACES.
+- `npm run mods:build-original` — generate original department source assets, including the stadium artwork suite.
+- `npm run mods:build-stadiums` — independently generate GOD STADIUMS Elite artwork and manifest.
 - `npm run mods:build-faces` — generate the standalone GOD FACES Premium Appearance Lab sidecar library.
 - `npm run mods:build-visuals` — generate eight GOD VISUALS Elite 33³ colour-grade LUTs and their integrity manifest.
 - `npm run mods:build-packs` — build the Sider add-on packages.

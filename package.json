@@ -19,13 +19,14 @@
     "compare:dds": "node tools/dds-compare.mjs",
     "preview:dds": "node tools/dds-preview.mjs",
     "sign:package": "node tools/sign-package-release.mjs",
-    "mods:build-original": "node tools/build-original-mods.mjs && node tools/build-god-turf-stadiumserver.mjs && npm run mods:build-kits && npm run mods:build-faces && npm run mods:build-visuals",
+    "mods:build-original": "node tools/build-original-mods.mjs && node tools/build-god-turf-stadiumserver.mjs && npm run mods:build-kits && npm run mods:build-faces && npm run mods:build-visuals && npm run mods:build-stadiums",
     "mods:build-packs": "node tools/build-pes2017-modules.mjs",
     "mods:verify-packs": "node tools/verify-built-modules.mjs",
     "mods:check-lua": "node tools/check-lua-syntax.mjs",
     "mods:build-kits": "node tools/build-god-kits-material-lab.mjs",
     "mods:build-faces": "node tools/build-god-faces-premium-lab.mjs",
-    "mods:build-visuals": "node tools/build-god-visuals-elite-suite.mjs"
+    "mods:build-visuals": "node tools/build-god-visuals-elite-suite.mjs",
+    "mods:build-stadiums": "node tools/build-god-stadiums-elite.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -49,37 +50,15 @@
   "build": {
     "appId": "com.thegodmods.pes2017nextgen",
     "productName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "package.json",
-      "tools/**/*",
-      "content/originals/generated/**/*",
-      "content/packs/**/*"
-    ],
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
-    },
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "dist-electron/**/*", "package.json", "tools/**/*", "content/originals/generated/**/*", "content/packs/**/*"],
+    "win": { "target": [{ "target": "nsis", "arch": ["x64"] }] },
     "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
+      "oneClick": false, "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true, "createStartMenuShortcut": true,
       "shortcutName": "THEGODMODS PES 2017 Next Gen Manager",
       "uninstallDisplayName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
-      "installerLanguages": [
-        "en_US"
-      ]
+      "installerLanguages": ["en_US"]
     },
     "artifactName": "THEGODMODS-PES2017-NextGen-Manager-${version}-Setup.${ext}"
   }
