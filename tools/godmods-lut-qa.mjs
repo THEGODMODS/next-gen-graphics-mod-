@@ -37,7 +37,7 @@ export async function auditLutPack(root){
  const profileList=Array.isArray(manifest.profiles)?manifest.profiles:index?.profiles;
  if(!Array.isArray(profileList)||profileList.length===0)errors.push("Manifest/profile index is missing.");
  const pipeline=manifest.colourPipeline||index?.colourPipeline;
- if(!pipeline||!String(pipeline.inputOutputSpace||"").toLowerCase().includes("not encoded"))errors.push("Explicit .cube colour-space limitation is missing.");
+ if(!pipeline||!/not encoded|does not encode/i.test(String(pipeline.inputOutputSpace||"")))errors.push("Explicit .cube colour-space limitation is missing.");
  if(!/do not stack|one grade|one lut|one at a time/i.test(JSON.stringify(pipeline||{})))errors.push("Single-LUT/non-stacking guidance is missing.");
  const entries=(manifest.files||[]).filter(f=>typeof f.file==="string"&&f.file.toLowerCase().endsWith(".cube"));
  if(entries.length!==profileList?.length)errors.push("LUT file count does not match profile count.");
