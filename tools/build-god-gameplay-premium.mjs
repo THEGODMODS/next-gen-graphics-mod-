@@ -92,5 +92,5 @@ async function putAt(root, rel, value) {
   await writeFile(file, value);
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  buildGodGameplayPremium().then(result => process.stdout.write(JSON.stringify({ product: result.id, files: result.files.length, installable: result.installable }) + "\n")).catch(error => { console.error(error); process.exitCode = 1; });
+  buildGodGameplayPremium(process.argv[2] ? path.resolve(process.argv[2]) : OUT).then(result => process.stdout.write(JSON.stringify({ product: result.id, files: result.files.length, installable: result.installable }) + "\n")).catch(error => { console.error(error); process.exitCode = 1; });
 }
