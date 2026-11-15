@@ -21,7 +21,7 @@ export function parseCube(text){
  return {valid:errors.length===0,size,entries:values.length,domainMin,domainMax,values,errors};
 }
 function identityErrors(cube){
- const errors=[];if(!cube.size)return ["Neutral reference has no valid lattice."];
+ const errors=[];if(!cube.size||cube.values.length!==cube.size**3)return ["Neutral reference cannot be checked because its lattice is incomplete."];
  const n=cube.size;
  for(let b=0;b<n;b++)for(let g=0;g<n;g++)for(let r=0;r<n;r++){
   const row=cube.values[b*n*n+g*n+r],expected=[r/(n-1),g/(n-1),b/(n-1)];
@@ -56,7 +56,7 @@ export async function auditLutPack(root){
    const cube=parseCube(bytes.toString("utf8"));
    if(!cube.valid)rowErrors.push(...cube.errors);
    if(cube.size!==33||entry.lattice!=="33x33x33"||entry.entries!==35937)rowErrors.push("Premium LUT must be a complete 33x33x33 lattice with 35,937 entries.");
-   if(entry.profile==="neutral-reference"||manifest.profiles.some(p=>p.id==="neutral-reference"&&p.file===entry.file))rowErrors.push(...identityErrors(cube));
+   if(entry.profile==="neutral-reference"||(manifest.profiles||[]).some(p=>p.id==="neutral-reference"&&p.file===entry.file))rowErrors.push(...identityErrors(cube));
    results.push({file:entry.file,valid:rowErrors.length===0,lattice:cube.size,entries:cube.entries,errors:rowErrors});
   }else results.push({file:entry.file,valid:false,errors:rowErrors});
  }
