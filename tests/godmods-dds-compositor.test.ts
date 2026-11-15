@@ -17,7 +17,8 @@ describe("GODMODS masked DDS compositor",()=>{
   it("applies neutral detail only inside the UV mask and preserves alpha and source buffers",()=>{
     const base=rgbaDds(2,2,2,[100,120,140,200]);
     const overlay=rgbaDds(2,2,2,[228,228,228,255]);
-    const mask=rgbaDds(2,2,2,[255,0,255,0]);
+    const mask=rgbaDds(2,2,2,[255,0,0,255]);
+    mask[132]=0; mask[140]=0;
     const before=Buffer.from(base);
     const out=compositeMaskedDds(base,overlay,mask);
     expect(base.equals(before)).toBe(true);
