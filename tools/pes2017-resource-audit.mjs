@@ -126,7 +126,8 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
   if (!isObject(manifest) || manifest.schemaVersion !== 1) return { valid: false, status: "blocked", errors: ["Manifest must be an object with schemaVersion 1."], mappings: [] };
   if (!["stadiums", "kits", "players"].includes(manifest.department)) errors.push("department must be stadiums, kits or players.");
   if (!isObject(manifest.target) || manifest.target.game !== "PES 2017") errors.push("target.game must be PES 2017.");
-  if (!isObject(manifest.compatibility) || !manifest.compatibility.patch || !manifest.compatibility.siderVersion) errors.push("Exact patch and Sider version must be declared; use 'unknown' only for discovery, not release.");
+  if (!isObject(manifest.target) || typeof manifest.target.executable !== "string" || !/^[A-Za-z0-9_.-]+\\.exe$/i.test(manifest.target.executable) || !manifest.target.build) errors.push("Exact PES 2017 executable filename and build are required.");
+  if (!isObject(manifest.compatibility) || !manifest.compatibility.patch || !manifest.compatibility.siderVersion || ["unknown", "tbd", "n/a"].includes(String(manifest.compatibility.patch).toLowerCase()) || ["unknown", "tbd", "n/a"].includes(String(manifest.compatibility.siderVersion).toLowerCase())) errors.push("Exact patch and Sider version must be declared; placeholders are not accepted.");
   if (!Array.isArray(manifest.mappings) || manifest.mappings.length === 0) errors.push("At least one mapping is required.");
   const root = path.resolve(resourceRoot);
   const rootStat = await lstat(root);
@@ -183,8 +184,8 @@ export async function validateBindingManifest(manifestPath, resourceRoot) {
   let gameVerified = false;
   if (isObject(manifest.gameValidation) && manifest.gameValidation.status === "passed") {
     const g = manifest.gameValidation;
-    gameVerified = Boolean(g.testedAt && !Number.isNaN(Date.parse(g.testedAt)) && g.gameBuild && g.patch && g.siderVersion && g.evidenceRelativePath && safeRelative(g.evidenceRelativePath) && g.rollbackTested === true);
-    if (!gameVerified) errors.push("gameValidation.status cannot be passed without timestamp, exact build/patch/Sider, evidence path and rollback confirmation.");
+    gameVerified = Boolean(g.testedAt && !Number.isNaN(Date.parse(g.testedAt)) && g.gameBuild && g.patch && g.siderVersion && g.evidenceRelativePath && safeRelative(g.evidenceRelativePath) && await regularFileNoSymlink(root, g.evidenceRelativePath) && g.rollbackTested === true);
+    if (!gameVerified) errors.push("gameValidation.status cannot be passed without timestamp, exact build/patch/Sider, an existing evidence file and rollback confirmation.");
   }
   const valid = errors.length === 0 && mappings.length > 0;
   return { valid, status: !valid ? "blocked" : gameVerified ? "in-game-verified" : "resource-mapped-not-game-verified", errors, mappings };
