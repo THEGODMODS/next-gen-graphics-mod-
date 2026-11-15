@@ -93,4 +93,6 @@ async function main(args) {
   await writeFile(destination, bytes, { flag: "wx" });
   console.log(JSON.stringify({ output: destination, bytes: bytes.length, operation: "masked-neutral-detail-composite", inputsModified: false }, null, 2));
 }
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main(process.argv.slice(2));
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main(process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
+}
