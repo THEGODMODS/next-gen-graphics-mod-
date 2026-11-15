@@ -5,7 +5,11 @@
   "targetSider": ">=3.5.0 <4.0.0",
   "status": "design",
   "selectionMethod": "biggest — historical honours, long-term domestic stature, continental profile and international recognition; not current league table position",
-  "teamIdPolicy": "null until verified against the user's exact PES 2017 patch and option file; never infer team IDs from club order",
+  "teamIdPolicy": {
+    "activeTeamIds": "not assigned; teamIds remains empty until the installed patch is verified",
+    "referenceTeamIds": "referenceTeamId values are research leads for the original PES 2017 database only",
+    "patchOverrides": "must be supplied and tested per installed patch/option file; never assume referenceTeamId is active"
+  },
   "clubs": [
     {
       "league": "eng-prem",
@@ -26,7 +30,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 100,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "eng-prem",
@@ -47,7 +54,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 103,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "eng-prem",
@@ -68,7 +78,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 101,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "eng-prem",
@@ -89,7 +102,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 102,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "eng-prem",
@@ -110,7 +126,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 173,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "esp-laliga",
@@ -131,7 +150,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 109,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "esp-laliga",
@@ -152,7 +174,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 108,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "esp-laliga",
@@ -173,7 +198,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 172,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "esp-laliga",
@@ -194,7 +222,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 110,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "esp-laliga",
@@ -215,7 +246,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 265,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "de-bundesliga",
@@ -236,7 +270,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 127,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "de-bundesliga",
@@ -257,7 +294,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 126,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "de-bundesliga",
@@ -278,7 +318,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 184,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "de-bundesliga",
@@ -299,7 +342,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 129,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "de-bundesliga",
@@ -320,7 +366,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 185,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "it-serie-a",
@@ -341,7 +390,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 120,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "it-serie-a",
@@ -362,7 +414,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 121,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "it-serie-a",
@@ -383,7 +438,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 119,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "it-serie-a",
@@ -404,7 +462,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 125,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "it-serie-a",
@@ -425,7 +486,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 327,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "fr-ligue-1",
@@ -446,7 +510,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 114,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "fr-ligue-1",
@@ -467,7 +534,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 113,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "fr-ligue-1",
@@ -488,7 +558,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 181,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "fr-ligue-1",
@@ -509,7 +582,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 112,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     },
     {
       "league": "fr-ligue-1",
@@ -530,7 +606,10 @@
         "fullTimeDraw": null,
         "fullTimeLoss": null
       },
-      "assetRights": "original-or-explicitly-licensed-only"
+      "assetRights": "original-or-explicitly-licensed-only",
+      "referenceTeamId": 418,
+      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
+      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
     }
   ]
 }
