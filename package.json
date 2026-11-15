@@ -18,7 +18,7 @@
     "validate:pes2017-mapping": "node tools/pes2017-resource-audit.mjs validate",
     "audit:godmods-audio": "node tools/godmods-audio-qa.mjs",
     "audit:godmods-gameplay": "node tools/godmods-gameplay-qa.mjs",
-    "audit:godmods-luts": "node tools/godmods-lut-qa.mjs content/originals/generated/GOD-VISUALS-ELITE",
+    "audit:godmods-luts": "node tools/godmods-lut-qa.mjs",
     "audit:godmods-final": "node tools/godmods-final-regression.mjs",
     "inventory:pitch": "node tools/pitch-inventory.mjs",
     "build:pitch-module": "node tools/pitch-module-builder.mjs",
