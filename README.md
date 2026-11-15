@@ -1,58 +1,59 @@
 # PES 2017 Next Gen
 
-A modular, Sider-based enhancement platform for Pro Evolution Soccer 2017.
+A modular, Sider- and LiveCPK-based **enhancement platform** for Pro Evolution Soccer 2017 and existing patches such as YosfX.
 
-## Project goals
+## Product promise
 
-- Deliver observable in-game visual improvements through properly packaged replacement assets and runtime configuration.
-- Use Sider and LiveCPK-compatible modules where appropriate.
-- Provide a Windows desktop manager for module discovery, installation, profiles, backups, diagnostics, and launch.
-- Keep installation reversible and protect saves, option files, settings, and unknown user files.
+GODMODS upgrades the player's existing PES 2017 experience. It does not replace the game, convert the patch, or overwrite original files. Original assets stay intact; GODMODS features are optional add-ons that can be enabled, disabled, and removed independently.
 
-## Product architecture
+- Original GODMODS design and assets, using EA SPORTS FC, eFootball and UFL as quality references only.
+- Optional Sider runtime modules and documented integrations.
+- Optional LiveCPK virtual overlays for verified resources; original on-disk assets are never modified.
+- Dedicated GODMODS namespace for profiles, assets, logs and manifests.
+- Reversible installation, collision detection, backups and rollback.
 
-The six-department catalogue, trusted package lifecycle, deployment adapters and release gates are defined in [the Next Gen ecosystem blueprint](docs/NEXT_GEN_ECOSYSTEM_BLUEPRINT.md). This is the product contract for the catalogue and installer work; catalogue entries remain non-installable until their packages and permissions are verified.
+See [the GODMODS Add-On Enhancement Standard](docs/GODMODS_ADDON_ENHANCEMENT_STANDARD.md) and [the six-department creative direction](docs/GODMODS_ORIGINAL_CREATIVE_DIRECTION.md).
 
-## Architecture
+## Six premium departments
 
-- `electron/`: Electron main process, preload bridge, DDS and pitch services.
-- `src/`: React UI, department catalogues, shared types, and the module engine.
-- `content/originals/`: rights policy and generated original source-asset workspace.
-- `docs/`: architecture, compatibility, safety, research, and development documentation.
-- `tools/`: deterministic asset generation, DDS/pitch validation, signing, and packaging utilities.
+| Department | GODMODS product | Enhancement focus |
+|---|---|---|
+| Graphics | GOD VISUALS | Broadcast polish, natural colour response, cinematic and time-of-day profiles |
+| Stadiums & Turf | GOD STADIUMS + GOD TURF | Original venue presentation, LED artwork, premium pitch surfaces and matchday profiles |
+| Kits & Equipment | GOD KITS | Fabric weave, stitching and material-detail overlays that preserve existing kit designs |
+| Players | GOD FACES | Rights-cleared skin/hair detail and roster-aware appearance enhancements |
+| Audio & Atmosphere | GOD ATMOSPHERE | Original layered crowd ambience and optional matchday sound enhancements |
+| Gameplay | GOD GAMEPLAY | Opt-in simulation profiles and carefully tested supported gameplay extensions |
+
+## Repository architecture
+
+- `electron/`: Windows desktop app, Sider integration, DDS and pitch services.
+- `src/`: department catalogue, UI, shared types and module engine.
+- `content/originals/`: generated original source-asset workshop.
+- `docs/`: creative direction, compatibility, safety and release standards.
+- `tools/`: deterministic asset generation, DDS/pitch validation, signing and packaging.
 - `.github/workflows/`: Windows quality and draft-release pipelines.
 
-## Safety principles
+## Existing first-party content
 
-The installer must never blindly delete files from a PES installation. It must identify managed files, back up changes, preserve unknown files, and support rollback.
+The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, procedural skin/hair detail sources, synthesized ambience/cues, gameplay profile designs and six 3D LUTs. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
 
-## Bundled first-party GODMODS modules
+These are real GODMODS source deliverables, but generated assets are not automatically compatible with every YosfX resource or PES material. A virtual overlay is created only after exact target mapping and format validation. No original game or patch file is overwritten.
 
-The Windows installer now builds and includes nine original PES 2017 / Sider 3.5 Lua packages: three graphics profiles, three stadium match-condition profiles, and three opt-in gameplay profiles. Open **Module Library → Scan built-in GODMODS packages** to validate them, preview an individual module, and install it. Explicitly synchronize Sider after installation. Gameplay controls remain experimental per the Sider 3.5 documentation.
+## Build and test
 
-GOD TURF, GOD KITS, GOD FACES, stadium artwork and GOD ATMOSPHERE source assets are also generated and bundled, but are not represented as drop-in replacement packages until their exact PES patch resource mappings, UV/material requirements, audio event mappings and in-game compatibility are verified. See [the GODMODS built packages report](docs/GODMODS_BUILT_PACKAGES.md).
+- `npm run mods:build-original` — generate original department source assets.
+- `npm run mods:build-packs` — build the Sider add-on packages.
+- `npm run mods:verify-packs` — verify package manifests and payloads.
+- `npm test` — run automated tests.
+- `npm run build` — run the complete production build.
 
-## Development status
+The Windows quality workflow builds a test installer artifact. A successful CI build is not proof of in-game compatibility; each department still requires controlled testing on the exact PES 2017 + YosfX + Sider setup.
 
-The desktop manager, transactional module installer, Sider synchronization, local package library and DDS/pitch audit tooling are under active development. The Windows build now bundles nine first-party, manifest- and hash-verified Sider 3.5 Lua modules (graphics profiles, stadium match-condition profiles and opt-in experimental gameplay profiles). Those are installable through the built-in Module Library. The generated GOD TURF, GOD KITS, GOD FACES, stadium artwork and GOD ATMOSPHERE collections are substantial original source assets, but they are **not yet verified PES 2017 replacement packages**: exact patch UVs, resource paths, shader channels, audio event mappings and live-game compatibility still need target-specific validation. The DDS audit checks a conservative set of DDS headers and block-compressed payload lengths; it is not a PES texture compatibility validator. The read-only pitch inventory records paths, sizes, and SHA-256 hashes under a Stadium Server stadium's `common/bg/model/bg/pitch` subtree. Run `npm run inventory:pitch -- "<stadium-folder>"` to create a local JSON inventory. Live-game compatibility and visual results must be tested against a real PES 2017 installation and compatible Sider version. See [the texture pipeline](docs/TEXTURE_PIPELINE.md), [pitch resource discovery](docs/PITCH_RESOURCE_DISCOVERY.md), and [pitch inventory](docs/PITCH_INVENTORY.md) before authoring pitch or stadium assets.
+## Safety
+
+Never edit original CPKs, game binaries, option files or the user's Stadium Server content. Any Sider configuration change must be minimal, backed up and reversible. LiveCPK virtual roots must be optional, collision-checked and namespaced. Uninstall must restore the user's prior configuration and leave unrelated files untouched.
 
 ## Licensing
 
 Only distribute original assets or content for which redistribution permission has been obtained. Third-party tools and mods remain subject to their own licenses.
-
-## Windows test installer
-
-Pull requests targeting `main` and pushes to `main` run the Windows quality pipeline. It validates TypeScript, native Node tooling, unit tests and the production build, then builds the Windows NSIS installer and uploads the `.exe` as a workflow artifact named `pes2017-nextgen-windows-<commit-sha>` (14-day retention).
-
-To download a test build:
-
-1. Open the repository's **Actions** tab.
-2. Open the latest successful **Quality** run for the commit you want.
-3. Download the `pes2017-nextgen-windows-<commit-sha>` artifact.
-4. Extract the ZIP and run the installer.
-
-A workflow artifact is a development test build, not a stable public release. Do not install it over a production PES setup without a backup. A release is not considered validated until the packaged application is launched on Windows and its Sider/PES workflows are tested on a real installation.
-
-## Versioned Windows releases
-
-Versioned release tags run the Windows release pipeline described in [Release Engineering](docs/RELEASE_ENGINEERING.md). The pipeline validates the tagged version and source branch, runs checks, builds the NSIS installer, creates SHA-256 checksums and opens a **draft** GitHub release for human review. It does not publish automatically. The installer is not Authenticode-signed until an official code-signing certificate is provisioned. Real PES 2017 + Sider testing remains a required manual release gate.
