@@ -120,4 +120,4 @@ Expose a global master enable, ambience enable, event-cue enable, master volume,
 
 ## Current known gap
 
-The current generated module only plays one selected synthetic WAV on set_home_team. Its generated paths currently concatenate ctx.sider_dir without a path separator in at least the game-root INI path; this must be fixed before extending the module. Its verifier currently checks only basic RIFF/WAVE headers and fixed counts, not audio format compatibility or match-event behaviour.
+The current generated module only plays one selected synthetic WAV on set_home_team. Its paths rely on Sider's ctx.sider_dir value already ending with a directory separator (as the official examples appear to assume); confirm that contract against the exact installed Sider 3.5 build and add path-resolution tests before extending the module. The verifier currently checks only basic RIFF/WAVE headers and fixed counts, not audio format compatibility or match-event behaviour.
