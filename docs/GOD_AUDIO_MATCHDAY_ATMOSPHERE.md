@@ -121,3 +121,28 @@ Expose a global master enable, ambience enable, event-cue enable, master volume,
 ## Current known gap
 
 The current generated module starts the two ambience loops on set_home_team and logs set_away_team; it does not yet select different audio by club. The build now packages 45-second procedural crowd beds and validates PCM WAV format, sample rate, bit depth, channel count, chunk sizes and audio configuration ranges. The loop callback, sound-object cleanup, volume levels, actual gaplessness and long-session stability still require PES 2017 + Sider 3.5 runtime testing. Club-specific assets and team-ID routing, plus goal/half-time/full-time event detection, remain unimplemented.
+
+
+## GOD ATMOSPHERE Premium Sound Identity Lab
+
+# GOD ATMOSPHERE Premium Sound Identity Lab
+
+## Deliverables
+
+The premium source lab builds 29 original stereo PCM WAV assets from THEGODMODS-authored synthesis:
+- 25 five-second club identity stingers derived from the existing 25-club creative sound-design profiles.
+- Four 18-second generic ambience beds: Open Air Matchday, Intimate Ground, Night Match and Cup Final.
+- 24 kHz, stereo, signed 16-bit PCM WAV.
+- A manifest with hashes, file sizes, peak/RMS measurements, source profile metadata and explicit integration status.
+
+## Creative and rights boundary
+
+Club stingers are abstract original sound identities guided by tempo, texture and accent descriptors. They are not authentic supporter chants, anthems, recordings or recreations of identifiable songs. Ambience beds are generic and carry no club identity. No sampled recordings, commercial music, broadcast audio or third-party supporter recordings are used.
+
+## Integration boundary
+
+The pack is source audio, not a PES-ready replacement pack. Each asset needs listening review and loudness mastering against commentary. PES 2017 event slots and patch-specific team IDs must be verified before optional routing. No universal goal, halftime or fulltime callbacks are assumed. Existing game audio, patch audio and option files are not modified.
+
+## Build and validation
+
+Run `npm run mods:build-atmosphere` to generate the pack independently. `npm run mods:build-original` includes it. Automated tests validate WAV headers, sample format, manifest hashes, asset counts and safe non-installable status. In-game event and Sider playback tests remain a separate release gate.
