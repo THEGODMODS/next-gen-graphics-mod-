@@ -40,14 +40,14 @@ export const originalContentProjects: OriginalContentProject[] = [
   },
   {
     id: "thegodmods.god-natural", name: "GOD NATURAL", department: "graphics", productLine: "Graphics",
-    productionState: "brief-ready",
-    goal: "A low-processing, natural-colour alternative for players who dislike exaggerated visual effects.",
-    styleDirection: "Neutral whites, realistic grass, skin tones and kit colours; minimal bloom and restrained sharpening.",
-    deliverables: ["Natural colour preset", "Compatibility notes", "Reference capture set"],
-    assetRequirements: ["Original preset values", "Texture changes only when necessary and rights-cleared", "Reference images and test environment notes"],
-    acceptanceChecks: ["Kit colours remain faithful", "Grass and skin tones avoid green/orange casts", "No excessive sharpening or haloing", "Profile can be cleanly disabled"],
-    rightsPolicy: "Preset and authored assets must be original or appropriately licensed.",
-    previewPlan: ["Neutral daylight", "Overcast conditions", "Player close-up", "Kit colour reference"]
+    productionState: "tooling-prototype",
+    goal: "A low-processing natural colour suite for PES 2017 match presentation, prioritising faithful kit whites, believable grass and stable skin tones over cinematic effects.",
+    styleDirection: "Near-neutral colour response, restrained saturation and contrast, preserved shadow/highlight detail and no artificial bloom, sharpening or scene tint.",
+    deliverables: ["Six original 33³ natural-response LUTs and neutral identity reference", "Custom 24-patch visual calibration chart and capture QA matrix", "Deterministic generator, profile index and SHA-256 manifest", "Host colour-space guidance and optional activation/rollback notes"],
+    assetRequirements: ["THEGODMODS-authored .cube transforms and calibration chart", "Verified consuming-host primaries and transfer function", "Matched PES 2017/YosfX baseline and graded captures before any compatibility claim"],
+    acceptanceChecks: ["Every LUT contains 35,937 finite in-range RGB entries", "Neutral Reference is an exact identity transform", "Natural profiles avoid green/orange casts and preserve kit whites", "No crushed shadows, clipped highlights or sharpening halos", "One LUT at a time; disable restores prior host output", "Real-game daylight, overcast and player/kit comparison captures pass"],
+    rightsPolicy: "All LUTs and the custom visual chart are original THEGODMODS procedural work; no extracted game or third-party assets are bundled.",
+    previewPlan: ["Neutral daylight calibration chart", "Overcast grass and shadow detail", "Player skin and white-kit comparison", "Broadcast camera colour fidelity"]
   },
   {
     id: "thegodmods.god-turf", name: "GOD TURF", department: "stadiums", productLine: "Stadiums & Turf",
