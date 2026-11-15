@@ -250,7 +250,7 @@ function audioModule(name, folder) {
     "end",
     "return M",
     ""
-  ].join(\"\\n\");
+  ].join("\\n");
 }
 async function writePackage(definition) {
   const root = path.join(OUT, definition.folder);
