@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtemp, mkdir, rm, writeFile, symlink } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile, symlink, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { scanResourceRoot, validateBindingManifest } from "../tools/pes2017-resource-audit.mjs";
+import { inspectDds } from "../tools/dds-audit.mjs";
 
 const roots: string[] = [];
 async function temp() { const p = await mkdtemp(path.join(os.tmpdir(), "godmods-audit-")); roots.push(p); return p; }
@@ -96,4 +97,14 @@ describe("PES 2017 read-only resource audit", () => {
     expect(result.valid).toBe(false);
     expect(result.status).toBe("blocked");
   });
-});
+}
+  it("emits channel-correct RGBA8 DDS assets for GOD KITS and GOD FACES", async () => {
+    const root = path.resolve("content/originals/generated");
+    const kit = await readFile(path.join(root, "GOD-KITS/addon-layout/GODMODS/Kits/GOD-KITS-PREMIUM/performance-knit/weave-overlay.dds"));
+    const face = await readFile(path.join(root, "GOD-FACES-PREMIUM/addon-layout/GODMODS/Players/GOD-FACES-PREMIUM/skin/natural-pore/pore-detail-overlay.dds"));
+    expect(inspectDds(kit).format).toBe("RGBA8_UNORM");
+    expect(inspectDds(kit).valid).toBe(true);
+    expect(inspectDds(face).format).toBe("RGBA8_UNORM");
+    expect(inspectDds(face).valid).toBe(true);
+  });
+});\n
