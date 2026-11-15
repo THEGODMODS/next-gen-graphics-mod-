@@ -91,7 +91,7 @@ async function main(args) {
     await readFile(paths[0]), await readFile(paths[1]), await readFile(paths[2]),
     { opacity: rawOpacity === undefined ? 1 : Number(rawOpacity), maskChannel: maskChannel || "r" }
   );
-  await writeFile(destination, bytes);
+  await writeFile(destination, bytes, { flag: "wx" });
   console.log(JSON.stringify({ output: destination, bytes: bytes.length, operation: "masked-neutral-detail-composite", inputsModified: false }, null, 2));
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await main(process.argv.slice(2));
