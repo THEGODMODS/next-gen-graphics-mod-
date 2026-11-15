@@ -7,7 +7,7 @@ describe("GODMODS final cross-department regression",()=>{
   expect(report.status).toBe("source-qa-passed-game-integration-pending");
   expect(report.gameCompatibilityVerified).toBe(false);
   expect(report.releaseReady).toBe(false);
-  expect(report.departments).toHaveLength(7);
+  expect(report.departments).toHaveLength(8);
   expect(report.blockers.length).toBeGreaterThanOrEqual(5);
  },120000);
 });
