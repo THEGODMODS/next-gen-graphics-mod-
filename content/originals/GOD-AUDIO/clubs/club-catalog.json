@@ -6,8 +6,8 @@
   "status": "design",
   "selectionMethod": "biggest — historical honours, long-term domestic stature, continental profile and international recognition; not current league table position",
   "teamIdPolicy": {
-    "activeTeamIds": "not assigned; teamIds remains empty until the installed patch is verified",
-    "referenceTeamIds": "referenceTeamId values are research leads for the original PES 2017 database only",
+    "activeTeamIds": "populated from original PES 2017 reference IDs after user confirmation that YosfX Stadium Server map_teams.txt uses those IDs; verify in-game before release",
+    "referenceTeamIds": "referenceTeamId values retained as provenance and cross-check for each active teamIds entry",
     "patchOverrides": "must be supplied and tested per installed patch/option file; never assume referenceTeamId is active"
   },
   "clubs": [
@@ -17,7 +17,9 @@
       "clubKey": "manchester-united",
       "country": "England",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        100
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "heritage-terrace-red",
       "eventSlots": {
@@ -32,8 +34,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 100,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "eng-prem",
@@ -41,7 +43,9 @@
       "clubKey": "liverpool",
       "country": "England",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        103
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "kop-anthemic-choral",
       "eventSlots": {
@@ -56,8 +60,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 103,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "eng-prem",
@@ -65,7 +69,9 @@
       "clubKey": "arsenal",
       "country": "England",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        101
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "north-london-rhythmic-clap",
       "eventSlots": {
@@ -80,8 +86,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 101,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "eng-prem",
@@ -89,7 +95,9 @@
       "clubKey": "chelsea",
       "country": "England",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        102
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "west-london-brass-chant",
       "eventSlots": {
@@ -104,8 +112,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 102,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "eng-prem",
@@ -113,7 +121,9 @@
       "clubKey": "manchester-city",
       "country": "England",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        173
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "blue-manchester-modern-chant",
       "eventSlots": {
@@ -128,8 +138,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 173,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "esp-laliga",
@@ -137,7 +147,9 @@
       "clubKey": "real-madrid",
       "country": "Spain",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        109
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "madrid-grand-ceremonial",
       "eventSlots": {
@@ -152,8 +164,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 109,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "esp-laliga",
@@ -161,7 +173,9 @@
       "clubKey": "barcelona",
       "country": "Spain",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        108
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "catalan-call-response",
       "eventSlots": {
@@ -176,8 +190,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 108,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "esp-laliga",
@@ -185,7 +199,9 @@
       "clubKey": "atletico-madrid",
       "country": "Spain",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        172
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "rojiblanco-percussion",
       "eventSlots": {
@@ -200,8 +216,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 172,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "esp-laliga",
@@ -209,7 +225,9 @@
       "clubKey": "valencia",
       "country": "Spain",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        110
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "mestalla-intense-clap",
       "eventSlots": {
@@ -224,8 +242,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 110,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "esp-laliga",
@@ -233,7 +251,9 @@
       "clubKey": "sevilla",
       "country": "Spain",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        265
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "andalusian-choral",
       "eventSlots": {
@@ -248,8 +268,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 265,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "de-bundesliga",
@@ -257,7 +277,9 @@
       "clubKey": "bayern-munich",
       "country": "Germany",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        127
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "bavarian-brass-choral",
       "eventSlots": {
@@ -272,8 +294,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 127,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "de-bundesliga",
@@ -281,7 +303,9 @@
       "clubKey": "borussia-dortmund",
       "country": "Germany",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        126
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "yellow-wall-stomp",
       "eventSlots": {
@@ -296,8 +320,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 126,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "de-bundesliga",
@@ -305,7 +329,9 @@
       "clubKey": "schalke-04",
       "country": "Germany",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        184
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "ruhr-blue-collar-chant",
       "eventSlots": {
@@ -320,8 +346,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 184,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "de-bundesliga",
@@ -329,7 +355,9 @@
       "clubKey": "hamburger-sv",
       "country": "Germany",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        129
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "north-german-harbour-chant",
       "eventSlots": {
@@ -344,8 +372,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 129,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "de-bundesliga",
@@ -353,7 +381,9 @@
       "clubKey": "werder-bremen",
       "country": "Germany",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        185
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "weser-green-choral",
       "eventSlots": {
@@ -368,8 +398,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 185,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "it-serie-a",
@@ -377,7 +407,9 @@
       "clubKey": "juventus",
       "country": "Italy",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        120
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "turin-monochrome-choral",
       "eventSlots": {
@@ -392,8 +424,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 120,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "it-serie-a",
@@ -401,7 +433,9 @@
       "clubKey": "ac-milan",
       "country": "Italy",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        121
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "rossoneri-grand-choral",
       "eventSlots": {
@@ -416,8 +450,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 121,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "it-serie-a",
@@ -425,7 +459,9 @@
       "clubKey": "inter",
       "country": "Italy",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        119
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "nerazzurri-percussion-chant",
       "eventSlots": {
@@ -440,8 +476,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 119,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "it-serie-a",
@@ -449,7 +485,9 @@
       "clubKey": "roma",
       "country": "Italy",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        125
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "roman-ultras-percussion",
       "eventSlots": {
@@ -464,8 +502,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 125,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "it-serie-a",
@@ -473,7 +511,9 @@
       "clubKey": "napoli",
       "country": "Italy",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        327
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "naples-southern-choral",
       "eventSlots": {
@@ -488,8 +528,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 327,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "fr-ligue-1",
@@ -497,7 +537,9 @@
       "clubKey": "paris-saint-germain",
       "country": "France",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        114
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "paris-ultras-electro-percussion",
       "eventSlots": {
@@ -512,8 +554,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 114,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "fr-ligue-1",
@@ -521,7 +563,9 @@
       "clubKey": "marseille",
       "country": "France",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        113
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "marseille-velodrome-choral",
       "eventSlots": {
@@ -536,8 +580,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 113,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "fr-ligue-1",
@@ -545,7 +589,9 @@
       "clubKey": "lyon",
       "country": "France",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        181
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "lyon-rhone-rhythmic-chant",
       "eventSlots": {
@@ -560,8 +606,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 181,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "fr-ligue-1",
@@ -569,7 +615,9 @@
       "clubKey": "monaco",
       "country": "Monaco",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        112
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "monaco-riviera-brass",
       "eventSlots": {
@@ -584,8 +632,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 112,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     },
     {
       "league": "fr-ligue-1",
@@ -593,7 +641,9 @@
       "clubKey": "saint-etienne",
       "country": "France",
       "competitionId": null,
-      "teamIds": [],
+      "teamIds": [
+        418
+      ],
       "patchProfile": null,
       "originalSoundIdentity": "green-people-heritage-choral",
       "eventSlots": {
@@ -608,8 +658,8 @@
       },
       "assetRights": "original-or-explicitly-licensed-only",
       "referenceTeamId": 418,
-      "teamIdReferenceStatus": "reference-database-only; verify against installed patch and option file",
-      "teamIdReferenceSource": "PES 2017 default team database lists (2016); not a live patch mapping"
+      "teamIdReferenceStatus": "confirmed-by-user-reported-YosfX-Stadium-Server-map_teams.txt; verify in-game before release",
+      "teamIdReferenceSource": "YosfX Stadium Server map_teams.txt reported by user to use original PES 2017 team IDs; reference database cross-check"
     }
   ]
 }
