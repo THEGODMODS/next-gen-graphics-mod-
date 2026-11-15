@@ -36,7 +36,7 @@ See [the GODMODS Add-On Enhancement Standard](docs/GODMODS_ADDON_ENHANCEMENT_STA
 
 ## Existing first-party content
 
-The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, GOD FACES skin/hair microdetail libraries, synthesized ambience/cues, gameplay profile designs and six 3D LUTs. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
+The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, GOD FACES skin/hair microdetail libraries, synthesized ambience/cues, gameplay profile designs, six foundational 17³ LUTs and the eight-look GOD VISUALS Elite 33³ colour suite. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
 
 These are real GODMODS source deliverables, but generated assets are not automatically compatible with every YosfX resource or PES material. A virtual overlay is created only after exact target mapping and format validation. No original game or patch file is overwritten.
 
@@ -44,6 +44,7 @@ These are real GODMODS source deliverables, but generated assets are not automat
 
 - `npm run mods:build-original` — generate original department source assets, including GOD FACES.
 - `npm run mods:build-faces` — generate the standalone GOD FACES Premium Appearance Lab sidecar library.
+- `npm run mods:build-visuals` — generate eight GOD VISUALS Elite 33³ colour-grade LUTs and their integrity manifest.
 - `npm run mods:build-packs` — build the Sider add-on packages.
 - `npm run mods:verify-packs` — verify package manifests and payloads.
 - `npm test` — run automated tests.
@@ -62,3 +63,7 @@ Only distribute original assets or content for which redistribution permission h
 ## GOD FACES Premium Appearance Lab
 
 The first GOD FACES source release builds five neutral skin-detail profiles and four hair-fibre profiles (27 DDS source maps total) with SHA-256 manifests. These are original microdetail overlays, not replacement faces, player likenesses, meshes or roster assignments. UV/material mapping and in-game validation on the exact YosfX setup remain required before any LiveCPK integration. See [GOD FACES Premium Lab](docs/GOD_FACES_PREMIUM_LAB.md).
+
+## GOD VISUALS Elite Colour Suite
+
+Eight original 33×33×33 display-grade LUTs (35,937 entries each) with neutral reference, broadcast, stadium HDR, night, golden-hour, overcast, cinematic and grass/kit-fidelity looks. These are colour-grade source files, not a game shader injector; confirm the host colour space and a compatible PES 2017 adapter before use. See [GOD VISUALS Elite Colour Suite](docs/GOD_VISUALS_ELITE_COLOUR_SUITE.md).

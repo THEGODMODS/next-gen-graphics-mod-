@@ -18,14 +18,14 @@ export interface OriginalContentProject {
 export const originalContentProjects: OriginalContentProject[] = [
   {
     id: "thegodmods.god-visuals", name: "GOD VISUALS", department: "graphics", productLine: "Graphics",
-    productionState: "brief-ready",
-    goal: "A coherent visual foundation for PES 2017 with balanced colour, readable detail and consistent match presentation.",
-    styleDirection: "Natural realism first: controlled saturation, believable contrast, neutral whites and stable daylight/night lighting.",
-    deliverables: ["Base visual preset and documented install profile", "Texture replacement modules only where source assets and mappings are verified", "Before/after captures from the same stadium, camera and weather conditions"],
-    assetRequirements: ["Original or licensed LUT/colour-grade source", "Documented shader/config changes where supported", "Verified DDS textures with dimensions, format and colour-space notes", "Preview captures from a real PES 2017 match"],
-    acceptanceChecks: ["No crushed blacks, clipped highlights or oversaturated pitch/skin tones", "No missing texture references or visual regressions across tested weather/lighting", "DDS files pass structural validation and load in-game", "Rollback restores the exact previous visual state"],
-    rightsPolicy: "All authored presets and textures must be original or explicitly licensed; never bundle extracted commercial game assets.",
-    previewPlan: ["Daylight wide shot", "Night match floodlights", "Close player/grass detail", "Side-by-side baseline comparison"]
+    productionState: "tooling-prototype",
+    goal: "A premium colour-management source suite for PES 2017 match presentation, with natural skin response, faithful kits and readable stadium contrast.",
+    styleDirection: "Broadcast realism first: controlled saturation, neutral whites, soft highlight roll-off, preserved shadow detail and restrained cinematic split-toning.",
+    deliverables: ["Eight original 33³ display-grade LUTs and a neutral identity reference", "Six foundational 17³ colour profiles retained for backward compatibility", "Colour-space/host integration guidance and SHA-256 manifests", "Matched in-game daylight, night and overcast comparison captures after adapter verification"],
+    assetRequirements: ["THEGODMODS-authored .cube LUT source and manifest", "Verified host input/output primaries and transfer function", "Documented compatible post-processing adapter for the target PES 2017/YosfX setup", "Matched baseline and graded captures from the same stadium, camera and weather"],
+    acceptanceChecks: ["Every 33³ LUT has 35,937 finite RGB entries in range", "Neutral Reference is an identity transform", "No crushed blacks, clipped highlights or skin/kit/pitch colour shifts", "No LUT stacking or undocumented colour-space conversion", "Disable restores the ungraded host output", "Real-game validation passes daylight, night and overcast conditions"],
+    rightsPolicy: "All authored LUTs and presets are original; never bundle extracted commercial game assets or proprietary shader files.",
+    previewPlan: ["Neutral reference versus Broadcast Natural", "Night floodlights with European Night Elite", "Golden Hour and Overcast comparison", "Same player/kit/pitch before and after"]
   },
   {
     id: "thegodmods.god-cinematic", name: "GOD CINEMATIC", department: "graphics", productLine: "Graphics",
