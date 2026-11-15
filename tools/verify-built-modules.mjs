@@ -88,12 +88,26 @@ for (const dir of dirs) {
         const byteRate = bytes.readUInt32LE(28);
         const blockAlign = bytes.readUInt16LE(32);
         const bitsPerSample = bytes.readUInt16LE(34);
-        const dataOffset = 20 + bytes.readUInt32LE(16) + 8;
         if (format !== 1 || ![1, 2].includes(channels) || ![22050, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
         if (blockAlign !== channels * bitsPerSample / 8 || byteRate !== sampleRate * blockAlign) throw new Error("WAV block alignment or byte rate is inconsistent");
-        if (bytes.toString("ascii", dataOffset, dataOffset + 4) !== "data" || dataOffset + 8 > bytes.length) throw new Error("WAV data chunk is missing");
-        const dataBytes = bytes.readUInt32LE(dataOffset + 4);
-        if (dataOffset + 8 + dataBytes !== bytes.length || dataBytes % blockAlign !== 0) throw new Error("WAV data chunk size is inconsistent");
+        // RIFF chunks begin at byte 12. The fmt chunk header is 8 bytes;
+        // data follows the complete fmt payload (not after its first 8 bytes).
+        let chunkOffset = 12;
+        let dataBytes = null;
+        while (chunkOffset + 8 <= bytes.length) {
+          const chunkId = bytes.toString("ascii", chunkOffset, chunkOffset + 4);
+          const chunkSize = bytes.readUInt32LE(chunkOffset + 4);
+          const payloadOffset = chunkOffset + 8;
+          if (payloadOffset + chunkSize > bytes.length) throw new Error("WAV chunk exceeds file length: " + chunkId);
+          if (chunkId === "data") {
+            dataBytes = chunkSize;
+            if (payloadOffset + chunkSize !== bytes.length) throw new Error("WAV data chunk must be the final chunk");
+            break;
+          }
+          chunkOffset = payloadOffset + chunkSize + (chunkSize % 2);
+        }
+        if (dataBytes === null) throw new Error("WAV data chunk is missing");
+        if (dataBytes % blockAlign !== 0) throw new Error("WAV data chunk size is inconsistent");
         audioAssetCount += 1;
       } else {
         throw new Error("unexpected package payload target: " + item.target);
