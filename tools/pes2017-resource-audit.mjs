@@ -196,8 +196,12 @@ async function main(args) {
   if (command === "scan" && root) {
     const report = await scanResourceRoot(root);
     const json = JSON.stringify(report, null, 2) + "\n";
-    if (output) await writeFile(path.resolve(output), json);
-    else process.stdout.write(json);
+    if (output) {
+      const destination = path.resolve(output);
+      const scanRoot = path.resolve(root);
+      if (destination === scanRoot || destination.startsWith(scanRoot + path.sep)) throw new Error("Report output must be outside the scanned game/resource directory.");
+      await writeFile(destination, json, { flag: "wx" });
+    } else process.stdout.write(json);
     if (report.limitReached) process.exitCode = 1;
     return;
   }
