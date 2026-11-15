@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Read-only PES 2017 / YosfX resource discovery and mapping gate.
  * Never writes into a game, patch, Stadium Server, Kit Server or LiveCPK root.
