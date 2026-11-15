@@ -2,7 +2,7 @@
 
 ## Status
 
-Design baseline for the PES 2017 / Sider 3.5 implementation. This document is not a claim that the department is finished or real-game verified. The existing GOD ATMOSPHERE package is a one-shot home-team-selection cue; it is not yet a continuous crowd or match-event system.
+Implementation in progress for PES 2017 / Sider 3.5. The current branch now builds a continuous two-layer crowd bed (main ambience plus quieter stadium texture), loops each WAV through Sider's audio completion callback, exposes independent volume controls, and stops both layers when ambience is disabled. This is an initial generic atmosphere engine, not a completed 25-club department and not yet real-game verified.
 
 ## Club selection: biggest / most recognisable
 
@@ -120,4 +120,4 @@ Expose a global master enable, ambience enable, event-cue enable, master volume,
 
 ## Current known gap
 
-The current generated module only plays one selected synthetic WAV on set_home_team. Its paths rely on Sider's ctx.sider_dir value already ending with a directory separator (as the official examples appear to assume); confirm that contract against the exact installed Sider 3.5 build and add path-resolution tests before extending the module. The verifier currently checks only basic RIFF/WAVE headers and fixed counts, not audio format compatibility or match-event behaviour.
+The current generated module starts the two ambience loops on set_home_team and logs set_away_team; it does not yet select different audio by club. The build now packages 45-second procedural crowd beds and validates PCM WAV format, sample rate, bit depth, channel count, chunk sizes and audio configuration ranges. The loop callback, sound-object cleanup, volume levels, actual gaplessness and long-session stability still require PES 2017 + Sider 3.5 runtime testing. Club-specific assets and team-ID routing, plus goal/half-time/full-time event detection, remain unimplemented.
