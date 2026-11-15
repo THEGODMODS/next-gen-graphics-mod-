@@ -58,7 +58,8 @@ jobs:
           './tools/dds-inspect.mjs',
           './tools/dds-preview.mjs',
           './tools/pitch-inventory.mjs',
-          './tools/pitch-module-builder.mjs'
+          './tools/pitch-module-builder.mjs',
+          './tools/pes2017-resource-audit.mjs'
           ].map((file) => import(file)))"
       - name: Syntax-check asset generators
         run: |
