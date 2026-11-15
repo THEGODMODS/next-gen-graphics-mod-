@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * Non-destructive masked detail compositor for GOD KITS / GOD FACES.
  * Supports only audited uncompressed RGBA8/BGRA8 DDS inputs. Writes a new file;
