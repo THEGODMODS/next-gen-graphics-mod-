@@ -1,6 +1,5 @@
-import { beforeAll, describe, expect, it } from "vitest";
-let compositeMaskedDds: (base: Buffer, overlay: Buffer, mask: Buffer, options?: { opacity?: number; maskChannel?: "r" | "g" | "b" | "a" }) => Buffer;
-beforeAll(async () => { compositeMaskedDds = (await import("../tools/godmods-dds-compositor.mjs")).compositeMaskedDds; });
+import { describe, expect, it } from "vitest";
+import { compositeMaskedDds } from "../tools/godmods-dds-compositor.mjs";
 import { inspectDds } from "../tools/dds-audit.mjs";
 
 function rgbaDds(width=2, height=2, mipCount=2, fill=[128,128,128,255]) {
