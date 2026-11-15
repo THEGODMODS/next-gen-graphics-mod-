@@ -30,7 +30,7 @@ function synthCue(profile,index){
   const freq=root*Math.pow(2,scale[note]/12), env=Math.pow(Math.max(0,Math.sin(Math.PI*(t/seconds))),0.45);
   const pad=(Math.sin(2*Math.PI*freq*t)+.42*Math.sin(2*Math.PI*freq*1.503*t)+.18*Math.sin(2*Math.PI*freq*2.01*t))*0.075;
   const pulsePhase=(t%beat)/beat, pulse=Math.exp(-pulsePhase*17)*(.10+.025*(index%4));
-  const clap=(beatIndex%2===0?Math.exp(-((pulsePhase-.02)/.025)**2):0)*.09;
+  const clap=(beatIndex%2===0?Math.exp(-(((pulsePhase-.02)/.025)**2)):0)*.09;
   const grit=(rand()-.5)*.018;
   const mono=(pad+pulse+clap+grit)*env;
   const pan=.16*Math.sin(2*Math.PI*t/seconds+index);
