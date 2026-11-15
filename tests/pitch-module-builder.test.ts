@@ -1,6 +1,6 @@
 import { buildPitchModule } from "../tools/pitch-module-builder.mjs";
 import { describe, it, expect } from "vitest";
-import { mkdtemp,mkdir,writeFile,readFile,rm } from "node:fs/promises";
+import { mkdtemp,mkdir,writeFile,readFile,rm,open } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
