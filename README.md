@@ -21,7 +21,7 @@ See [the GODMODS Add-On Enhancement Standard](docs/GODMODS_ADDON_ENHANCEMENT_STA
 | Graphics | GOD VISUALS | Broadcast polish, natural colour response, cinematic and time-of-day profiles |
 | Stadiums & Turf | GOD STADIUMS + GOD TURF | Original venue presentation, LED artwork, premium pitch surfaces and matchday profiles |
 | Kits & Equipment | GOD KITS | Fabric weave, stitching and material-detail overlays that preserve existing kit designs |
-| Players | GOD FACES | Rights-cleared skin/hair detail and roster-aware appearance enhancements |
+| Players | GOD FACES | Original skin microdetail and hair-fibre material enhancements for existing player appearances |
 | Audio & Atmosphere | GOD ATMOSPHERE | Original layered crowd ambience and optional matchday sound enhancements |
 | Gameplay | GOD GAMEPLAY | Opt-in simulation profiles and carefully tested supported gameplay extensions |
 
@@ -36,13 +36,14 @@ See [the GODMODS Add-On Enhancement Standard](docs/GODMODS_ADDON_ENHANCEMENT_STA
 
 ## Existing first-party content
 
-The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, procedural skin/hair detail sources, synthesized ambience/cues, gameplay profile designs and six 3D LUTs. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
+The original-content generator creates source assets across all six departments: six turf surface variants, stadium LED artwork, kit fabric maps, GOD FACES skin/hair microdetail libraries, synthesized ambience/cues, gameplay profile designs and six 3D LUTs. The project also builds nine Sider Lua profiles (graphics, stadium conditions and opt-in gameplay).
 
 These are real GODMODS source deliverables, but generated assets are not automatically compatible with every YosfX resource or PES material. A virtual overlay is created only after exact target mapping and format validation. No original game or patch file is overwritten.
 
 ## Build and test
 
-- `npm run mods:build-original` — generate original department source assets.
+- `npm run mods:build-original` — generate original department source assets, including GOD FACES.
+- `npm run mods:build-faces` — generate the standalone GOD FACES Premium Appearance Lab sidecar library.
 - `npm run mods:build-packs` — build the Sider add-on packages.
 - `npm run mods:verify-packs` — verify package manifests and payloads.
 - `npm test` — run automated tests.
@@ -57,3 +58,7 @@ Never edit original CPKs, game binaries, option files or the user's Stadium Serv
 ## Licensing
 
 Only distribute original assets or content for which redistribution permission has been obtained. Third-party tools and mods remain subject to their own licenses.
+
+## GOD FACES Premium Appearance Lab
+
+The first GOD FACES source release builds five neutral skin-detail profiles and four hair-fibre profiles (27 DDS source maps total) with SHA-256 manifests. These are original microdetail overlays, not replacement faces, player likenesses, meshes or roster assignments. UV/material mapping and in-game validation on the exact YosfX setup remain required before any LiveCPK integration. See [GOD FACES Premium Lab](docs/GOD_FACES_PREMIUM_LAB.md).
