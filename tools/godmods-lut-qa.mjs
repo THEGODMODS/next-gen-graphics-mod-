@@ -76,8 +76,8 @@ export async function auditAllLutPacks(generatedRoot=path.resolve("content/origi
 async function main(args){
  const result=args[0]?await auditLutPack(args[0]):await auditAllLutPacks();
  const output=args[1];
- if(output){const dest=path.resolve(output);const root=path.resolve(args[0]||"content/originals/generated");if(dest.startsWith(root+path.sep))throw new Error("Report must be outside the LUT pack/root.");await writeFile(dest,JSON.stringify(result,null,2)+"\\n",{flag:"wx"});}
- else process.stdout.write(JSON.stringify(result,null,2)+"\\n");
+ if(output){const dest=path.resolve(output);const root=path.resolve(args[0]||"content/originals/generated");if(dest.startsWith(root+path.sep))throw new Error("Report must be outside the LUT pack/root.");await writeFile(dest,JSON.stringify(result,null,2)+"\n",{flag:"wx"});}
+ else process.stdout.write(JSON.stringify(result,null,2)+"\n");
  if(!result.valid)process.exitCode=1;
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href)main(process.argv.slice(2)).catch(e=>{console.error(e);process.exitCode=1;});
