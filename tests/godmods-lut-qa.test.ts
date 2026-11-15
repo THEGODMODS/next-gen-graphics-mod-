@@ -13,7 +13,7 @@ describe("GODMODS LUT QA",()=>{
   const dir=await mkdtemp(path.join(os.tmpdir(),"godmods-lut-qa-"));dirs.push(dir);
   const body=identityCube(),bytes=Buffer.from(body),hash=createHash("sha256").update(bytes).digest("hex");
   await writeFile(path.join(dir,"neutral-reference.cube"),bytes);
-  const manifest={schemaVersion:1,id:"fixture",installable:false,profiles:[{id:"neutral-reference"}],colourPipeline:{inputOutputSpace:"Not encoded by .cube; verify host primaries and transfer function.",warning:"Do not stack LUTs."},files:[{file:"neutral-reference.cube",bytes:bytes.length,sha256:hash,lattice:"33x33x33",entries:35937,profile:"neutral-reference"}]};
+  const manifest={schemaVersion:1,id:"fixture",installable:false,profiles:[{id:"neutral-reference"}],colourPipeline:{inputOutputSpace:"Adobe .cube does not encode input/output primaries or transfer function.",warning:"Do not stack LUTs."},files:[{file:"neutral-reference.cube",bytes:bytes.length,sha256:hash,lattice:"33x33x33",entries:35937,profile:"neutral-reference"}]};
   await writeFile(path.join(dir,"manifest.json"),JSON.stringify(manifest));
   expect((await auditLutPack(dir)).valid).toBe(true);
   await writeFile(path.join(dir,"neutral-reference.cube"),body.replace("0.0000000 0.0000000 0.0000000","0.1000000 0.0000000 0.0000000"));
