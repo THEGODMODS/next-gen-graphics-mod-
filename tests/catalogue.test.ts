@@ -47,7 +47,7 @@ describe("department catalogue foundation", () => {
 
   it("marks the four active premium departments as in development", () => {
     const active = new Map(departments.map(d => [d.id, d]));
-    for (const id of ["graphics", "stadiums", "kits", "players"] as const) {
+    for (const id of ["graphics", "stadiums", "kits", "players", "audio", "gameplay"] as const) {
       const department = active.get(id)!;
       expect(department.originals.length).toBeGreaterThan(0);
       expect(department.originals.every(project => project.status === "in-development"), id).toBe(true);
