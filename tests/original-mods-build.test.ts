@@ -42,6 +42,10 @@ describe("THEGODMODS original six-department asset build", () => {
     expect((await readdir(path.join(dir, "GOD-STADIUMS", "artwork"))).length).toBeGreaterThanOrEqual(5);
     expect((await readdir(path.join(dir, "GOD-VISUALS", "luts"))).length).toBe(6);
     expect((await readdir(path.join(dir, "GOD-FACES", "textures"))).length).toBe(10);
+    await execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/build-god-turf-stadiumserver.mjs"), path.join(dir, "GOD-TURF")]);
+    const turfAudit = await execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/god-turf-qa.mjs"), path.join(dir, "GOD-TURF")]);
+    expect(JSON.parse(turfAudit.stdout).ddsAssets).toBe(27);
+    expect(JSON.parse(turfAudit.stdout).sidecarAssets).toBe(27);
     const turfPack = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
     expect(turfPack.textures).toHaveLength(9);
     expect(turfPack.assets).toHaveLength(27);
