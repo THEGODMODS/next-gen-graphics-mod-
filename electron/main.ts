@@ -427,8 +427,8 @@ function registerIpc() {
 }
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1440, height: 920, minWidth: 1100, minHeight: 720,
-    backgroundColor: "#07110e", title: "THEGODMODS PES 2017 Next Gen Graphics Manager",
+    width: 1600, height: 1000, minWidth: 900, minHeight: 680,
+    backgroundColor: "#090b0d", title: "GODMODS Manager",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));

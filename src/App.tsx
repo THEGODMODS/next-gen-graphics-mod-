@@ -218,8 +218,8 @@ export default function App() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><span>G</span></div>
-          <div><div className="brand-name">THEGODMODS</div><div className="brand-sub">PES 2017 NEXT GEN MANAGER</div></div>
+          <div className="brand-mark" aria-label="GODMODS"><span>G</span></div>
+          <div><div className="brand-name">GODMODS</div><div className="brand-sub">MANAGER · PES 2017</div></div>
         </div>
         <div className="sidebar-rule" />
         {["WORKSPACE", "CONTENT", "MANAGEMENT", "SYSTEM"].map(group => (
@@ -234,14 +234,14 @@ export default function App() {
           </div>
         ))}
         <div className="sidebar-bottom">
-          <div className="build-label"><span className="status-dot" /> DEVELOPMENT BUILD <span>0.1.0</span></div>
+          <div className="build-label"><span className="status-dot" /> GODMODS MANAGER <span>0.1.0</span></div>
           <div className="sidebar-foot"><ShieldCheck size={15} /> SAFE INSTALLATION ENGINE</div>
         </div>
       </aside>
 
       <main className="main">
         <header className="topbar">
-          <div className="breadcrumb">PES 2017 <span>/</span> {active.toUpperCase()}</div>
+          <div className="breadcrumb">GODMODS MANAGER <span>/</span> {active.toUpperCase()}</div>
           <div className="top-actions"><div className="connection"><span className={ready ? "status-dot" : "status-dot muted"} />{ready ? "GAME DETECTED" : "GAME NOT LINKED"}</div><button className="icon-button" title="Refresh status" disabled={busy} onClick={() => void refresh()}><RefreshCw size={16} /></button><div className="avatar">NG</div></div>
         </header>
 
@@ -249,7 +249,7 @@ export default function App() {
           {active === "Overview" ? <>
             <section className="hero">
               <div className="hero-copy">
-                <div className="eyebrow"><span className="eyebrow-line" /> THEGODMODS · PREMIUM EDITION · EAFC 27 INSPIRED</div>
+                <div className="eyebrow"><span className="eyebrow-line" /> GODMODS MANAGER · THE NEXT MATCHDAY STANDARD</div>
                 <h1>THE NEXT<br /><em>GENERATION</em><br />OF PES 2017.</h1>
                 <p>Six departments. One premium ecosystem. Upgrade the look, feel and atmosphere of every match—with safe, transparent mod management.</p>
                 <div className="hero-actions"><button className="primary-button" onClick={chooseFolder}><FolderOpen size={17} /> {ready ? "CHANGE GAME FOLDER" : "LOCATE PES 2017"}</button><button className="secondary-button" onClick={() => setActive("Modules")}>EXPLORE MODULES <ChevronRight size={16} /></button></div>
