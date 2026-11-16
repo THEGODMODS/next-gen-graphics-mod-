@@ -45,6 +45,7 @@ const featureLua = features.map(feature => [
 
 const loader = [
   "-- THEGODMODS unified PES 2017 / Sider 3.5 runtime",
+  "-- Activation contract: config_exists(feature.config) gates each feature callback.",
   "local M = {}",
   "local features = {",
   featureLua,
