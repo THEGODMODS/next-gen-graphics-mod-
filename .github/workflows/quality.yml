@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Install pinned Lua parser
         run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund luaparse@0.3.1
       - name: Build original GODMODS source assets
