@@ -40,7 +40,7 @@ const featureLua = features.map(feature => [
   "    name = " + luaQuote(feature.name) + ",",
   "    config = " + luaQuote(feature.config) + ",",
   "    factory = function()",
-  feature.source,
+  feature.source.replace(/\nreturn M\s*$/, "\nreturn M;"),
   "    end",
   "  }"
 ].join("\n")).join(",\n");
