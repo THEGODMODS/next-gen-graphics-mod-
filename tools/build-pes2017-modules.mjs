@@ -428,7 +428,7 @@ const definitions = [
     description: "An original Sider 3.5 crowd engine with four selectable premium ambience beds, an optional second layer, intensity scaling and opt-in activation. No unverified match-event cues are triggered.",
     configDepartment: "Audio",
     configFilename: "audio.ini",
-    configIni: "# GODMODS premium crowd engine settings\n# enabled and ambience: 0=off, 1=on. Engine is disabled by default.\n# bed: stadium-open-air, stadium-intimate, stadium-night, stadium-cup-final\n# texture: none or one of the four beds (must differ from bed)\n# intensity: 0=calm, 1=normal, 2=tense, 3=peak\n# volume and texture_volume: 0.0-1.0\nenabled = 0\nambience = 1\nbed = stadium-open-air\ntexture = none\nintensity = 1\nvolume = 0.16\ntexture_volume = 0.035\n",
+    configIni: "# GODMODS premium crowd engine settings\n# enabled and ambience: 0=off, 1=on. Package activation is controlled by GODMODS Manager.\n# bed: stadium-open-air, stadium-intimate, stadium-night, stadium-cup-final\n# texture: none or one of the four beds (must differ from bed)\n# intensity: 0=calm, 1=normal, 2=tense, 3=peak\n# volume and texture_volume: 0.0-1.0\nenabled = 1\nambience = 1\nbed = stadium-open-air\ntexture = none\nintensity = 1\nvolume = 0.16\ntexture_volume = 0.035\n",
     assets: [
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-open-air.wav", filename: "stadium-open-air.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-intimate.wav", filename: "stadium-intimate.wav" },
