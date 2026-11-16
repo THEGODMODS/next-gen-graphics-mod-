@@ -1,6 +1,6 @@
 {
   "name": "godmods-manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "GODMODS Manager — premium PES 2017 mod management",
   "main": "dist-electron/electron/main.js",
