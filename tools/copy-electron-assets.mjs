@@ -3,7 +3,7 @@ import path from "node:path";
 const root = process.cwd();
 const destination = path.join(root, "dist-electron", "electron");
 await mkdir(destination, { recursive: true });
-await Promise.all(["dds-service.cjs", "pitch-workflow.cjs"].map(name => copyFile(path.join(root, "electron", name), path.join(destination, name))));
+await Promise.all(["dds-service.cjs", "dds-worker.cjs", "pitch-workflow.cjs"].map(name => copyFile(path.join(root, "electron", name), path.join(destination, name))));
 const toolDestination = path.join(root, "dist-electron", "tools");
 await mkdir(toolDestination, { recursive: true });
 await Promise.all(["sider-pitch-log.cjs", "sider-pitch-log.mjs"].map(name =>

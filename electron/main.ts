@@ -5,7 +5,6 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import ddsService from "./dds-service.cjs";
 import pitchService from "./pitch-workflow.cjs";
-import { analyzeSiderPitchLog } from "../tools/sider-pitch-log.cjs";
 import { ModuleInstaller } from "../src/main/module-engine/installer";
 import { JournalStore } from "../src/main/module-engine/journal";
 import { parseModuleManifest } from "../src/main/module-engine/manifest";
@@ -137,11 +136,7 @@ function registerIpc() {
     const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select Sider log file (usually sider.log)", properties: ["openFile"], filters: [{ name: "Log files", extensions: ["log", "txt"] }] });
     if (picked.canceled || !picked.filePaths[0]) return null;
     const logPath = picked.filePaths[0];
-    const stat = await fsp.lstat(logPath);
-    if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Selected log must be a regular file, not a symbolic link.");
-    if (stat.size > 32 * 1024 * 1024) throw new Error("Sider log exceeds the 32 MiB analysis limit.");
-    const content = await fsp.readFile(logPath, "utf8");
-    return { fileName: path.basename(logPath), report: analyzeSiderPitchLog(content) };
+    return ddsService.analyzeLog(logPath, app.getAppPath());
   });
   ipcMain.handle("pitch:scan", async event => {
     assertTrustedSender(event);
