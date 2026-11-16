@@ -54,7 +54,7 @@ function visualModule(name, settings, configFolder) {
     "local function apply(ctx, team_id)",
     "  local settings = read_settings()",
     "  if settings.runtime_enabled ~= 1 then return nil end",
-    "  gfx.brightness = settings.brightness"
+    "  gfx.brightness = settings.brightness",
     "  gfx.sharpness = settings.sharpness",
     "  gfx.shadow_softness = settings.shadow_softness",
     "  gfx.reflection = settings.reflection",
