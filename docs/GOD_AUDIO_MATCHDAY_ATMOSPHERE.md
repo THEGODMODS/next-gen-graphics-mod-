@@ -2,7 +2,7 @@
 
 ## Status
 
-Implementation in progress for PES 2017 / Sider 3.5. The current branch now builds a continuous two-layer crowd bed (main ambience plus quieter stadium texture), loops each WAV through Sider's audio completion callback, exposes independent volume controls, and stops both layers when ambience is disabled. This is an initial generic atmosphere engine, not a completed 25-club department and not yet real-game verified.
+The source library and first reusable Sider 3.5 crowd engine are now built. The engine supports four selectable premium generic ambience beds, an optional secondary layer, four manually configured intensity levels, independent volume controls and safe loop restart/stop behaviour. It is disabled by default and is not yet real-game verified. See [PR 19 engine notes](GODMODS_PR19_AUDIO_ENGINE.md).
 
 ## Club selection: biggest / most recognisable
 
@@ -120,7 +120,7 @@ Expose a global master enable, ambience enable, event-cue enable, master volume,
 
 ## Current known gap
 
-The current generated module starts the two ambience loops on set_home_team and logs set_away_team; it does not yet select different audio by club. The build now packages 45-second procedural crowd beds and validates PCM WAV format, sample rate, bit depth, channel count, chunk sizes and audio configuration ranges. The loop callback, sound-object cleanup, volume levels, actual gaplessness and long-session stability still require PES 2017 + Sider 3.5 runtime testing. Club-specific assets and team-ID routing, plus goal/half-time/full-time event detection, remain unimplemented.
+The generated module reads its editable game-root audio.ini on team setup and starts the selected premium 18-second ambience bed only when the user opts in with enabled = 1. It supports a second optional generic bed at a lower independent volume and applies a manually selected calm/normal/tense/peak scalar. The four bundled beds are source-QA checked PCM WAVs. The 25 original club stingers are not yet routed. Club team-ID selection, validated goal/half-time/full-time event detection, loop audition, commentary balance and long-session stability still require testing on the exact PES 2017 + YosfX + Sider 3.5 installation.
 
 
 ## GOD ATMOSPHERE Premium Sound Identity Lab
