@@ -405,7 +405,7 @@ function registerIpc() {
     const result = await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
     return result;
   });
-  ipcMain.handle("sider:launch", event => {
+  ipcMain.handle("sider:launch", async event => {
     assertTrustedSender(event);
     const status = await getStatus();
     if (!status.siderExecutable) return { ok: false, message: "sider.exe was not found in the selected game folder." };
