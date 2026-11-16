@@ -118,16 +118,16 @@ for (const dir of dirs) {
     failures.push(dir.name + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
-if (packageCount !== 13) failures.push("Expected 13 original content-folder packages, found " + packageCount);
-if (luaCount !== 13) failures.push("Expected 13 original installable Lua modules, found " + luaCount);
+if (packageCount !== 18) failures.push("Expected 18 original content-folder packages, found " + packageCount);
+if (luaCount !== 18) failures.push("Expected 18 original installable Lua modules, found " + luaCount);
 if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
 if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
-if (stadiumIniCount !== 3) failures.push("Expected 3 editable game-root stadium INI files, found " + stadiumIniCount);
+if (stadiumIniCount !== 7) failures.push("Expected 7 editable game-root stadium INI files, found " + stadiumIniCount);
 if (audioIniCount !== 1) failures.push("Expected 1 editable game-root audio INI file, found " + audioIniCount);
 if (audioAssetCount !== 4) failures.push("Expected 4 original installable WAV audio assets, found " + audioAssetCount);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
+  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 18 Lua modules, 18 READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
 }
