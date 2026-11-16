@@ -10,6 +10,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildAtmosphereModule } from "./godmods-atmosphere-engine.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.resolve(process.argv[2] || path.join(ROOT, "content", "packs"));
@@ -176,83 +177,6 @@ function gameplayModule(name, values, configFolder) {
   ].join("\n");
 }
 
-function audioModule(name, folder) {
-  return [
-    "-- THEGODMODS original PES 2017 matchday atmosphere: " + name,
-    "-- Sider 3.5 audio library. Continuous ambience only; match-event hooks are deliberately separate.",
-    "local M = {}",
-    "local config_path = nil",
-    "local asset_root = nil",
-    "local settings = { enabled = 1, ambience = 1, volume = 0.16, texture_volume = 0.055 }",
-    "local base_loop = { sound = nil }",
-    "local texture_loop = { sound = nil }",
-    "local function read_settings()",
-    "  local next_settings = { enabled = 1, ambience = 1, volume = 0.16, texture_volume = 0.055 }",
-    "  local file, open_error = io.open(config_path, \"r\")",
-    "  if not file then log(\"THEGODMODS " + name + ": audio INI unavailable; using defaults: \" .. tostring(open_error)); return next_settings end",
-    "  for line in file:lines() do",
-    "    local key, raw = string.match(line, \"^%s*([%w_]+)%s*=%s*([%+%-]?[%d%.]+)%s*$\")",
-    "    local value = tonumber(raw)",
-    "    if key == \"enabled\" or key == \"ambience\" then",
-    "      if value == 0 or value == 1 then next_settings[key] = value else log(\"THEGODMODS " + name + ": ignored invalid \" .. key) end",
-    "    elseif key == \"volume\" or key == \"texture_volume\" then",
-    "      if value and value == value and value ~= math.huge and value ~= -math.huge and value >= 0 and value <= 1 then next_settings[key] = value",
-    "      else log(\"THEGODMODS " + name + ": ignored invalid \" .. key) end",
-    "    elseif key then log(\"THEGODMODS " + name + ": unknown audio INI key \" .. key) end",
-    "  end",
-    "  file:close()",
-    "  return next_settings",
-    "end",
-    "local function stop_loop(slot)",
-    "  local sound = slot.sound",
-    "  slot.sound = nil",
-    "  if sound then sound:finish() end",
-    "end",
-    "local function start_loop(slot, filename, volume_key, label)",
-    "  if slot.sound or settings.enabled == 0 or settings.ambience == 0 then return end",
-    "  local sound, audio_error = audio.new(asset_root .. filename)",
-    "  if not sound then log(\"THEGODMODS " + name + ": could not load \" .. label .. \": \" .. tostring(audio_error)); return end",
-    "  slot.sound = sound",
-    "  sound:set_volume(settings[volume_key])",
-    "  sound:when_done(function()",
-    "    if slot.sound == sound then",
-    "      slot.sound = nil",
-    "      start_loop(slot, filename, volume_key, label)",
-    "    end",
-    "  end)",
-    "  sound:play()",
-    "end",
-    "local function apply_settings()",
-    "  settings = read_settings()",
-    "  if settings.enabled == 0 or settings.ambience == 0 then",
-    "    stop_loop(base_loop); stop_loop(texture_loop)",
-    "    return",
-    "  end",
-    "  if base_loop.sound then base_loop.sound:set_volume(settings.volume) end",
-    "  if texture_loop.sound then texture_loop.sound:set_volume(settings.texture_volume) end",
-    "  start_loop(base_loop, \"synthetic-crowd-bed.wav\", \"volume\", \"main crowd bed\")",
-    "  start_loop(texture_loop, \"synthetic-stadium-bed-alt.wav\", \"texture_volume\", \"stadium texture\")",
-    "end",
-    "local function on_home_team(ctx, team_id)",
-    "  apply_settings()",
-    "  log(\"THEGODMODS " + name + ": home team selected; crowd atmosphere active (team id: \" .. tostring(team_id) .. \" )\")",
-    "  return nil",
-    "end",
-    "local function on_away_team(ctx, team_id)",
-    "  log(\"THEGODMODS " + name + ": away team selected (team id: \" .. tostring(team_id) .. \" )\")",
-    "  return nil",
-    "end",
-    "function M.init(ctx)",
-    "  config_path = \"GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\audio.ini\"",
-    "  asset_root = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\\"",
-    "  ctx.register(\"set_home_team\", on_home_team)",
-    "  ctx.register(\"set_away_team\", on_away_team)",
-    "  log(\"THEGODMODS " + name + ": loaded; continuous crowd bed and low-level stadium texture ready\")",
-    "end",
-    "return M",
-    ""
-  ].join("\n");
-}
 async function writePackage(definition) {
   const root = path.join(OUT, definition.folder);
   await rm(root, { recursive: true, force: true });
@@ -495,18 +419,18 @@ const definitions = [
     department: "Audio",
     moduleName: "godmods_atmosphere_matchday.lua",
     conflicts: [],
-    module: audioModule("GOD ATMOSPHERE — Continuous Matchday Crowd", "GOD-ATMOSPHERE-MATCHDAY"),
-    description: "An original Sider 3.5 atmosphere engine that continuously layers a synthesized crowd bed and low-level stadium texture. It uses game-root-relative config and WAV paths; match-event cues are not enabled until PES 2017 signals are verified.",
+    module: buildAtmosphereModule("GOD ATMOSPHERE — Continuous Matchday Crowd", "GOD-ATMOSPHERE-MATCHDAY"),
+    description: "An original Sider 3.5 crowd engine with four selectable premium ambience beds, an optional second layer, intensity scaling and opt-in activation. No unverified match-event cues are triggered.",
     configDepartment: "Audio",
     configFilename: "audio.ini",
-    configIni: "# GODMODS continuous crowd atmosphere settings\n# enabled and ambience: 0=off, 1=on\n# volume and texture_volume: 0.0-1.0\nenabled = 1\nambience = 1\nvolume = 0.16\ntexture_volume = 0.055\n",
+    configIni: "# GODMODS premium crowd engine settings\n# enabled and ambience: 0=off, 1=on. Engine is disabled by default.\n# bed: stadium-open-air, stadium-intimate, stadium-night, stadium-cup-final\n# texture: none or one of the four beds (must differ from bed)\n# intensity: 0=calm, 1=normal, 2=tense, 3=peak\n# volume and texture_volume: 0.0-1.0\nenabled = 0\nambience = 1\nbed = stadium-open-air\ntexture = none\nintensity = 1\nvolume = 0.16\ntexture_volume = 0.035\n",
     assets: [
-      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-crowd-bed.wav", filename: "synthetic-crowd-bed.wav" },
-      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-stadium-bed-alt.wav", filename: "synthetic-stadium-bed-alt.wav" },
-      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-matchday-horn.wav", filename: "synthetic-matchday-horn.wav" },
-      { source: "content/originals/generated/GOD-ATMOSPHERE/audio/synthetic-whistle-tone.wav", filename: "synthetic-whistle-tone.wav" }
+      { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-open-air.wav", filename: "stadium-open-air.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-intimate.wav", filename: "stadium-intimate.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-night.wav", filename: "stadium-night.wav" },
+      { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-cup-final.wav", filename: "stadium-cup-final.wav" }
     ],
-    readme: "# GOD ATMOSPHERE — Continuous Matchday Crowd\n\nThis package installs an original Sider 3.5 atmosphere module and four synthesized WAV assets. It starts two continuous, independently controlled crowd layers after the home team is selected: a main crowd bed and a quieter stadium texture. Each layer restarts when its WAV finishes, using Sider's audio completion callback.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`. The module does not edit `sider.ini`, replace commentary, use LiveCPK or hook undocumented game memory. Launch Sider with the PES 2017 game folder as its working directory so relative config and asset paths resolve.\n\nEdit the game-root `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini`: `enabled` and `ambience` are 0 or 1; `volume` and `texture_volume` are 0.0–1.0. Defaults are intentionally restrained. Set `ambience = 0` to stop both loops.\n\nAll bundled WAVs are procedurally synthesized originals, not sampled supporter chants, club anthems or commentary. Club-specific identities and goal/half-time/full-time cues remain separate work and will only be enabled after patch team IDs and game-event signals are verified. Real-game loop-gap and long-session stability testing is still required."
+    readme: "# GOD ATMOSPHERE — Premium Crowd Engine\n\nThis package installs an original Sider 3.5 crowd engine and four premium synthesized 18-second PCM WAV ambience beds: Open Air, Intimate Ground, Night Match and Cup Final. Choose one primary bed and optionally add a quieter secondary texture. The engine restarts each bed with Sider's documented audio completion callback and scales both layers using the selected calm/normal/tense/peak intensity.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`. The module does not edit `sider.ini`, replace commentary, use LiveCPK or hook undocumented game memory. Launch Sider with the PES 2017 game folder as its working directory so relative config and asset paths resolve.\n\nEdit `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini`. It is disabled by default: set `enabled = 1` to opt in. Select `bed` from the four documented IDs; set `texture` to `none` or a different bed. Set `intensity` to 0 (calm), 1 (normal), 2 (tense) or 3 (peak). Volumes are 0.0–1.0. Set `ambience = 0` to stop both loops. Invalid values are ignored and unknown bed names fall back safely.\n\nThe engine deliberately does not trigger the 25 club stingers or goal/half-time/full-time cues: team IDs and match-event signals still require target-patch evidence. This is a source-verified runtime module, not a claim of in-game audio compatibility. Test loop continuity, commentary balance and long-session stability on the exact PES 2017 + YosfX + Sider setup before enabling it for normal play."
   },
 ];
 

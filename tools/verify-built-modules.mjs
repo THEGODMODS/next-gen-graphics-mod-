@@ -47,7 +47,7 @@ for (const dir of dirs) {
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("synthetic-crowd-bed.wav") || !lua.includes("synthetic-stadium-bed-alt.wav") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
@@ -88,7 +88,7 @@ for (const dir of dirs) {
         const byteRate = bytes.readUInt32LE(28);
         const blockAlign = bytes.readUInt16LE(32);
         const bitsPerSample = bytes.readUInt16LE(34);
-        if (format !== 1 || ![1, 2].includes(channels) || ![22050, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
+        if (format !== 1 || ![1, 2].includes(channels) || ![22050, 24000, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
         if (blockAlign !== channels * bitsPerSample / 8 || byteRate !== sampleRate * blockAlign) throw new Error("WAV block alignment or byte rate is inconsistent");
         // RIFF chunks begin at byte 12. The fmt chunk header is 8 bytes;
         // data follows the complete fmt payload (not after its first 8 bytes).
