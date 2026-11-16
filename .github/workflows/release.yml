@@ -54,8 +54,23 @@ jobs:
           if ("${{ github.ref_name }}" -ne "main") {
             throw "Run manual releases from the main branch."
           }
-          git tag "$env:RELEASE_TAG" $env:GITHUB_SHA
-          git push origin "$env:RELEASE_TAG"
+          $tag = "$env:RELEASE_TAG"
+          $remoteTag = git ls-remote --tags origin "refs/tags/$tag"
+          if ($LASTEXITCODE -ne 0) { throw "Could not check whether release tag $tag already exists." }
+          if ($remoteTag) {
+            git fetch origin "refs/tags/$tag:refs/tags/$tag"
+            if ($LASTEXITCODE -ne 0) { throw "Could not fetch existing release tag $tag." }
+            $tagCommit = git rev-parse "$tag^{commit}"
+            if ($tagCommit -ne $env:GITHUB_SHA) {
+              throw "Release tag $tag already exists but points to $tagCommit, not this main commit $env:GITHUB_SHA."
+            }
+            Write-Host "Release tag $tag already exists on this exact commit; continuing."
+          } else {
+            git tag "$tag" $env:GITHUB_SHA
+            if ($LASTEXITCODE -ne 0) { throw "Could not create release tag $tag." }
+            git push origin "$tag"
+            if ($LASTEXITCODE -ne 0) { throw "Could not push release tag $tag." }
+          }
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
@@ -74,11 +89,12 @@ jobs:
           './tools/pitch-module-builder.mjs'
           ].map((file) => import(file)))"
 
-      - name: Unit tests
-        run: npm test
-
+      # Build all generated mod assets before tests that inspect those outputs.
       - name: Production build
         run: npm run build
+
+      - name: Unit tests
+        run: npm test
 
       - name: Build GODMODS portable package
         run: npm run portable:win:package
