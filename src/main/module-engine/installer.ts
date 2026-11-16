@@ -325,7 +325,7 @@ export class ModuleInstaller {
     try {
       const stat = await fs.lstat(target);
       if (stat.isSymbolicLink() || !stat.isFile()) return false;
-      return /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fs.readFile(target, "utf8"));
+      return /^\s*enabled\s*=\s*1\s*$/mi.test(await fs.readFile(target, "utf8"));
     } catch { return false; }
   }
 
@@ -355,6 +355,8 @@ export class ModuleInstaller {
       if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Activation marker is not a regular file; package state was not changed.");
       if (!(await verifySha256(target, marker.sha256))) throw new Error("Activation marker was edited outside GODMODS Manager. Restore it or reinstall the package before switching it.");
       const temporary = target + ".nextgen-" + randomUUID() + ".tmp";
+      const rollback = target + ".nextgen-rollback-" + randomUUID() + ".tmp";
+      const previous = await fs.readFile(target, "utf8");
       const next = "# GODMODS per-product activation state\\nenabled = " + (enabled ? "1" : "0") + "\\n";
       try {
         await fs.writeFile(temporary, next, { encoding: "utf8", flag: "wx" });
@@ -363,6 +365,10 @@ export class ModuleInstaller {
         await this.journal.write(journal);
       } catch (error) {
         await fs.rm(temporary, { force: true });
+        try {
+          await fs.writeFile(rollback, previous, { encoding: "utf8", flag: "wx" });
+          await fs.rename(rollback, target);
+        } catch { /* Preserve the journal and report the activation failure for recovery. */ }
         throw error;
       }
     });
