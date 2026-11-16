@@ -297,8 +297,8 @@ function registerIpc() {
           const marker = installedRecord?.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
           if (marker && gameDirectory) {
             try {
-              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\\\/g, "/").split("/"));
-              enabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              enabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
             } catch { enabled = false; }
           }
         }
@@ -444,8 +444,8 @@ function registerIpc() {
       let enabled = true;
       if (marker && gameDirectory) {
         try {
-          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\\\/g, "/").split("/"));
-          enabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          enabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
         } catch { enabled = false; }
       }
       return {
