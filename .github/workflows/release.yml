@@ -62,9 +62,18 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Could not fetch existing release tag $tag." }
             $tagCommit = git rev-parse "$tag^{commit}"
             if ($tagCommit -ne $env:GITHUB_SHA) {
-              throw "Release tag $tag already exists but points to $tagCommit, not this main commit $env:GITHUB_SHA."
+              gh release view $tag *> $null
+              if ($LASTEXITCODE -eq 0) {
+                throw "Release $tag already exists; refusing to move a published release tag."
+              }
+              git tag --force "$tag" $env:GITHUB_SHA
+              if ($LASTEXITCODE -ne 0) { throw "Could not move unpublished release tag $tag to this main commit." }
+              git push --force origin "refs/tags/$tag"
+              if ($LASTEXITCODE -ne 0) { throw "Could not update unpublished release tag $tag on origin." }
+              Write-Host "Updated unpublished release tag $tag to the current main commit."
+            } else {
+              Write-Host "Release tag $tag already exists on this exact commit; continuing."
             }
-            Write-Host "Release tag $tag already exists on this exact commit; continuing."
           } else {
             git tag "$tag" $env:GITHUB_SHA
             if ($LASTEXITCODE -ne 0) { throw "Could not create release tag $tag." }
