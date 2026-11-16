@@ -34,6 +34,25 @@ jobs:
         run: npm run mods:verify-packs
       - name: Parse every generated Sider Lua module (Lua 5.1)
         run: npm run mods:check-lua
+      - name: Verify Sider 3.5 restricted Lua environment
+        shell: pwsh
+        run: |
+          $loader = Get-Content content/packs/thegodmods.core-loader/payload/GODMODS_Loader.lua -Raw
+          foreach ($name in @('pcall', 'xpcall', 'loadstring', 'require')) {
+            if ($loader -match ('\\b' + $name + '\\s*\\(')) {
+              throw "Generated master loader calls unsupported Sider 3.5 global: $name"
+            }
+          }
+          if ($loader -notmatch 'function M\\.init\\(ctx\\)') { throw "Sider module init(ctx) entry point is missing." }
+          if ($loader -notmatch 'ctx\\.register') { throw "Sider event registration bridge is missing." }
+          Write-Host "Sider 3.5 environment scan passed."
+      - name: Upload standalone GODMODS Lua module
+        uses: actions/upload-artifact@v4
+        with:
+          name: GODMODS-Lua-Module-Sider-3.5
+          path: content/packs/thegodmods.core-loader/payload/GODMODS_Loader.lua
+          if-no-files-found: error
+          retention-days: 30
       - name: GODMODS cross-department source regression
         run: npm run audit:godmods-final
       - name: TypeScript validation
