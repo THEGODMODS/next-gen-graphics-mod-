@@ -1,4 +1,4 @@
-name: Draft Windows Release
+name: GODMODS Manager Windows Release
 
 on:
   push:
@@ -97,7 +97,7 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $notes = @"
-          ## THEGODMODS PES 2017 Next Gen — $tag
+          ## GODMODS Manager — $tag
 
           **Draft release candidate.** Review and test the installer on a clean Windows machine and a backed-up PES 2017 + Sider installation before publishing.
 
@@ -110,7 +110,7 @@ jobs:
           - SHA-256 checksum file
 
           ### Important
-          A successful CI run does not prove in-game compatibility. This application release does not imply that any catalogue mod pack is available or verified. Review the release notes and test rollback before making this release public.
+          A successful CI run does not prove in-game compatibility. This application release does not imply that every catalogue mod pack is mapped or verified in-game. Test the manager, installation, rollback and exact PES 2017 + patch + Sider setup before publishing. Do not claim compatibility beyond the tested configuration.
           "@
           Set-Content release/RELEASE-NOTES.md $notes -Encoding utf8
-          gh release create $tag (Get-ChildItem release -Filter *.exe | ForEach-Object { $_.FullName }) release/SHA256SUMS.txt release/RELEASE-NOTES.md --draft --verify-tag --title "PES 2017 Next Gen $tag" --notes-file release/RELEASE-NOTES.md
+          gh release create $tag (Get-ChildItem release -Filter *.exe | ForEach-Object { $_.FullName }) release/SHA256SUMS.txt release/RELEASE-NOTES.md --draft --verify-tag --title "GODMODS Manager $tag" --notes-file release/RELEASE-NOTES.md
