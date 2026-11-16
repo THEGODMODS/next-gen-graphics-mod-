@@ -108,7 +108,7 @@ export function buildAtmosphereModule(name, folder) {
     "  asset_root = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\\"",
     "  ctx.register(\"set_home_team\", on_team_setup)",
     "  ctx.register(\"set_away_team\", on_team_setup)",
-    "  log(\"THEGODMODS " + name + ": loaded; audio is opt-in and disabled until enabled = 1 in audio.ini\")",
+    "  log(\"THEGODMODS " + name + ": loaded; package activation is controlled by GODMODS Manager and audio settings are read from audio.ini\")",
     "end",
     "return M",
     ""
