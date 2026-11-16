@@ -38,7 +38,7 @@ const validEvidence = () => ({
 });
 
 describe("GODMODS final integration evidence gate", () => {
-  it("accepts a complete evidence set without authorizing deployment", () => {
+  it("accepts a complete evidence set without authorizing deployment", async () => {
     const report = await validateIntegrationEvidence(validEvidence());
     expect(report.status).toBe("integration-evidence-valid");
     expect(report.inGameEvidenceComplete).toBe(true);
@@ -46,7 +46,7 @@ describe("GODMODS final integration evidence gate", () => {
     expect(report.deploymentAuthorized).toBe(false);
     expect(report.coverage.gameplayFullMatchRuns).toBe(3);
   });
-  it("blocks guessed or missing target and resource bindings", () => {
+  it("blocks guessed or missing target and resource bindings", async () => {
     const evidence = validEvidence();
     evidence.target.executableSha256 = "not-a-hash";
     evidence.mappings.stadiumsTurf[0].targetPath = "../../original.dds";
@@ -57,7 +57,7 @@ describe("GODMODS final integration evidence gate", () => {
     expect(report.issues).toContain("mappings.stadiumsTurf[0].targetPath must be a safe relative path");
     expect(report.issues).toContain("audio.routes[0] must identify the exact event and evidence");
   });
-  it("requires repeatable full-match evidence, a colour-managed host and tested rollback", () => {
+  it("requires repeatable full-match evidence, a colour-managed host and tested rollback", async () => {
     const evidence = validEvidence();
     evidence.gameplay.runs.pop();
     evidence.graphics.inputTransfer = "";
