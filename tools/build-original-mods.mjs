@@ -31,6 +31,9 @@ function makeGrassPixels(size, style, seed = 11, wear = 0.08) {
     natural: { base: [67, 105, 49], low: [22, 34, 16], high: [38, 51, 22], stripe: 5 },
     emerald: { base: [48, 112, 54], low: [18, 34, 18], high: [43, 57, 26], stripe: 9 },
     worn: { base: [91, 105, 52], low: [32, 35, 19], high: [47, 45, 25], stripe: 2 },
+    broadcast: { base: [53, 99, 45], low: [17, 30, 14], high: [35, 48, 22], stripe: 12 },
+    naturalPro: { base: [62, 113, 49], low: [20, 36, 17], high: [39, 57, 26], stripe: 4 },
+    hybrid: { base: [56, 106, 48], low: [18, 32, 15], high: [37, 52, 23], stripe: 8 },
   };
   const p = palettes[style];
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
@@ -220,7 +223,10 @@ async function buildSixDepartments(output) {
     { id: "heritage-worn", style: "worn", seed: 307, wear: 0.28 },
     { id: "cool-climate", style: "natural", seed: 409, wear: 0.11 },
     { id: "sunlit-hybrid", style: "emerald", seed: 503, wear: 0.05 },
-    { id: "matchday-striped", style: "natural", seed: 601, wear: 0.07 }
+    { id: "matchday-striped", style: "natural", seed: 601, wear: 0.07 },
+    { id: "broadcast-cut", style: "broadcast", seed: 701, wear: 0.04 },
+    { id: "natural-pro", style: "naturalPro", seed: 809, wear: 0.09 },
+    { id: "hybrid-elite", style: "hybrid", seed: 907, wear: 0.12 }
   ];
   const turfFiles = ["README.md", "surface-library.json", "pack.json"];
   const turfAssetRecords = [];
@@ -243,15 +249,15 @@ async function buildSixDepartments(output) {
     }
   }
   await writeText(path.join(output, "GOD-TURF", "pack.json"), JSON.stringify({
-    schemaVersion: 1, id: "thegodmods.god-turf-premium", name: "GOD TURF Premium Six-Surface Collection",
-    version: "0.2.0", ownership: "THEGODMODS original procedural artwork",
+    schemaVersion: 1, id: "thegodmods.god-turf-premium", name: "GOD TURF Premium Nine-Surface Collection",
+    version: "0.3.0", ownership: "THEGODMODS original procedural artwork",
     status: "source maps generated; PES material mapping and in-game validation pending",
     installable: false, textures: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })),
     assets: turfAssetRecords
   }, null, 2) + "\n");
-  await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF — Premium Surface Lab\n\nSix original procedural pitch looks, each with albedo, derived tangent-space normal source and roughness source maps, all exported as RGBA8 DDS with full mip chains. Normal/roughness maps are source maps only: verify target PES material shader and channel convention before use.\n");
+  await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF — Premium Surface Lab\n\nNine original procedural pitch looks, each with albedo, derived tangent-space normal source and roughness source maps, all exported as RGBA8 DDS with full mip chains. The collection spans natural, broadcast-cut, hybrid and worn presentation styles. Normal/roughness maps are source maps only: verify target PES material shader and channel convention before use.\n");
   await writeText(path.join(output, "GOD-TURF", "surface-library.json"), JSON.stringify({ schemaVersion: 1, generator: "THEGODMODS procedural surface workshop", resolution: SIZE, format: "DDS RGBA8 mipmapped", variants: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })) }, null, 2) + "\n");
-  await addProduct("GOD-TURF", "GOD TURF — Premium Six-Surface Collection", "stadiums", turfFiles, ["Six original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
+  await addProduct("GOD-TURF", "GOD TURF — Premium Nine-Surface Collection", "stadiums", turfFiles, ["Six original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
 
   // Stadium presentation: original sponsor-neutral LED board artwork.
   const stadiumDir = path.join(output, "GOD-STADIUMS");
