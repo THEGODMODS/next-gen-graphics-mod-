@@ -1,6 +1,11 @@
 name: GODMODS Manager Windows Release
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       release_tag:
@@ -21,7 +26,7 @@ jobs:
     name: Validate and package Windows release
     runs-on: windows-latest
     env:
-      RELEASE_TAG: ${{ inputs.release_tag || github.ref_name }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'v0.2.0' }}
     steps:
       - name: Check out tagged source
         uses: actions/checkout@v4
@@ -48,7 +53,7 @@ jobs:
           }
 
       - name: Create release tag for manual runs
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         shell: pwsh
         run: |
           if ("${{ github.ref_name }}" -ne "main") {
