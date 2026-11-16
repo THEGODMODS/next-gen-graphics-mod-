@@ -4,9 +4,9 @@ import { getDepartment } from "../catalogue/departments";
 import { getGeneratedAssetStatus, getOriginalContentProject } from "../catalogue/original-content";
 import type { LibraryPackage } from "../../electron/preload";
 
-type Props = { departmentId: string; packages: LibraryPackage[]; packagesBusy: boolean; onScanPackages: () => void; onPreviewPackage: (id: string) => void; onOpenSource: (sourceId: string) => void; onFindPackage: (projectName: string) => void };
+type Props = { departmentId: string; packages: LibraryPackage[]; packagesBusy: boolean; onScanPackages: () => void; onPreviewPackage: (id: string) => void; onTogglePackage: (id: string, enabled: boolean) => void; onOpenSource: (sourceId: string) => void; onFindPackage: (projectName: string) => void };
 
-export default function DepartmentCatalogue({ departmentId, packages, packagesBusy, onScanPackages, onPreviewPackage, onOpenSource, onFindPackage }: Props) {
+export default function DepartmentCatalogue({ departmentId, packages, packagesBusy, onScanPackages, onPreviewPackage, onTogglePackage, onOpenSource, onFindPackage }: Props) {
   const department = getDepartment(departmentId);
   const [view, setView] = useState<"originals" | "third-party">("originals");
   const [search, setSearch] = useState("");
@@ -41,7 +41,7 @@ export default function DepartmentCatalogue({ departmentId, packages, packagesBu
         <div className="catalogue-tags"><span>v{item.version}</span><span>{item.files} files</span><span>{item.category}</span></div>
         {item.errors.length > 0 && <p className="catalogue-package-warning">{item.errors.join(" · ")}</p>}
         {item.conflicts.length > 0 && <p className="catalogue-package-warning">Conflicts: {item.conflicts.join(", ")}</p>}
-        <div className="catalogue-card-foot"><span><BadgeCheck size={14}/> Manifest and payload validation</span><button disabled={!item.valid || item.alreadyInstalled || item.conflicts.length > 0} onClick={() => onPreviewPackage(item.id)}>REVIEW INSTALLATION</button></div>
+        <div className="catalogue-card-foot"><span><BadgeCheck size={14}/> Manifest and payload validation</span>{item.alreadyInstalled ? <button disabled={packagesBusy} onClick={() => onTogglePackage(item.id, !item.enabled)}>{item.enabled ? "TURN OFF" : "TURN ON"}</button> : <button disabled={!item.valid || item.conflicts.length > 0} onClick={() => onPreviewPackage(item.id)}>REVIEW INSTALLATION</button>}</div>
       </article>)}
       {!packagesBusy && visiblePackages.length === 0 && <div className="catalogue-empty"><Blocks size={22}/><b>No validated packages in this department yet</b><span>Original project briefs below are not automatically installable. Refresh the library to check for packages.</span></div>}
     </div>}
