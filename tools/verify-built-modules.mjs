@@ -47,7 +47,7 @@ for (const dir of dirs) {
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("synthetic-crowd-bed.wav") || !lua.includes("synthetic-stadium-bed-alt.wav") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
@@ -118,8 +118,8 @@ for (const dir of dirs) {
     failures.push(dir.name + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
-if (packageCount !== 14) failures.push("Expected 14 original content-folder packages, found " + packageCount);
-if (luaCount !== 14) failures.push("Expected 14 original installable Lua modules, found " + luaCount);
+if (packageCount !== 13) failures.push("Expected 13 original content-folder packages, found " + packageCount);
+if (luaCount !== 13) failures.push("Expected 13 original installable Lua modules, found " + luaCount);
 if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
 if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
 if (stadiumIniCount !== 3) failures.push("Expected 3 editable game-root stadium INI files, found " + stadiumIniCount);
@@ -129,5 +129,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 14 Lua modules, 14 READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
+  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, 13 Lua modules, 13 READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
 }
