@@ -14,6 +14,8 @@ import { SiderConfigManager } from "../src/main/module-engine/sider-config";
 
 let mainWindow: BrowserWindow | null = null;
 let startupReady: Promise<void> = Promise.resolve();
+// Keep the pre-redesign per-user data location so saved game paths, journals and backups survive the product rename.
+app.setPath("userData", path.join(app.getPath("appData"), "THEGODMODS PES 2017 Next Gen Graphics Manager"));
 let gameDirectory: string | null = null;
 let pendingPackage: { root: string; id: string; version: string } | null = null;
 let libraryPackages = new Map<string, string>();
