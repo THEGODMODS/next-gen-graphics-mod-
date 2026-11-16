@@ -1,6 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain, shell } from "electron";
 import { spawn } from "node:child_process";
-import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,6 +14,7 @@ import { verifySha256 } from "../src/main/module-engine/sha256";
 import { SiderConfigManager } from "../src/main/module-engine/sider-config";
 
 let mainWindow: BrowserWindow | null = null;
+let startupReady: Promise<void> = Promise.resolve();
 let gameDirectory: string | null = null;
 let pendingPackage: { root: string; id: string; version: string } | null = null;
 let libraryPackages = new Map<string, string>();
@@ -27,39 +27,36 @@ let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: st
 const stateDirectory = () => path.join(app.getPath("userData"), "manager-state");
 const settingsPath = () => path.join(app.getPath("userData"), "manager-settings.json");
 
-function exists(filePath: string | null): boolean {
-  return Boolean(filePath && fs.existsSync(filePath));
-}
-function findFirst(directory: string, names: string[]): string | null {
+async function findFirst(directory: string, names: string[]): Promise<string | null> {
   for (const name of names) {
     const candidate = path.join(directory, name);
-    if (exists(candidate)) return candidate;
+    try {
+      const stat = await fsp.stat(candidate);
+      if (stat.isFile()) return candidate;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== "ENOENT" && code !== "ENOTDIR") throw error;
+    }
   }
   return null;
 }
-function readSiderSettings(iniPath: string | null) {
-  if (!iniPath || !exists(iniPath)) return { liveCpkEnabled: false, luaEnabled: false, luaModules: [] as string[] };
-  const content = fs.readFileSync(iniPath, "utf8");
+async function readSiderSettings(iniPath: string | null) {
+  if (!iniPath) return { liveCpkEnabled: false, luaEnabled: false, luaModules: [] as string[] };
+  let content: string;
+  try { content = await fsp.readFile(iniPath, "utf8"); }
+  catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return { liveCpkEnabled: false, luaEnabled: false, luaModules: [] as string[] }; throw error; }
   const values = (key: string) => content.split(/\r?\n/).flatMap(line => {
     const match = line.match(/^\s*([^=]+?)\s*=\s*(.*?)\s*$/);
     if (!match || match[1].trim().toLowerCase() !== key.toLowerCase()) return [];
-    return [match[2].trim().replace(/^["']|["']$/g, "")];
+    return [match[2].trim().replace(/^[\"']|[\"']$/g, "")];
   });
-  return {
-    liveCpkEnabled: values("livecpk.enabled").some(value => value === "1"),
-    luaEnabled: values("lua.enabled").some(value => value === "1"),
-    luaModules: values("lua.module")
-  };
+  return { liveCpkEnabled: values("livecpk.enabled").some(value => value === "1"), luaEnabled: values("lua.enabled").some(value => value === "1"), luaModules: values("lua.module") };
 }
-function getStatus() {
+async function getStatus() {
+  await startupReady;
   const directory = gameDirectory;
-  const gameExecutable = directory ? findFirst(directory, ["PES2017.exe", "PES2017patched.exe"]) : null;
-  const siderExecutable = directory ? findFirst(directory, ["sider.exe"]) : null;
-  const siderIni = directory ? findFirst(directory, ["sider.ini"]) : null;
-  return {
-    gameDirectory: directory, gameExecutable, siderExecutable, siderIni,
-    ...readSiderSettings(siderIni), startupRecovery
-  };
+  const [gameExecutable, siderExecutable, siderIni] = directory ? await Promise.all([findFirst(directory, ["PES2017.exe", "PES2017patched.exe"]), findFirst(directory, ["sider.exe"]), findFirst(directory, ["sider.ini"])]) : [null, null, null];
+  return { gameDirectory: directory, gameExecutable, siderExecutable, siderIni, ...await readSiderSettings(siderIni), startupRecovery };
 }
 async function assertNoSymlinkParents(root: string, relativePath: string) {
   const segments = normalizeSafeRelativePath(relativePath).split("/");
@@ -100,7 +97,7 @@ async function loadAndRecover() {
   try {
     const raw = await fsp.readFile(settingsPath(), "utf8");
     const saved = JSON.parse(raw) as { gameDirectory?: unknown };
-    if (typeof saved.gameDirectory === "string" && fs.existsSync(saved.gameDirectory)) gameDirectory = saved.gameDirectory;
+    if (typeof saved.gameDirectory === "string") { try { const stat = await fsp.stat(saved.gameDirectory); if (stat.isDirectory()) gameDirectory = saved.gameDirectory; } catch { /* Missing saved path: leave the game unconfigured. */ } }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
       startupRecovery = { status: "blocked", files: [], message: "Saved game-folder settings could not be read. Select the game folder again." };
@@ -191,7 +188,7 @@ function registerIpc() {
     if (!selectedDds.original || !selectedDds.replacement) throw new Error("Choose both original and replacement DDS textures first.");
     return ddsService.compare(selectedDds.original, selectedDds.replacement, app.getAppPath());
   });
-  ipcMain.handle("game:get-status", event => { assertTrustedSender(event); return getStatus(); });
+  ipcMain.handle("game:get-status", async event => { assertTrustedSender(event); return getStatus(); });
   ipcMain.handle("game:choose-directory", async event => {
     assertTrustedSender(event);
     const result = await dialog.showOpenDialog(mainWindow!, { title: "Select your PES 2017 installation folder", properties: ["openDirectory"] });
@@ -413,7 +410,7 @@ function registerIpc() {
   });
   ipcMain.handle("sider:launch", event => {
     assertTrustedSender(event);
-    const status = getStatus();
+    const status = await getStatus();
     if (!status.siderExecutable) return { ok: false, message: "sider.exe was not found in the selected game folder." };
     if (!status.gameExecutable) return { ok: false, message: "PES2017.exe was not found. Check the selected folder." };
     try {
@@ -427,21 +424,24 @@ function registerIpc() {
 }
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1600, height: 1000, minWidth: 900, minHeight: 680,
+    width: 1600, height: 1000, minWidth: 900, minHeight: 680, show: false,
     backgroundColor: "#090b0d", title: "GODMODS Manager",
     webPreferences: { preload: path.join(__dirname, "preload.js"), contextIsolation: true, nodeIntegration: false, sandbox: true }
   });
+  mainWindow.once("ready-to-show", () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show(); });
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  mainWindow.webContents.on("render-process-gone", (_event, details) => { console.error("GODMODS Manager renderer exited:", details.reason, details.exitCode); });
   mainWindow.webContents.on("will-navigate", (event, navigationUrl) => {
     if (!isTrustedRendererUrl(navigationUrl)) event.preventDefault();
   });
   if (app.isPackaged) void mainWindow.loadFile(path.join(__dirname, "../../dist/index.html"));
   else void mainWindow.loadURL("http://127.0.0.1:5173");
 }
-app.whenReady().then(async () => {
-  await loadAndRecover();
+app.whenReady().then(() => {
+  app.setName("GODMODS Manager");
   registerIpc();
   createWindow();
+  startupReady = loadAndRecover();
   app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
