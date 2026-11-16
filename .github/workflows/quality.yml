@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   windows-quality:
-    name: Windows validation and portable archive
+    name: Windows source, module and app validation
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,20 +34,6 @@ jobs:
         run: npm run mods:verify-packs
       - name: Parse every generated Sider Lua module (Lua 5.1)
         run: npm run mods:check-lua
-      - name: Upload installable GODMODS module packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: thegodmods-installable-modules-${{ github.sha }}
-          path: content/packs/**
-          if-no-files-found: error
-          retention-days: 30
-      - name: Upload generated original GODMODS content
-        uses: actions/upload-artifact@v4
-        with:
-          name: thegodmods-original-content-${{ github.sha }}
-          path: content/originals/generated/**
-          if-no-files-found: error
-          retention-days: 30
       - name: GODMODS cross-department source regression
         run: npm run audit:godmods-final
       - name: TypeScript validation
@@ -83,12 +69,3 @@ jobs:
         run: npm test
       - name: Production build
         run: npm run build
-      - name: Build GODMODS portable package
-        run: npm run portable:win:package
-      - name: Upload GODMODS portable ZIP
-        uses: actions/upload-artifact@v4
-        with:
-          name: GODMODS-Manager-portable-${{ github.sha }}
-          path: release/portable/GODMODS-Manager-*-Portable.zip
-          if-no-files-found: error
-          retention-days: 14
