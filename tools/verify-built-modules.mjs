@@ -39,7 +39,7 @@ for (const dir of dirs) {
       const bytes = await readFile(loaderPath);
       if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) throw new Error("master loader SHA-256 mismatch");
       const source = bytes.toString("utf8");
-      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(ctx, feature.config)")) throw new Error("master loader orchestration contract missing");
+      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(feature.config)")) throw new Error("master loader orchestration contract missing");
       luaCount += 1;
       packageCount += 1;
       continue;
@@ -60,9 +60,9 @@ for (const dir of dirs) {
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
-        if (manifest.category === "gameplay" && (!lua.includes('config_path = ctx.sider_dir ..') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
-        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
-        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
+        if (manifest.category === "gameplay" && (!lua.includes('config_path = "GODMODS') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
+        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
+        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
         if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;

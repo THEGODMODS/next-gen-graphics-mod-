@@ -43,11 +43,11 @@ for (const dir of dirs.sort((a, b) => a.name.localeCompare(b.name))) {
     if (!item.target.endsWith("/README.md")) continue;
     const readmePath = path.resolve(packageRoot, item.source);
     const readme = await readFile(readmePath, "utf8");
-    const revised = readme
-      .replace(/Copy the (?:listed )?Lua module into Sider\/modules and add its lua\.module entry[\s\S]*?sider\.ini\.?/i,
-        "The GODMODS master loader is installed and registered automatically as a dependency. This product is activated by its installed configuration file; no separate Lua module entry is required.")
-      .replace(/Copy godmods_atmosphere_matchday\.lua into Sider\/modules and add lua\.module entry[\s\S]*?sider\.ini\.?/i,
-        "The GODMODS master loader is installed and registered automatically as a dependency. This product is activated by its installed audio.ini; no separate Lua module entry is required.");
+    const paragraphs = readme.split(/\n\s*\n/).filter(paragraph =>
+      !(paragraph.includes("Sider/modules") && paragraph.includes("sider.ini"))
+    );
+    const revised = paragraphs.join("\n\n") +
+      "\n\nThe GODMODS master loader is installed and registered automatically as a dependency. This product is activated by its installed configuration file; no separate Lua module entry is required.\n";
     await writeFile(readmePath, revised, "utf8");
     item.sha256 = hash(Buffer.from(revised.replace(/\r\n/g, "\n"), "utf8"));
   }
@@ -69,9 +69,8 @@ const loader = [
   "local features = {",
   featureTable,
   "}",
-  "local function config_exists(ctx, relative_path)",
-  "  local path = ctx.sider_dir .. \"\\\\\" .. string.gsub(relative_path, \"/\", \"\\\\\")",
-  "  local file = io.open(path, \"r\")",
+  "local function config_exists(relative_path)",
+  "  local file = io.open(relative_path, \"r\")",
   "  if not file then return false end",
   "  file:close()",
   "  return true",
@@ -79,19 +78,15 @@ const loader = [
   "function M.init(ctx)",
   "  local loaded = 0",
   "  for _, feature in ipairs(features) do",
-  "    if config_exists(ctx, feature.config) then",
-  "      local ok, module_or_error = pcall(feature.create)",
-  "      if ok and type(module_or_error) == \"table\" and type(module_or_error.init) == \"function\" then",
-  "        local initialized, init_error = pcall(module_or_error.init, ctx)",
-  "        if initialized then",
-  "          loaded = loaded + 1",
-  "          log(\"THEGODMODS: enabled \" .. feature.name)",
-  "        else",
-  "          log(\"THEGODMODS: feature failed \" .. feature.id .. \": \" .. tostring(init_error))",
-  "        end",
-  "      else",
-  "        log(\"THEGODMODS: invalid feature \" .. feature.id .. \": \" .. tostring(module_or_error))",
-  "      end",
+  "    if config_exists(feature.config) then",
+      "      local module = feature.create()",
+      "      if type(module) == \"table\" and type(module.init) == \"function\" then",
+      "        module.init(ctx)",
+      "        loaded = loaded + 1",
+      "        log(\"THEGODMODS: enabled \" .. feature.name)",
+      "      else",
+      "        log(\"THEGODMODS: invalid feature \" .. feature.id)",
+      "      end",
   "    end",
   "  end",
   "  log(\"THEGODMODS master loader initialized; active features: \" .. tostring(loaded) .. \" / \" .. tostring(#features))",
