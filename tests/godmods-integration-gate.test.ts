@@ -55,7 +55,7 @@ const validEvidence = () => ({
 
 describe("GODMODS final integration evidence gate", () => {
   it("accepts a complete evidence set without authorizing deployment", () => {
-    const report = await validateIntegrationEvidence(validEvidence());
+    const report = validateIntegrationEvidence(validEvidence());
     expect(report.status).toBe("integration-evidence-valid");
     expect(report.inGameEvidenceComplete).toBe(true);
     expect(report.inGameVerified).toBe(false);
@@ -67,7 +67,7 @@ describe("GODMODS final integration evidence gate", () => {
     evidence.target.executableSha256 = "not-a-hash";
     evidence.mappings.stadiumsTurf[0].targetPath = "../../original.dds";
     evidence.audio.routes[0].eventEvidence = "";
-    const report = await validateIntegrationEvidence(evidence);
+    const report = validateIntegrationEvidence(evidence);
     expect(report.status).toBe("blocked");
     expect(report.issues).toContain("target.executableSha256 must be a SHA-256 digest");
     expect(report.issues).toContain("mappings.stadiumsTurf[0].targetPath must be a safe relative path");
