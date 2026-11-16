@@ -57,8 +57,10 @@ export async function auditGodTurf(input = DEFAULT_ROOT) {
   const root = path.resolve(input);
   const rootStat = await lstat(root);
   if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) throw new Error("GOD TURF root must be a real directory.");
-  const pack = JSON.parse(await readFile(path.join(root, "pack.json"), "utf8"));
-  const library = JSON.parse(await readFile(path.join(root, "surface-library.json"), "utf8"));
+  const packFile = await regularFile(root, "pack.json", "GOD TURF package manifest");
+  const libraryFile = await regularFile(root, "surface-library.json", "GOD TURF surface library");
+  const pack = JSON.parse(await readFile(packFile.file, "utf8"));
+  const library = JSON.parse(await readFile(libraryFile.file, "utf8"));
   if (pack.id !== "thegodmods.god-turf-premium" || pack.installable !== false) throw new Error("Unexpected GOD TURF package identity or installability flag.");
   if (pack.textures?.length !== VARIANTS.length || library.variants?.length !== VARIANTS.length) throw new Error("GOD TURF must contain exactly nine surface variants.");
   if (library.resolution !== 512 || library.format !== "DDS RGBA8 mipmapped") throw new Error("Unexpected GOD TURF library dimensions or format.");
@@ -86,8 +88,8 @@ export async function auditGodTurf(input = DEFAULT_ROOT) {
   }
 
   const sidecarRoot = path.join(root, "stadium-server-layout");
-  const sidecarManifestPath = path.join(sidecarRoot, "common", "bg", "model", "bg", "pitch", "GODMODS", "manifest.json");
-  const sidecarManifest = JSON.parse(await readFile(sidecarManifestPath, "utf8"));
+  const sidecarManifestFile = await regularFile(root, "stadium-server-layout/common/bg/model/bg/pitch/GODMODS/manifest.json", "Stadium Server sidecar manifest");
+  const sidecarManifest = JSON.parse(await readFile(sidecarManifestFile.file, "utf8"));
   if (sidecarManifest.id !== "thegodmods.god-turf-stadium-server-layout" ||
       sidecarManifest.modifiesExistingFiles !== false || sidecarManifest.replacesExistingResources !== false) {
     throw new Error("GOD TURF sidecar identity or non-destructive guarantees are invalid.");
