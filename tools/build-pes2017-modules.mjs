@@ -301,7 +301,7 @@ async function writePackage(definition) {
 }
 
 const visualConflict = ["thegodmods.god-visuals-natural", "thegodmods.god-visuals-cinematic", "thegodmods.god-visuals-broadcast", "thegodmods.eafc27-inspired", "thegodmods.ef27-inspired", "thegodmods.ufl-inspired", "thegodmods.iss-pure"];
-const conditionConflict = ["thegodmods.god-stadiums-summer-day", "thegodmods.god-stadiums-night", "thegodmods.god-stadiums-rainy-evening"];
+const conditionConflict = ["thegodmods.god-stadiums-summer-day", "thegodmods.god-stadiums-night", "thegodmods.god-stadiums-rainy-evening", "thegodmods.god-weather-fine-day", "thegodmods.god-weather-rain-day", "thegodmods.god-weather-rain-night", "thegodmods.god-matchday-winter-night"];
 const gameplayConflict = ["thegodmods.god-gameplay-balanced", "thegodmods.god-gameplay-grounded", "thegodmods.god-gameplay-quick-transition"];
 
 const definitions = [
@@ -414,6 +414,50 @@ const definitions = [
     configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-RAINY-EVENING\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 1\nweather = 1\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: night, rain and summer.",
     readme: "# GOD STADIUMS — RAINY EVENING\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
+  },
+  {
+    department: "Stadiums", folder: "GOD-WEATHER-FINE-DAY", id: "thegodmods.god-weather-fine-day", name: "GOD WEATHER — Fine Day",
+    category: "stadiums", conflicts: conditionConflict.filter(id => id !== "thegodmods.god-weather-fine-day"),
+    moduleName: "godmods_weather_fine_day.lua",
+    module: conditionsModule("GOD WEATHER — FINE DAY", { timeofday: 0, weather: 0, season: 0 }, "GOD-WEATHER-FINE-DAY"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# GOD WEATHER — FINE DAY\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 0\nweather = 0\nseason = 0\n",
+    description: "Clear daytime match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
+    readme: "# GOD WEATHER — FINE DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Fine weather, daytime, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-FINE-DAY/stadium.ini` for the next match. This changes only the game's documented condition values; it does not create rain, snow, wet reflections, fog, or new lighting effects. Use one condition profile at a time."
+  },
+  {
+    department: "Stadiums", folder: "GOD-WEATHER-RAIN-DAY", id: "thegodmods.god-weather-rain-day", name: "GOD WEATHER — Rain Day",
+    category: "stadiums", conflicts: conditionConflict.filter(id => id !== "thegodmods.god-weather-rain-day"),
+    moduleName: "godmods_weather_rain_day.lua",
+    module: conditionsModule("GOD WEATHER — RAIN DAY", { timeofday: 0, weather: 1, season: 0 }, "GOD-WEATHER-RAIN-DAY"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# GOD WEATHER — RAIN DAY\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 0\nweather = 1\nseason = 0\n",
+    description: "Rainy daytime match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
+    readme: "# GOD WEATHER — RAIN DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, daytime, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-RAIN-DAY/stadium.ini` for the next match. Sider 3.5 exposes fine/rain weather selection; this preset does not guarantee visible falling rain, wet pitch materials, puddles, spray, or reflections. Those require verified game resources and in-game tests. Use one condition profile at a time."
+  },
+  {
+    department: "Stadiums", folder: "GOD-WEATHER-RAIN-NIGHT", id: "thegodmods.god-weather-rain-night", name: "GOD WEATHER — Rain Night",
+    category: "stadiums", conflicts: conditionConflict.filter(id => id !== "thegodmods.god-weather-rain-night"),
+    moduleName: "godmods_weather_rain_night.lua",
+    module: conditionsModule("GOD WEATHER — RAIN NIGHT", { timeofday: 1, weather: 1, season: 0 }, "GOD-WEATHER-RAIN-NIGHT"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# GOD WEATHER — RAIN NIGHT\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 1\nweather = 1\nseason = 0\n",
+    description: "Rainy night match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
+    readme: "# GOD WEATHER — RAIN NIGHT\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, night, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-RAIN-NIGHT/stadium.ini` for the next match. Sider 3.5 exposes fine/rain weather selection; this preset does not guarantee visible falling rain, wet pitch materials, puddles, spray, or reflections. Those require verified game resources and in-game tests. Use one condition profile at a time."
+  },
+  {
+    department: "Stadiums", folder: "GOD-MATCHDAY-WINTER-NIGHT", id: "thegodmods.god-matchday-winter-night", name: "GOD MATCHDAY — Winter Night",
+    category: "stadiums", conflicts: conditionConflict.filter(id => id !== "thegodmods.god-matchday-winter-night"),
+    moduleName: "godmods_matchday_winter_night.lua",
+    module: conditionsModule("GOD MATCHDAY — WINTER NIGHT", { timeofday: 1, weather: 0, season: 1 }, "GOD-MATCHDAY-WINTER-NIGHT"),
+    configDepartment: "Stadiums",
+    configFilename: "stadium.ini",
+    configIni: "# GOD MATCHDAY — WINTER NIGHT\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 1\nweather = 0\nseason = 1\n",
+    description: "Winter-night matchday preset combining documented PES 2017 Sider 3.5 time, weather and season values.",
+    readme: "# GOD MATCHDAY — WINTER NIGHT\n\nOriginal GODMODS matchday conditions preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Night, fine weather, winter season.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-MATCHDAY-WINTER-NIGHT/stadium.ini` for the next match. This sets only documented match conditions; it does not inject lighting, snow, fog, temperature, or pitch effects. Use one condition profile at a time."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
