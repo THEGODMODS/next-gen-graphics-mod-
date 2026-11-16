@@ -175,7 +175,15 @@ export class ModuleInstaller {
         if (!installedIds.has(dependency)) throw new Error(`Missing dependency: ${dependency}`);
       }
       for (const conflict of manifest.conflicts) {
-        if (installedIds.has(conflict)) throw new Error(`Module conflicts with installed module: ${conflict}`);
+        const conflictingRecord = journal.modules.find(item => item.id === conflict);
+        if (conflictingRecord && await this.isRecordEnabled(root, conflictingRecord)) {
+          throw new Error(`Module conflicts with enabled module: ${conflict}. Turn that profile OFF or uninstall it first.`);
+        }
+      }
+      for (const installedRecord of journal.modules) {
+        if (installedRecord.conflicts?.includes(manifest.id) && await this.isRecordEnabled(root, installedRecord)) {
+          throw new Error(`Module conflicts with enabled module: ${installedRecord.id}. Turn that profile OFF or uninstall it first.`);
+        }
       }
 
       const approved = new Set((options.approvedOverwriteTargets ?? []).map(normalizeSafeRelativePath));
@@ -287,6 +295,7 @@ export class ModuleInstaller {
           version: manifest.version,
           installedAt: new Date().toISOString(),
           dependencies: [...manifest.dependencies],
+          conflicts: [...manifest.conflicts],
           files: records,
         });
         journal.pendingTransaction = null;
@@ -309,6 +318,17 @@ export class ModuleInstaller {
     });
   }
 
+  private async isRecordEnabled(root: string, record: { files: Array<{ target: string }> }): Promise<boolean> {
+    const marker = record.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+    if (!marker) return true; // Legacy managed Lua modules remain active until explicitly migrated.
+    const target = resolveInsideRoot(root, normalizeSafeRelativePath(marker.target));
+    try {
+      const stat = await fs.lstat(target);
+      if (stat.isSymbolicLink() || !stat.isFile()) return false;
+      return /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fs.readFile(target, "utf8"));
+    } catch { return false; }
+  }
+
   /** Change only a package's managed activation marker; payload files stay untouched. */
   async setPackageEnabled(moduleId: string, enabled: boolean): Promise<void> {
     return withInstallLock(this.stateDirectory, async () => {
@@ -319,6 +339,15 @@ export class ModuleInstaller {
       if (!moduleRecord) throw new Error("That GODMODS package is not installed.");
       const marker = moduleRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
       if (!marker) throw new Error("This installed package has no independently switchable activation marker. Reinstall it from the current GODMODS library.");
+      if (enabled) {
+        for (const other of journal.modules) {
+          if (other.id === moduleId) continue;
+          const mutuallyExclusive = moduleRecord.conflicts?.includes(other.id) || other.conflicts?.includes(moduleId);
+          if (mutuallyExclusive && await this.isRecordEnabled(root, other)) {
+            throw new Error("Cannot enable " + moduleId + " while conflicting profile " + other.id + " is ON. Turn the other profile OFF first.");
+          }
+        }
+      }
       const relative = normalizeSafeRelativePath(marker.target);
       await assertNoSymlinkPath(root, relative, true);
       const target = resolveInsideRoot(root, relative);
