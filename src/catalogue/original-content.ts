@@ -51,10 +51,10 @@ export const originalContentProjects: OriginalContentProject[] = [
   },
   {
     id: "thegodmods.god-turf", name: "GOD TURF", department: "stadiums", productLine: "Stadiums & Turf",
-    productionState: "brief-ready",
-    goal: "A family of original pitch surfaces and grass looks with consistent mapping and stadium compatibility.",
+    productionState: "tooling-prototype",
+    goal: "A nine-family original pitch surface library with albedo, normal-source and roughness-source maps, organized for evidence-gated Stadium Server integration.",
     styleDirection: "Natural grass variation, controlled wear, believable mowing patterns and stadium-specific colour calibration.",
-    deliverables: ["Turf texture variants", "Pitch resource-to-texture mapping sheet", "LiveCPK/Sider package per verified mapping", "Preview and compatibility matrix"],
+    deliverables: ["Nine original 512×512 surface families and 27 mipmapped DDS source maps", "Additive Stadium Server sidecar layout and SHA-256 manifest", "Pitch resource-to-texture mapping sheet after source inventory", "LiveCPK/Sider package per verified mapping", "Preview and compatibility matrix"],
     assetRequirements: ["Original tileable grass albedo/detail maps", "Normal/specular maps only where the PES shader supports them", "DDS export with recorded dimensions/format/mipmaps", "Source stadium pitch inventory and mapping evidence"],
     acceptanceChecks: ["No visible tiling seams at gameplay camera distance", "Correct UV/resource mapping for each supported stadium", "DDS format and mip chain validated", "No pitch corruption, crashes or unexpected stadium changes"],
     rightsPolicy: "Textures must be authored by THEGODMODS or licensed for redistribution; stadium/game files are not bundled.",
@@ -125,6 +125,28 @@ export const originalContentProjects: OriginalContentProject[] = [
     acceptanceChecks: ["Lua/config syntax and schema validation", "No unmanaged executable modification", "Repeatable scenario results across declared builds", "Disable/uninstall restores original behavior"],
     rightsPolicy: "Code and configuration must be original or licensed; do not redistribute proprietary game executables or protected data.",
     previewPlan: ["Parameter change summary", "Scenario comparison", "Match footage from declared build", "Compatibility and known-issues panel"]
+  },
+  {
+    id: "thegodmods.god-weather", name: "GOD WEATHER", department: "stadiums", productLine: "Stadiums & Turf",
+    productionState: "tooling-prototype",
+    goal: "Optional PES 2017 match-condition presets built only on the documented Sider 3.5 weather, time-of-day and season controls.",
+    styleDirection: "Matchday-specific condition combinations with conservative defaults, explicit mutual exclusion and no invented weather simulation.",
+    deliverables: ["Four original Sider condition packages", "Editable per-profile INI files", "Replay-condition handling", "Compatibility guide and package hashes"],
+    assetRequirements: ["Documented Sider 3.5 event/API behavior", "Validated 0/1 values for day/night, fine/rain and summer/winter", "Lua 5.1-compatible module source", "Exact PES 2017 + Sider target record"],
+    acceptanceChecks: ["All profiles use only documented values", "Only one condition profile can be active", "Replay conditions follow the same selected profile", "No snow, fog, wet-shader or rain-particle claim without evidence", "Manual disable and rollback remain safe"],
+    rightsPolicy: "Original Lua and configuration only; no game binaries, proprietary shaders or extracted game assets.",
+    previewPlan: ["Fine daytime", "Rainy daytime", "Rainy night", "Winter night", "In-game condition comparison on declared build"]
+  },
+  {
+    id: "thegodmods.god-matchday", name: "GOD MATCHDAY", department: "stadiums", productLine: "Stadiums & Turf",
+    productionState: "tooling-prototype",
+    goal: "A coherent original matchday presentation system that pairs sponsor-neutral stadium artwork with optional, documented match-condition profiles.",
+    styleDirection: "Broadcast Elite, European Night, Golden Hour, Cup Final, Heritage Classic, Rain Match, Natural Pitchside, Impact, GOD Signature and Minimal Neutral.",
+    deliverables: ["Ten original LED-board art directions", "Four fascia/ribbon masters", "Matchday profile metadata", "Optional winter-night conditions package and reversible setup notes"],
+    assetRequirements: ["THEGODMODS-authored vector masters", "Verified stadium texture resource inventory before export", "Target DDS dimensions, channels and mip requirements", "Sider 3.5 conditions reference"],
+    acceptanceChecks: ["All artwork masters are original and sponsor-neutral", "No stadium resource filename or material is guessed", "No existing stadium files are overwritten", "One match-condition profile at a time", "In-game stadium mapping is verified before release claims"],
+    rightsPolicy: "Original vector artwork and Lua/config sources only; no unlicensed club, league or sponsor marks.",
+    previewPlan: ["Ten art-direction board previews", "Fascia/ribbon set", "Verified stadium texture before/after", "Matchday conditions on/off comparison"]
   }
 ];
 
@@ -142,7 +164,7 @@ const generatedAssetStatus: Record<string, GeneratedAssetStatus> = {
   "GOD VISUALS": { summary: "Six original 17³ LUT grades plus six native Sider 3.5 graphics profiles and a Lua adapter for brightness, sharpness, player-shadow softness and reflection.", files: ["profiles.json", "luts/*.cube", "sider/modules/godmods_gfx.lua", "sider/content/godmods/profiles/*.ini"], readiness: "Native Sider controls are implemented against documented APIs; validate each profile in daylight, night, rain and replay on the target PES 2017/Sider build." },
   "GOD CINEMATIC": { summary: "Six original 33³ cinematic matchday LUTs, six scene-validation checks, profile index and SHA-256 manifest.", files: ["*.cube", "profiles.json", "qa/scene-validation.json", "manifest.json", "README.md"], readiness: "Original cinematic source grades generated; host colour-space validation, compatible PES 2017/YosfX adapter and matched in-game captures remain required. No lighting, weather or shader injection is claimed." },
   "GOD NATURAL": { summary: "Natural realism, daylight and overcast profiles with original LUT sources.", files: ["profiles.json", "luts/natural-realism.cube", "luts/sunlit-daylight.cube", "luts/overcast-realism.cube"], readiness: "Source grades generated; supported shader adapter and in-game validation pending." },
-  "GOD TURF": { summary: "Six original pitch looks with 18 DDS source maps: albedo, normal and roughness.", files: ["pack.json", "surface-library.json", "textures/*-albedo.dds", "textures/*-normal-source.dds", "textures/*-roughness-source.dds"], readiness: "Source maps generated; PES material channels, DDS target format and stadium resource mapping need verification." },
+  "GOD TURF": { summary: "Nine original pitch looks with 27 DDS source maps: albedo, normal and roughness.", files: ["pack.json", "surface-library.json", "textures/*-albedo.dds", "textures/*-normal-source.dds", "textures/*-roughness-source.dds", "stadium-server-layout/common/bg/model/bg/pitch/GODMODS/*"], readiness: "Source maps and additive sidecar generated; PES material channels, DDS target format and stadium resource mapping need verification." },
   "GOD STADIUMS": { summary: "Ten original 2048×512 LED board vector masters, four 2048×256 fascia masters, matchday art-direction data and SHA-256 manifest, alongside the optional Sider conditions adapter.", files: ["boards/*.svg", "fascia/*.svg", "profiles/matchday-art-direction.json", "manifest.json", "sider/modules/godmods_conditions.lua"], readiness: "Original source artwork generated; stadium-specific texture export, resource mapping and in-game verification remain required. No lighting injector or stadium overlay is claimed." },
   "GOD KITS": { summary: "Four original fabric families with 12 DDS source maps: diffuse weave overlays, normal and roughness sources. This improves existing kits worn by players; it does not create new kits.", files: ["materials/*-diffuse-overlay.dds", "materials/*-normal-source.dds", "materials/*-roughness-source.dds", "materials/material-library.json"], readiness: "Material source layers generated. Apply as masked layers to existing kit UV textures; confirm kit shader channels and texture path mappings before any automated installation." },
   "GOD FACES": { summary: "Four procedural skin-tone textures and one hair-detail texture.", files: ["textures/*-detail-source.dds", "textures/procedural-hair-detail-source.dds"], readiness: "Generic texture sources generated; no face meshes, player likenesses or roster IDs included." },
