@@ -467,7 +467,7 @@ export default function App() {
                 <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
                 {module.files.some(file => file.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini")) && <div className="action-row">
                   <div className="action-copy"><strong>Package activation</strong><span>{module.enabled ? "ON · feature callbacks active" : "OFF · installed files are preserved"}</span></div>
-                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.enabled)}>{moduleActionBusy === module.id ? "SAVING..." : module.enabled ? "TURN OFF" : "TURN ON"}</button>
+                  <button className="small-action" disabled={!status?.gameDirectory || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.enabled)}>{moduleActionBusy === module.id ? "SAVING..." : module.enabled ? "TURN OFF" : "TURN ON"}</button>
                 </div>}
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
