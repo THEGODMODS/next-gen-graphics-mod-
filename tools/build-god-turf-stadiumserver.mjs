@@ -12,7 +12,7 @@ import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const source = path.join(root, "content", "originals", "generated", "GOD-TURF");
+const source = path.resolve(process.argv[2] || path.join(root, "content", "originals", "generated", "GOD-TURF"));
 const target = path.join(source, "stadium-server-layout", "common", "bg", "model", "bg", "pitch", "GODMODS");
 const variants = [
   "natural-cut", "stadium-emerald", "heritage-worn",
