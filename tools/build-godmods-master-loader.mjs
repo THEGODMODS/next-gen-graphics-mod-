@@ -80,7 +80,7 @@ const loader = [
   "          register = function(event_name, callback)",
   "            ctx.register(event_name, function(...)",
   "              if not config_exists(feature_config) then",
-  "                if type(feature_module.stop) == \\"function\\" then pcall(feature_module.stop) end",
+  "                if type(feature_module.stop) == \"function\" then pcall(feature_module.stop) end",
   "                return nil",
   "              end",
   "              return callback(...)",
