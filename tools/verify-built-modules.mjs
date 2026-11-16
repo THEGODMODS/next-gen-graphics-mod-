@@ -27,7 +27,24 @@ for (const dir of dirs) {
     if (ids.has(manifest.id)) throw new Error("duplicate package ID");
     ids.add(manifest.id);
     if (manifest.game?.title !== "PES 2017" || manifest.game?.sider !== ">=3.5.0 <4.0.0") throw new Error("unexpected game/Sider target");
-    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0) throw new Error("package must contain a Lua module, README, and optional game-root INI");
+    if (manifest.id === "thegodmods.core-loader") {
+      if (manifest.deployment?.strategy !== "lua" || manifest.files?.length !== 0 || manifest.luaModules?.length !== 1 || manifest.luaModules[0].moduleName !== "GODMODS_Loader.lua") throw new Error("master loader must be the single Sider Lua deployment package");
+      const entry = manifest.luaModules[0];
+      const relative = entry.source.replaceAll("\\\\", "/");
+      if (relative.startsWith("/") || relative.split("/").includes("..")) throw new Error("unsafe master loader payload path");
+      const loaderPath = path.resolve(packageRoot, relative);
+      if (!loaderPath.startsWith(packageRoot + path.sep)) throw new Error("master loader escapes package");
+      const stat = await lstat(loaderPath);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("master loader payload is not a regular file");
+      const bytes = await readFile(loaderPath);
+      if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) throw new Error("master loader SHA-256 mismatch");
+      const source = bytes.toString("utf8");
+      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(ctx, feature.config)")) throw new Error("master loader orchestration contract missing");
+      luaCount += 1;
+      packageCount += 1;
+      continue;
+    }
+    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README and optional configuration/assets");
     if (manifest.license?.id !== "THEGODMODS-ORIGINAL-1.0" || manifest.license?.redistributionAllowed !== true) throw new Error("first-party rights metadata missing");
     for (const item of manifest.files) {
       const relative = item.source.replaceAll("\\", "/");
@@ -118,8 +135,8 @@ for (const dir of dirs) {
     failures.push(dir.name + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
-if (packageCount !== 18) failures.push("Expected 18 original content-folder packages, found " + packageCount);
-if (luaCount !== 18) failures.push("Expected 18 original installable Lua modules, found " + luaCount);
+if (packageCount !== 19) failures.push("Expected 18 department packages plus one master-loader package, found " + packageCount);
+if (luaCount !== 19) failures.push("Expected 18 department Lua sources plus one master Sider loader, found " + luaCount);
 if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
 if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
 if (stadiumIniCount !== 7) failures.push("Expected 7 editable game-root stadium INI files, found " + stadiumIniCount);
@@ -129,5 +146,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, " + luaCount + " Lua modules, " + packageCount + " READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
+  console.log("Verified " + (packageCount - 1) + " original THEGODMODS department packages plus one master loader, " + luaCount + " Lua sources/runtime modules and " + (packageCount - 1) + " READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
 }

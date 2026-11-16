@@ -332,27 +332,55 @@ function registerIpc() {
     const manifest = validation.manifest;
     if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
     const installer = new ModuleInstaller(gameDirectory, stateDirectory());
-    const installed = await installer.install(selected.root, manifest, {
-      approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
-    });
-    // Content-folder packages deliberately leave Sider registration to the user.
-    // Only legacy packages that explicitly declare luaModules use manager sync.
-    if (manifest.luaModules.length === 0) return installed;
+    const initialJournal = await new JournalStore(stateDirectory()).read();
+    const installedIds = new Set(initialJournal.modules.map(item => item.id));
+    const newlyInstalledDependencies: string[] = [];
+    const visiting = new Set<string>();
+    const ensureDependency = async (dependencyId: string): Promise<void> => {
+      if (installedIds.has(dependencyId)) return;
+      if (visiting.has(dependencyId)) throw new Error("Circular package dependency detected: " + dependencyId);
+      const dependencyRoot = libraryPackages.get(dependencyId);
+      if (!dependencyRoot) throw new Error("Required GODMODS dependency is missing from the bundled library: " + dependencyId);
+      visiting.add(dependencyId);
+      const dependencyRaw = await fsp.readFile(path.join(dependencyRoot, "module.json"), "utf8");
+      const dependencyValidation = parseModuleManifest(dependencyRaw);
+      if (!dependencyValidation.valid || !dependencyValidation.manifest || dependencyValidation.manifest.id !== dependencyId) {
+        throw new Error("Required dependency package is invalid: " + dependencyId);
+      }
+      const dependencyManifest = dependencyValidation.manifest;
+      for (const nestedDependency of dependencyManifest.dependencies) await ensureDependency(nestedDependency);
+      await installer.install(dependencyRoot, dependencyManifest, {
+        approvedOverwriteTargets: [...dependencyManifest.files.map(file => normalizeSafeRelativePath(file.target)), ...dependencyManifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
+      });
+      installedIds.add(dependencyId);
+      newlyInstalledDependencies.push(dependencyId);
+      visiting.delete(dependencyId);
+    };
+
+    let productInstalled = false;
     try {
-      await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
-      return installed;
-    } catch (syncError) {
-      // Compensate the committed file transaction if Sider registration cannot be made safe.
-      try {
-        await installer.uninstall(manifest.id);
+      for (const dependencyId of manifest.dependencies) await ensureDependency(dependencyId);
+      const installed = await installer.install(selected.root, manifest, {
+        approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
+      });
+      productInstalled = true;
+      if (manifest.luaModules.length > 0 || newlyInstalledDependencies.length > 0) {
         await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      }
+      return installed;
+    } catch (installError) {
+      try {
+        if (productInstalled) await installer.uninstall(manifest.id);
+        for (const dependencyId of [...newlyInstalledDependencies].reverse()) await installer.uninstall(dependencyId);
+        if (manifest.luaModules.length > 0 || newlyInstalledDependencies.length > 0) {
+          await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+        }
       } catch (rollbackError) {
-        throw new Error("Files were installed but Sider synchronization failed, and automatic compensation was incomplete. Keep the manager state/backups intact and run recovery before launching PES 2017. Sync error: " +
-          (syncError instanceof Error ? syncError.message : String(syncError)) + "; compensation error: " +
+        throw new Error("GODMODS installation failed and automatic dependency rollback was incomplete. Keep manager state/backups intact and run recovery before launching PES 2017. Install error: " +
+          (installError instanceof Error ? installError.message : String(installError)) + "; rollback error: " +
           (rollbackError instanceof Error ? rollbackError.message : String(rollbackError)));
       }
-      throw new Error("Installation was rolled back because Sider configuration could not be synchronized: " +
-        (syncError instanceof Error ? syncError.message : String(syncError)));
+      throw installError;
     }
   });
   ipcMain.handle("modules:list-installed", async event => {

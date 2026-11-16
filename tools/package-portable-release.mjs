@@ -47,9 +47,9 @@ const readme = [
   "Settings, transaction journals and backups remain in your Windows user profile.",
   "",
   "MANUAL SIDER MODULE INSTALLATION",
-  "The modules folder contains Lua payloads supplied in this package.",
-  "Copy only the module(s) you intend to use into Sider\\modules.",
-  "Use the manager package review and Sider integration when available; avoid duplicate lua.module entries.",
+  "The modules folder contains the single GODMODS_Loader.lua entry point.",
+  "The manager installs and registers this one module automatically when you install your first GODMODS product.",
+  "For manual recovery, copy modules\\GODMODS_Loader.lua into Sider\\modules and add lua.module = GODMODS_Loader.lua under Extension modules in sider.ini.",
   "",
   "A successful archive build does not prove every asset is mapped or verified in PES 2017."
 ].join("\r\n") + "\r\n";
