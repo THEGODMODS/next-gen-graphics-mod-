@@ -74,7 +74,7 @@ const loader = [
   "    else",
   "      local feature_config = feature.config",
   "      local feature_module = module",
-  "      local feature_ctx = {
+  "      local feature_ctx = {",
   "          is_enabled = function() return config_exists(feature_config) end,",
   "          register = function(event_name, callback)",
   "            ctx.register(event_name, function(...)",
