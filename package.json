@@ -75,7 +75,9 @@
       "dist/**/*",
       "dist-electron/**/*",
       "package.json",
-      "tools/**/*"
+      "tools/**/*",
+      "content/originals/generated/**/*",
+      "content/packs/**/*"
     ],
     "win": {
       "target": [
