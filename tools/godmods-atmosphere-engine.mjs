@@ -91,7 +91,7 @@ export function buildAtmosphereModule(name, folder) {
     "  return nil",
     "end",
     "function M.init(ctx)",
-    "  config_path = \"GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\audio.ini\"",
+    "  config_path = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\audio.ini\"",
     "  asset_root = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\\"",
     "  ctx.register(\"set_home_team\", on_team_setup)",
     "  ctx.register(\"set_away_team\", on_team_setup)",

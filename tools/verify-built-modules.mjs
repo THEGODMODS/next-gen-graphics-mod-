@@ -56,7 +56,7 @@ for (const dir of dirs) {
       const bytes = await readFile(payloadPath);
       const digest = createHash("sha256").update(bytes).digest("hex");
       if (digest !== item.sha256) throw new Error("payload hash mismatch: " + item.source);
-      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/") && !item.target.startsWith("GODMODS/Graphics/") && !item.target.startsWith("GODMODS/Stadiums/") && !item.target.startsWith("GODMODS/Audio/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
+      if (!item.target.startsWith("content/GODMODS/")) throw new Error("all GODMODS package payloads and configuration must remain inside PES 2017/content/GODMODS");
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
@@ -69,21 +69,21 @@ for (const dir of dirs) {
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
         if (!readme.startsWith("# ") || readme.length < 80) throw new Error("installed README is missing or incomplete");
-      } else if (item.target.startsWith("GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
         gameplayIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["brightness", "sharpness", "shadow_softness", "reflection"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
         graphicsIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
         const ini = bytes.toString("utf8");
         for (const key of ["timeofday", "weather", "season"]) if (!new RegExp("^" + key + "\\s*=\\s*[01]$", "m").test(ini)) throw new Error("stadium INI missing valid " + key);
         stadiumIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
         const ini = bytes.toString("utf8");
         for (const key of ["enabled", "ambience", "volume", "texture_volume"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
         for (const key of ["enabled", "ambience"]) {
