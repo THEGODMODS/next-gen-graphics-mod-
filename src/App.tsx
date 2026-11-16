@@ -244,7 +244,7 @@ export default function App() {
     setModuleActionBusy(module.id);
     try {
       const result = await window.nextgen.setPackageLuaEnabled(module.id, enabled);
-      setNotice(module.id + (enabled ? " enabled" : " disabled") + " as a package. " + (result.changed ? "Sider configuration backed up and updated." : "Sider configuration already matched."));
+      setNotice(module.id + (result.enabled ? " is ON." : " is OFF. Installed files remain in place."));
       await refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Could not change package activation."); }
     finally { setModuleActionBusy(null); }
@@ -465,9 +465,9 @@ export default function App() {
                 <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
                 <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
                 <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
-                {module.luaModules.length > 0 && module.files.every(file => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(file)) && <div className="action-row">
-                  <div className="action-copy"><strong>Package activation</strong><span>Lua-only package · changes all its Lua registrations together</span></div>
-                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.luaModules.every(name => status?.luaModules.includes(name)))}>{moduleActionBusy === module.id ? "SAVING" : module.luaModules.every(name => status?.luaModules.includes(name)) ? "DISABLE PACKAGE" : "ENABLE PACKAGE"}</button>
+                {module.files.some(file => file.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini")) && <div className="action-row">
+                  <div className="action-copy"><strong>Package activation</strong><span>{module.enabled ? "ON · feature callbacks active" : "OFF · installed files are preserved"}</span></div>
+                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.enabled)}>{moduleActionBusy === module.id ? "SAVING..." : module.enabled ? "TURN OFF" : "TURN ON"}</button>
                 </div>}
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
