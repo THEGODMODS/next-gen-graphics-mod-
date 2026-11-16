@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { promisify } from "node:util";
 import os from "node:os";
 import path from "node:path";
-import * as stadiumInventory from "../tools/stadium-resource-inventory.mjs";
+
+const execFileAsync = promisify(execFile);
+const inventoryScript = path.resolve(process.cwd(), "tools/stadium-resource-inventory.mjs");
 
 function makeDds() {
   const data = Buffer.alloc(132);
@@ -26,7 +30,14 @@ function makeDds() {
   return data;
 }
 
-describe("Stadium Server resource inventory", () => {
+async function runInventory(stadiumFolder) {
+  return execFileAsync(process.execPath, [inventoryScript, stadiumFolder], {
+    encoding: "utf8",
+    windowsHide: true
+  });
+}
+
+describe("Stadium Server resource inventory CLI", () => {
   it("fingerprints model resources and reports DDS metadata without changing files", async () => {
     const temp = await mkdtemp(path.join(os.tmpdir(), "stadium-inventory-"));
     try {
@@ -39,7 +50,8 @@ describe("Stadium Server resource inventory", () => {
       await writeFile(path.join(model, "led", "broken.dds"), "not dds");
       await writeFile(path.join(model, "led", "material.bin"), "material");
 
-      const result = await stadiumInventory.inventoryStadiumResources(stadium);
+      const { stdout } = await runInventory(stadium);
+      const result = JSON.parse(stdout);
       expect(result.subtree).toBe("common/bg/model/bg");
       expect(result.fileCount).toBe(3);
       expect(result.ddsCount).toBe(2);
@@ -59,7 +71,10 @@ describe("Stadium Server resource inventory", () => {
   it("fails when the Stadium Server model subtree is absent", async () => {
     const temp = await mkdtemp(path.join(os.tmpdir(), "stadium-inventory-missing-"));
     try {
-      await expect(stadiumInventory.inventoryStadiumResources(temp)).rejects.toThrow(/model subtree not found/);
+      await expect(runInventory(temp)).rejects.toMatchObject({
+        code: 1,
+        stderr: expect.stringContaining("Stadium model subtree not found")
+      });
     } finally {
       await rm(temp, { recursive: true, force: true });
     }
