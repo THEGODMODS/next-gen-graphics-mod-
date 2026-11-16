@@ -289,7 +289,20 @@ function registerIpc() {
           } catch (error) { errors.push(file.source + ": " + (error instanceof Error ? error.message : "invalid payload")); }
         }
         const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
-        const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+        const conflicts: string[] = [];
+        for (const id of manifest.conflicts) {
+          const conflictingRecord = installed.modules.find(item => item.id === id);
+          if (!conflictingRecord) continue;
+          const marker = conflictingRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+          let conflictEnabled = true;
+          if (marker && gameDirectory) {
+            try {
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+            } catch { conflictEnabled = false; }
+          }
+          if (conflictEnabled) conflicts.push(id);
+        }
         const alreadyInstalled = installedIds.has(manifest.id);
         let enabled = true;
         if (alreadyInstalled) {
@@ -331,7 +344,20 @@ function registerIpc() {
     const journal = await new JournalStore(stateDirectory()).read();
     const installedIds = new Set(journal.modules.map(item => item.id));
     const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
-    const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+    const conflicts: string[] = [];
+    for (const id of manifest.conflicts) {
+      const conflictingRecord = journal.modules.find(item => item.id === id);
+      if (!conflictingRecord) continue;
+      const marker = conflictingRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      let conflictEnabled = true;
+      if (marker) {
+        try {
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+        } catch { conflictEnabled = false; }
+      }
+      if (conflictEnabled) conflicts.push(id);
+    }
     const alreadyInstalled = installedIds.has(manifest.id);
     const gameRoot = await fsp.realpath(gameDirectory);
     const files = [];
