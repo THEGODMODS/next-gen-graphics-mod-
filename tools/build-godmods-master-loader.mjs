@@ -32,7 +32,7 @@ for (const entry of entries.filter(item => item.isDirectory() && item.name !== C
   const packageFolder = path.posix.basename(path.posix.dirname(activationEntry.target));
   const source = await readFile(path.join(packageRoot, luaEntry.source), "utf8");
   features.push({ id: manifest.id, name: manifest.name, config: activationEntry.target,
-    source: source.replace(/\\bconfigFolder\\b/g, luaQuote(packageFolder)) });
+    source: source.replace(/\bconfigFolder\b/g, luaQuote(packageFolder)) });
 }
 if (features.length !== 18) throw new Error("Expected 18 department Lua features; found " + features.length + ".");
 
