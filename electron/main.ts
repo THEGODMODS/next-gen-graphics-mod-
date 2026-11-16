@@ -22,6 +22,7 @@ let libraryPackages = new Map<string, string>();
 let selectedDds: { original: string | null; replacement: string | null } = { original: null, replacement: null };
 let selectedPitchInventory: Awaited<ReturnType<typeof pitchService.scan>> | null = null;
 let selectedPitchReplacement: string | null = null;
+let selectedResourceInventory: unknown = null;
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
@@ -143,6 +144,31 @@ function registerIpc() {
     if (picked.canceled || !picked.filePaths[0]) return null;
     const logPath = picked.filePaths[0];
     return ddsService.analyzeLog(logPath, app.getAppPath());
+  });
+  ipcMain.handle("resources:scan-game", async event => {
+    assertTrustedSender(event);
+    if (!gameDirectory) throw new Error("Select your PES 2017 game folder before scanning resources.");
+    const auditUrl = pathToFileURL(path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs")).href;
+    const { scanResourceRoot } = await import(auditUrl);
+    const report = await scanResourceRoot(gameDirectory);
+    selectedResourceInventory = report;
+    return {
+      rootLabel: report.rootLabel, generatedAt: report.generatedAt,
+      filesScanned: report.filesScanned, skippedSymlinks: report.skippedSymlinks,
+      limitReached: report.limitReached, summary: report.summary
+    };
+  });
+  ipcMain.handle("resources:export-inventory", async event => {
+    assertTrustedSender(event);
+    if (!selectedResourceInventory) throw new Error("Run a resource scan before exporting the inventory.");
+    const picked = await dialog.showSaveDialog(mainWindow!, {
+      title: "Export GODMODS PES 2017 resource inventory",
+      defaultPath: "GODMODS-PES2017-Resource-Inventory.json",
+      filters: [{ name: "JSON inventory", extensions: ["json"] }]
+    });
+    if (picked.canceled || !picked.filePath) return null;
+    await fsp.writeFile(picked.filePath, JSON.stringify(selectedResourceInventory, null, 2), "utf8");
+    return picked.filePath;
   });
   ipcMain.handle("pitch:scan", async event => {
     assertTrustedSender(event);

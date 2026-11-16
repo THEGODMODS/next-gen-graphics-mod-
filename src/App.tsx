@@ -5,7 +5,7 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport } from "../electron/preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport, ResourceScanSummary } from "../electron/preload";
 import DepartmentCatalogue from "./components/DepartmentCatalogue";
 import packageJson from "../package.json";
 
@@ -67,6 +67,9 @@ export default function App() {
   const [generatedPitch, setGeneratedPitch] = useState<{ id: string; output: string } | null>(null);
   const [pitchLog, setPitchLog] = useState<{ fileName: string; report: PitchLogReport } | null>(null);
   const [pitchLogBusy, setPitchLogBusy] = useState(false);
+  const [resourceScan, setResourceScan] = useState<ResourceScanSummary | null>(null);
+  const [resourceScanBusy, setResourceScanBusy] = useState(false);
+  const [resourceExportBusy, setResourceExportBusy] = useState(false);
   const [profiles, setProfiles] = useState<Array<{ id: string; name: string; createdAt: string; enabledLuaModules: string[] }>>([]);
   const [profileBusy, setProfileBusy] = useState(false);
   const refresh = useCallback((): Promise<void> => {
@@ -243,6 +246,27 @@ export default function App() {
       await refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Module uninstall failed."); }
     finally { setModuleActionBusy(null); }
+  };
+  const scanGameResources = async () => {
+    if (resourceScanBusy) return;
+    setResourceScanBusy(true);
+    try {
+      const report = await window.nextgen.scanGameResources();
+      setResourceScan(report);
+      setNotice("Read-only PES resource scan complete: " + report.filesScanned.toLocaleString() + " files indexed. No game files were changed.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PES resource scan failed.");
+    } finally { setResourceScanBusy(false); }
+  };
+  const exportResourceInventory = async () => {
+    if (resourceExportBusy) return;
+    setResourceExportBusy(true);
+    try {
+      const file = await window.nextgen.exportResourceInventory();
+      if (file) setNotice("Resource inventory exported: " + file);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not export resource inventory.");
+    } finally { setResourceExportBusy(false); }
   };
   const analyzePitchLog = async () => {
     if (pitchLogBusy) return;
@@ -483,7 +507,25 @@ export default function App() {
             <div className="notice"><span className="notice-mark">i</span>The manager keeps game-folder settings and installation journals locally. It does not change Windows registry entries or game files merely by opening this page.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : active === "Diagnostics" ? <section className="page-placeholder">
-            <div className="eyebrow">RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
+            <div className="eyebrow">PES 2017 RESOURCE DISCOVERY · READ ONLY</div><h1>GAME RESOURCE INVENTORY</h1>
+            <p>Scan the selected PES 2017 installation to fingerprint actual stadium, pitch, kit and player resource files. This is the evidence base for building real resource mappings—not an automatic compatibility claim.</p>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">LOCAL INSTALLATION · SHA-256 INVENTORY</div><h3>Scan PES 2017 resources</h3></div><span className="coming-tag">{resourceScan ? "INVENTORY READY" : "NOT SCANNED"}</span></div>
+              <p>The scan is read-only, skips symbolic links and indexes supported files with SHA-256 and DDS header diagnostics. Large compressed CPK/FPK containers are not unpacked.</p>
+              <div className="action-row">
+                <button className="primary-button" disabled={resourceScanBusy || !ready} onClick={() => void scanGameResources()}><FolderOpen size={15}/>{resourceScanBusy ? "SCANNING GAME FILES..." : "SCAN SELECTED PES 2017 FOLDER"}</button>
+                <button className="secondary-button" disabled={!resourceScan || resourceExportBusy} onClick={() => void exportResourceInventory()}>{resourceExportBusy ? "EXPORTING..." : "EXPORT INVENTORY JSON"}</button>
+              </div>
+              {resourceScan && <>
+                <div className="integrity-row"><span>Game root</span><b>{resourceScan.rootLabel}</b></div>
+                <div className="integrity-row"><span>Files fingerprinted</span><b>{resourceScan.filesScanned.toLocaleString()}</b></div>
+                <div className="integrity-row"><span>Skipped symbolic links</span><b>{resourceScan.skippedSymlinks}</b></div>
+                <div className="integrity-row"><span>Scan limit reached</span><b>{resourceScan.limitReached ? "YES — scan is partial" : "NO"}</b></div>
+                {Object.entries(resourceScan.summary).map(([category,count]) => <div className="integrity-row" key={category}><span>{category.replaceAll("-", " ")}</span><b>{count.toLocaleString()}</b></div>)}
+                <p className="integrity-note">Export this JSON and share it for exact mapping work. File presence and hashes do not establish UV/material compatibility or in-game rendering.</p>
+              </>}
+            </div>
+            <div className="eyebrow" style={{marginTop:22}}>RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
             <p>Inspect Sider log evidence for references to Stadium Server pitch resources. This is a log parser—not a claim that a texture rendered correctly in PES.</p>
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">LIVECPK · RESOURCE OBSERVABILITY</div><h3>Analyze Sider log</h3></div><span className="coming-tag">{pitchLog ? "REPORT READY" : "AWAITING LOG"}</span></div>
