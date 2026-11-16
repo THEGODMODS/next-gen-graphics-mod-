@@ -128,7 +128,7 @@ for (const dir of dirs) {
         audioAssetCount += 1;
       } else if (item.target.endsWith("/enabled.ini")) {
         const ini = bytes.toString("utf8");
-        if (!/^enabled\\s*=\\s*1\\s*$/m.test(ini)) throw new Error("package activation marker must default to enabled = 1");
+        if (!/^enabled\s*=\s*1\s*$/m.test(ini)) throw new Error("package activation marker must default to enabled = 1");
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
