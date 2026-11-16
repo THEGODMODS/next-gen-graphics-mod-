@@ -97,7 +97,7 @@ export function buildAtmosphereModule(name, folder) {
     "  settings.enabled = 0",
     "end",
     "function M.init(ctx)",
-    "  if type(ctx.is_enabled) == \\"function\\" then activation_check = ctx.is_enabled end",
+    "  if type(ctx.is_enabled) == \"function\" then activation_check = ctx.is_enabled end",
     "  config_path = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\audio.ini\"",
     "  asset_root = \"content\\\\GODMODS\\\\Audio\\\\\" .. " + JSON.stringify(folder) + " .. \"\\\\\"",
     "  ctx.register(\"set_home_team\", on_team_setup)",
