@@ -95,6 +95,10 @@ export async function auditGodTurf(input = DEFAULT_ROOT) {
   if (sidecarManifest.variants?.length !== VARIANTS.length || sidecarManifest.assets?.length !== VARIANTS.length * MAPS.length) {
     throw new Error("Stadium Server sidecar must contain all nine variants and 27 DDS assets.");
   }
+  if (sidecarManifest.variants.map(item => item.id).join("|") !== VARIANTS.join("|")) throw new Error("Stadium Server sidecar variants do not match the canonical surface library.");
+  const sidecarKeys = new Set(sidecarManifest.assets.map(item => item.variant + "/" + item.map));
+  if (sidecarKeys.size !== sidecarManifest.assets.length) throw new Error("Stadium Server sidecar contains duplicate variant/map records.");
+  if (sidecarManifest.installationMode !== "additive-sidecar-assets" || !String(sidecarManifest.compatibility?.status || "").includes("pending")) throw new Error("Stadium Server sidecar compatibility state is not evidence-gated.");
   for (const item of sidecarManifest.assets) {
     if (!VARIANTS.includes(item.variant) || !MAPS.includes(item.map)) throw new Error("Unexpected sidecar variant or map.");
     const { file, stat } = await regularFile(sidecarRoot, item.file, "Stadium Server sidecar asset");
