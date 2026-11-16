@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { validateIntegrationEvidence } from "../tools/godmods-integration-gate.mjs";
+const validateIntegrationEvidence = async (evidence) => {
+  const gate = await import("../tools/godmods-integration-gate.mjs");
+  return gate.validateIntegrationEvidence(evidence);
+};
 
 const hash = "a".repeat(64);
 const file = (name) => ({ path: "evidence/" + name, sha256: hash });
@@ -36,7 +39,7 @@ const validEvidence = () => ({
 
 describe("GODMODS final integration evidence gate", () => {
   it("accepts a complete evidence set without authorizing deployment", () => {
-    const report = validateIntegrationEvidence(validEvidence());
+    const report = await validateIntegrationEvidence(validEvidence());
     expect(report.status).toBe("integration-evidence-valid");
     expect(report.inGameEvidenceComplete).toBe(true);
     expect(report.inGameVerified).toBe(false);
@@ -48,7 +51,7 @@ describe("GODMODS final integration evidence gate", () => {
     evidence.target.executableSha256 = "not-a-hash";
     evidence.mappings.stadiumsTurf[0].targetPath = "../../original.dds";
     evidence.audio.routes[0].eventEvidence = "";
-    const report = validateIntegrationEvidence(evidence);
+    const report = await validateIntegrationEvidence(evidence);
     expect(report.status).toBe("blocked");
     expect(report.issues).toContain("target.executableSha256 must be a SHA-256 digest");
     expect(report.issues).toContain("mappings.stadiumsTurf[0].targetPath must be a safe relative path");
