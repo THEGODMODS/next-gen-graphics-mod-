@@ -60,7 +60,7 @@ function visualModule(name, settings, configFolder) {
     "  log(\"THEGODMODS " + name + ": graphics profile applied from game-root INI\")",
     "end",
     "function M.init(ctx)",
-    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Graphics\\\\\" .. configFolder .. \"\\\\graphics.ini\"",
+    "  config_path = \"content\\\\GODMODS\\\\Graphics\\\\\" .. configFolder .. \"\\\\graphics.ini\"",
     "  ctx.register(\"set_home_team\", apply)",
     "  ctx.register(\"set_away_team\", apply)",
     "  log(\"THEGODMODS " + name + ": loaded; config: \" .. config_path)",
@@ -105,7 +105,7 @@ function conditionsModule(name, values, configFolder) {
     "  return changed",
     "end",
     "function M.init(ctx)",
-    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Stadiums\\\\\" .. configFolder .. \"\\\\stadium.ini\"",
+    "  config_path = \"content\\\\GODMODS\\\\Stadiums\\\\\" .. configFolder .. \"\\\\stadium.ini\"",
     "  ctx.register(\"set_conditions\", apply)",
     "  ctx.register(\"set_conditions_for_replay\", apply)",
     "  log(\"THEGODMODS " + name + ": matchday conditions loaded; config: \" .. config_path)",
@@ -167,7 +167,7 @@ function gameplayModule(name, values, configFolder) {
     "  return nil",
     "end",
     "function M.init(ctx)",
-    "  config_path = ctx.sider_dir .. \"\\\\GODMODS\\\\Gameplay\\\\\" .. configFolder .. \"\\\\gameplay.ini\"",
+    "  config_path = \"content\\\\GODMODS\\\\Gameplay\\\\\" .. configFolder .. \"\\\\gameplay.ini\"",
     "  ctx.register(\"set_home_team\", apply)",
     "  ctx.register(\"set_match_time\", set_match_time)",
     "  log(\"THEGODMODS " + name + ": loaded; config: \" .. config_path)",
@@ -192,6 +192,11 @@ async function writePackage(definition) {
     { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
     { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
   ];
+  // Per-product marker is independent of installation: OFF keeps all assets in place.
+  const activationSource = "payload/enabled.ini";
+  const activationBytes = text("# GODMODS per-product activation state\nenabled = 1\n");
+  await writeFile(path.join(root, activationSource), activationBytes);
+  files.push({ source: activationSource, target: installRoot + "enabled.ini", sha256: sha256(activationBytes) });
   for (const asset of definition.assets || []) {
     const assetBytes = await readFile(path.resolve(ROOT, asset.source));
     const assetSource = "payload/" + asset.filename;
@@ -203,7 +208,7 @@ async function writePackage(definition) {
     const configSource = "payload/" + configFilename;
     const configBytes = text(definition.configIni);
     await writeFile(path.join(root, configSource), configBytes);
-    files.push({ source: configSource, target: "GODMODS/" + (definition.configDepartment || "Gameplay") + "/" + definition.folder + "/" + configFilename, sha256: sha256(configBytes) });
+    files.push({ source: configSource, target: "content/GODMODS/" + (definition.configDepartment || "Gameplay") + "/" + definition.folder + "/" + configFilename, sha256: sha256(configBytes) });
   }
   const manifest = {
     schemaVersion: 1,
@@ -212,9 +217,9 @@ async function writePackage(definition) {
     version: "0.1.0",
     description: definition.description,
     category: definition.category,
-    deployment: { strategy: "direct", manualSteps: ["Open the installed folder under content/GODMODS and read README.md first.", "Copy the listed Lua module into your Sider/modules folder.", "Add lua.module = \"<module filename>\" to the Extension modules section of sider.ini. This package does not edit sider.ini or enable LiveCPK."] },
+    deployment: { strategy: "direct", manualSteps: [] },
     game: { title: "PES 2017", executable: ["PES2017.exe", "PES2017patched.exe"], sider: ">=3.5.0 <4.0.0" },
-    dependencies: [],
+    dependencies: ["thegodmods.core-loader"],
     conflicts: definition.conflicts,
     files,
     luaModules: [],
@@ -239,7 +244,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-NATURAL\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.145\nshadow_softness = 0.58\nreflection = 1\n",
     description: "GOD NATURAL original restrained Sider 3.5 graphics profile for PES 2017. Adjusts documented brightness, sharpness, player-shadow softness and reflection controls.",
-    readme: "# GOD VISUALS NATURAL — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-NATURAL/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-NATURAL/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD VISUALS NATURAL — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-NATURAL/`. It also installs an editable `content/GODMODS/Graphics/GOD-VISUALS-NATURAL/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-VISUALS-CINEMATIC", id: visualConflict[1], name: "GOD CINEMATIC — Matchday",
@@ -250,7 +255,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-CINEMATIC\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.985\nsharpness = 0.155\nshadow_softness = 0.62\nreflection = 1\n",
     description: "Original cinematic Sider 3.5 graphics profile with restrained brightness, sharpness and shadow softness settings.",
-    readme: "# GOD VISUALS CINEMATIC — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-CINEMATIC/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-CINEMATIC/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD VISUALS CINEMATIC — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-CINEMATIC/`. It also installs an editable `content/GODMODS/Graphics/GOD-VISUALS-CINEMATIC/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-VISUALS-BROADCAST", id: visualConflict[2], name: "GOD VISUALS — Broadcast Balanced",
@@ -261,7 +266,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-VISUALS-BROADCAST\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.166\nshadow_softness = 0.52\nreflection = 1\n",
     description: "Original balanced broadcast-style Sider 3.5 graphics profile using documented PES 2017 gfx controls.",
-    readme: "# GOD VISUALS BROADCAST — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-BROADCAST/`. It also installs an editable `GODMODS/Graphics/GOD-VISUALS-BROADCAST/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD VISUALS BROADCAST — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-VISUALS-BROADCAST/`. It also installs an editable `content/GODMODS/Graphics/GOD-VISUALS-BROADCAST/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-EAFC27-INSPIRED", id: visualConflict[3], name: "GOD GRAPHICS — EA FC 27 Inspired",
@@ -272,7 +277,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-EAFC27-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.992\nsharpness = 0.19\nshadow_softness = 0.48\nreflection = 1\n",
     description: "Original EA FC 27-inspired visual tuning profile for PES 2017 using documented Sider 3.5 graphics controls. No EA assets or shaders.",
-    readme: "# GOD EAFC27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EAFC27-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-EAFC27-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD EAFC27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EAFC27-INSPIRED/`. It also installs an editable `content/GODMODS/Graphics/GOD-EAFC27-INSPIRED/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-EFOOTBALL27-INSPIRED", id: visualConflict[4], name: "GOD GRAPHICS — eFootball 27 Inspired",
@@ -283,7 +288,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-EFOOTBALL27-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1.005\nsharpness = 0.135\nshadow_softness = 0.68\nreflection = 1\n",
     description: "Original eFootball 27-inspired softer natural visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD EFOOTBALL27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD EFOOTBALL27 INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/`. It also installs an editable `content/GODMODS/Graphics/GOD-EFOOTBALL27-INSPIRED/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-UFL-INSPIRED", id: visualConflict[5], name: "GOD GRAPHICS — UFL Inspired",
@@ -294,7 +299,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-UFL-INSPIRED\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 0.998\nsharpness = 0.175\nshadow_softness = 0.55\nreflection = 1\n",
     description: "Original UFL-inspired balanced broadcast visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD UFL INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-UFL-INSPIRED/`. It also installs an editable `GODMODS/Graphics/GOD-UFL-INSPIRED/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD UFL INSPIRED — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-UFL-INSPIRED/`. It also installs an editable `content/GODMODS/Graphics/GOD-UFL-INSPIRED/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Graphics", folder: "GOD-ISS-PURE", id: visualConflict[6], name: "GOD GRAPHICS — ISS Pure",
@@ -305,7 +310,7 @@ const definitions = [
     configFilename: "graphics.ini",
     configIni: "# THEGODMODS graphics configuration — GOD-ISS-PURE\n# Read by the Sider Lua module at each match setup.\n# Values outside the module's conservative bounds are ignored.\nbrightness = 1\nsharpness = 0.105\nshadow_softness = 0.72\nreflection = 1\n",
     description: "Original ISS/Pure-inspired restrained, clean football visual tuning for PES 2017 using documented Sider 3.5 graphics controls.",
-    readme: "# GOD ISS PURE — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-ISS-PURE/`. It also installs an editable `GODMODS/Graphics/GOD-ISS-PURE/graphics.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
+    readme: "# GOD ISS PURE — GOD GRAPHICS\n\nThis package installs its Lua module and README under `content/GODMODS/Graphics/GOD-ISS-PURE/`. It also installs an editable `content/GODMODS/Graphics/GOD-ISS-PURE/graphics.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the graphics INI on match setup; edit the four documented Sider gfx values for the next match. The module validates values against conservative bounds and falls back to the profile defaults if the INI is missing or invalid.\n\nThis uses Sider's documented gfx library, not an external shader or texture replacement."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-SUMMER-DAY", id: conditionConflict[0], name: "GOD STADIUMS — Summer Day",
@@ -316,7 +321,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-SUMMER-DAY\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 0\nweather = 0\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: day, fine weather and summer. Does not change stadium IDs or geometry.",
-    readme: "# GOD STADIUMS — SUMMER DAY\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
+    readme: "# GOD STADIUMS — SUMMER DAY\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/`. It also installs `content/GODMODS/Stadiums/GOD-STADIUMS-SUMMER-DAY/stadium.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-NIGHT", id: conditionConflict[1], name: "GOD STADIUMS — Night Match",
@@ -327,7 +332,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-NIGHT\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 1\nweather = 0\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: night, fine weather and summer.",
-    readme: "# GOD STADIUMS — NIGHT MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-NIGHT/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-NIGHT/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
+    readme: "# GOD STADIUMS — NIGHT MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-NIGHT/`. It also installs `content/GODMODS/Stadiums/GOD-STADIUMS-NIGHT/stadium.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Stadiums", folder: "GOD-STADIUMS-RAINY-EVENING", id: conditionConflict[2], name: "GOD STADIUMS — Rainy Evening",
@@ -338,7 +343,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# THEGODMODS stadium conditions — GOD-STADIUMS-RAINY-EVENING\n# Values: timeofday 0=day, 1=night; weather 0=fine, 1=rain; season 0=summer, 1=winter.\ntimeofday = 1\nweather = 1\nseason = 0\n",
     description: "Original Sider 3.5 matchday conditions module: night, rain and summer.",
-    readme: "# GOD STADIUMS — RAINY EVENING\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/`. It also installs `GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/stadium.ini` in the PES 2017 game root.\n\nCopy the Lua module into `Sider/modules` and add its `lua.module` entry to `sider.ini`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
+    readme: "# GOD STADIUMS — RAINY EVENING\n\nThis package installs its Lua module and README under `content/GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/`. It also installs `content/GODMODS/Stadiums/GOD-STADIUMS-RAINY-EVENING/stadium.ini` inside PES 2017/content/GODMODS.\n\nThe GODMODS Manager installs and registers the single `GODMODS_Loader.lua` Sider entry automatically. Keep the package and editable configuration under `PES 2017/content/GODMODS/`. The module reads the editable stadium INI when Sider applies match conditions. Change day/night, fine/rain or summer/winter using the documented 0/1 values. It does not replace stadium models or textures and does not use LiveCPK."
   },
   {
     department: "Stadiums", folder: "GOD-WEATHER-FINE-DAY", id: "thegodmods.god-weather-fine-day", name: "GOD WEATHER — Fine Day",
@@ -349,7 +354,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# GOD WEATHER — FINE DAY\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 0\nweather = 0\nseason = 0\n",
     description: "Clear daytime match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
-    readme: "# GOD WEATHER — FINE DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Fine weather, daytime, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-FINE-DAY/stadium.ini` for the next match. This changes only the game's documented condition values; it does not create rain, snow, wet reflections, fog, or new lighting effects. Use one condition profile at a time."
+    readme: "# GOD WEATHER — FINE DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Fine weather, daytime, summer.\n\nDo not register this department Lua source separately. GODMODS Manager installs the shared `GODMODS_Loader.lua` and adds the single Sider entry automatically. Edit the `content/GODMODS/Stadiums/GOD-WEATHER-FINE-DAY/stadium.ini` for the next match. This changes only the game's documented condition values; it does not create rain, snow, wet reflections, fog, or new lighting effects. Use one condition profile at a time."
   },
   {
     department: "Stadiums", folder: "GOD-WEATHER-RAIN-DAY", id: "thegodmods.god-weather-rain-day", name: "GOD WEATHER — Rain Day",
@@ -360,7 +365,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# GOD WEATHER — RAIN DAY\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 0\nweather = 1\nseason = 0\n",
     description: "Rainy daytime match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
-    readme: "# GOD WEATHER — RAIN DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, daytime, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-RAIN-DAY/stadium.ini` for the next match. This profile also sets Sider 3.5's documented weather_effects = 2 flag to request falling rain; confirm the effect in the target game. It does not add wet pitch materials, puddles, spray or reflections. Use one condition profile at a time."
+    readme: "# GOD WEATHER — RAIN DAY\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, daytime, summer.\n\nDo not register this department Lua source separately. GODMODS Manager installs the shared `GODMODS_Loader.lua` and adds the single Sider entry automatically. Edit the `content/GODMODS/Stadiums/GOD-WEATHER-RAIN-DAY/stadium.ini` for the next match. This profile also sets Sider 3.5's documented weather_effects = 2 flag to request falling rain; confirm the effect in the target game. It does not add wet pitch materials, puddles, spray or reflections. Use one condition profile at a time."
   },
   {
     department: "Stadiums", folder: "GOD-WEATHER-RAIN-NIGHT", id: "thegodmods.god-weather-rain-night", name: "GOD WEATHER — Rain Night",
@@ -371,7 +376,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# GOD WEATHER — RAIN NIGHT\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 1\nweather = 1\nseason = 0\n",
     description: "Rainy night match conditions using the documented PES 2017 Sider 3.5 set_conditions event.",
-    readme: "# GOD WEATHER — RAIN NIGHT\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, night, summer.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-WEATHER-RAIN-NIGHT/stadium.ini` for the next match. This profile also sets Sider 3.5's documented weather_effects = 2 flag to request falling rain; confirm the effect in the target game. It does not add wet pitch materials, puddles, spray or reflections. Use one condition profile at a time."
+    readme: "# GOD WEATHER — RAIN NIGHT\n\nOriginal GODMODS match-condition preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Rainy weather, night, summer.\n\nDo not register this department Lua source separately. GODMODS Manager installs the shared `GODMODS_Loader.lua` and adds the single Sider entry automatically. Edit the `content/GODMODS/Stadiums/GOD-WEATHER-RAIN-NIGHT/stadium.ini` for the next match. This profile also sets Sider 3.5's documented weather_effects = 2 flag to request falling rain; confirm the effect in the target game. It does not add wet pitch materials, puddles, spray or reflections. Use one condition profile at a time."
   },
   {
     department: "Stadiums", folder: "GOD-MATCHDAY-WINTER-NIGHT", id: "thegodmods.god-matchday-winter-night", name: "GOD MATCHDAY — Winter Night",
@@ -382,7 +387,7 @@ const definitions = [
     configFilename: "stadium.ini",
     configIni: "# GOD MATCHDAY — WINTER NIGHT\n# Sider 3.5 values: 0=day, 1=night; 0=fine, 1=rain; 0=summer, 1=winter.\ntimeofday = 1\nweather = 0\nseason = 1\n",
     description: "Winter-night matchday preset combining documented PES 2017 Sider 3.5 time, weather and season values.",
-    readme: "# GOD MATCHDAY — WINTER NIGHT\n\nOriginal GODMODS matchday conditions preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Night, fine weather, winter season.\n\nInstall the Lua module in `Sider/modules`, add its `lua.module` entry to `sider.ini`, and edit the game-root `GODMODS/Stadiums/GOD-MATCHDAY-WINTER-NIGHT/stadium.ini` for the next match. This sets only documented match conditions; it does not inject lighting, snow, fog, temperature, or pitch effects. Use one condition profile at a time."
+    readme: "# GOD MATCHDAY — WINTER NIGHT\n\nOriginal GODMODS matchday conditions preset for PES 2017 + Sider 3.5. Uses the documented `set_conditions` and replay conditions hooks. Night, fine weather, winter season.\n\nDo not register this department Lua source separately. GODMODS Manager installs the shared `GODMODS_Loader.lua` and adds the single Sider entry automatically. Edit the `content/GODMODS/Stadiums/GOD-MATCHDAY-WINTER-NIGHT/stadium.ini` for the next match. This sets only documented match conditions; it does not inject lighting, snow, fog, temperature, or pitch effects. Use one condition profile at a time."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-BALANCED", id: gameplayConflict[0], name: "GOD GAMEPLAY — Balanced Simulation",
@@ -391,7 +396,7 @@ const definitions = [
     module: gameplayModule("GOD GAMEPLAY / BALANCED SIMULATION", [1000, 0.4, 1, -0.5, 0.108685933, 0.85, 0.2, 5], "GOD-GAMEPLAY-BALANCED"),
     description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
     configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / BALANCED SIMULATION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\n# Set match_minutes = 0 to keep the in-game duration, or 5-90 to override it.\nmatch_minutes = 0\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.2\nspeed_global = 5\n",
-    readme: "# GOD GAMEPLAY — BALANCED SIMULATION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
+    readme: "# GOD GAMEPLAY — BALANCED SIMULATION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/`. It also installs `content/GODMODS/Gameplay/GOD-GAMEPLAY-BALANCED/gameplay.ini` inside PES 2017/content/GODMODS.\n\nDo not copy this department Lua source into `Sider/modules` or add an individual `lua.module` entry. GODMODS Manager installs the shared `GODMODS_Loader.lua` and registers the single Sider entry automatically. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-GROUNDED", id: gameplayConflict[1], name: "GOD GAMEPLAY — Grounded Match",
@@ -400,7 +405,7 @@ const definitions = [
     module: gameplayModule("GOD GAMEPLAY / GROUNDED MATCH", [1000, 0.4, 0.985, -0.52, 0.108685933, 0.84, 0.2, 5], "GOD-GAMEPLAY-GROUNDED"),
     description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
     configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / GROUNDED MATCH\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\n# Set match_minutes = 0 to keep the in-game duration, or 5-90 to override it.\nmatch_minutes = 0\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 0.985\nball_friction = -0.52\nball_magnus = 0.108685933\nshooting_power = 0.84\nspeed = 0.2\nspeed_global = 5\n",
-    readme: "# GOD GAMEPLAY — GROUNDED MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
+    readme: "# GOD GAMEPLAY — GROUNDED MATCH\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/`. It also installs `content/GODMODS/Gameplay/GOD-GAMEPLAY-GROUNDED/gameplay.ini` inside PES 2017/content/GODMODS.\n\nDo not copy this department Lua source into `Sider/modules` or add an individual `lua.module` entry. GODMODS Manager installs the shared `GODMODS_Loader.lua` and registers the single Sider entry automatically. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
   },
   {
     department: "Gameplay", folder: "GOD-GAMEPLAY-QUICK-TRANSITION", id: gameplayConflict[2], name: "GOD GAMEPLAY — Quick Transition",
@@ -409,7 +414,7 @@ const definitions = [
     module: gameplayModule("GOD GAMEPLAY / QUICK TRANSITION", [1000, 0.4, 1, -0.5, 0.108685933, 0.85, 0.205, 5], "GOD-GAMEPLAY-QUICK-TRANSITION"),
     description: "Configurable PES 2017 gameplay profile. Its Lua module reads editable INI values from the PES 2017 game root at each match setup; supported Sider gameplay controls are experimental.",
     configIni: "# THEGODMODS gameplay configuration — GOD GAMEPLAY / QUICK TRANSITION\n# Loaded at each match setup. Edit numeric values for the next match.\n# Sider 3.5 labels gameplay controls experimental; test offline and back up saves.\n# Set match_minutes = 0 to keep the in-game duration, or 5-90 to override it.\nmatch_minutes = 0\nball_weight = 1000\nball_physics = 0.4\nball_bounce = 1\nball_friction = -0.5\nball_magnus = 0.108685933\nshooting_power = 0.85\nspeed = 0.205\nspeed_global = 5\n",
-    readme: "# GOD GAMEPLAY — QUICK TRANSITION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/`. It also installs `GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/gameplay.ini` in the PES 2017 game root.\n\nCopy the listed Lua module into `Sider/modules` and add its `lua.module = \"<module filename>\"` entry under the Extension modules section of `sider.ini`. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
+    readme: "# GOD GAMEPLAY — QUICK TRANSITION\n\nThis package installs its Lua module and README under `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/`. It also installs `content/GODMODS/Gameplay/GOD-GAMEPLAY-QUICK-TRANSITION/gameplay.ini` inside PES 2017/content/GODMODS.\n\nDo not copy this department Lua source into `Sider/modules` or add an individual `lua.module` entry. GODMODS Manager installs the shared `GODMODS_Loader.lua` and registers the single Sider entry automatically. The module reads the INI at each match setup, so edits apply to the next match without restarting.\n\nThe INI contains documented Sider gameplay keys plus `match_minutes`: use 0 to keep the in-game duration, or 5–90 to override it through Sider's documented set_match_time event. Numeric gameplay values outside conservative safety bounds are ignored. Sider labels gameplay controls experimental; test offline and keep backups."
   },
   {
     id: "thegodmods.god-atmosphere-matchday",
@@ -423,14 +428,14 @@ const definitions = [
     description: "An original Sider 3.5 crowd engine with four selectable premium ambience beds, an optional second layer, intensity scaling and opt-in activation. No unverified match-event cues are triggered.",
     configDepartment: "Audio",
     configFilename: "audio.ini",
-    configIni: "# GODMODS premium crowd engine settings\n# enabled and ambience: 0=off, 1=on. Engine is disabled by default.\n# bed: stadium-open-air, stadium-intimate, stadium-night, stadium-cup-final\n# texture: none or one of the four beds (must differ from bed)\n# intensity: 0=calm, 1=normal, 2=tense, 3=peak\n# volume and texture_volume: 0.0-1.0\nenabled = 0\nambience = 1\nbed = stadium-open-air\ntexture = none\nintensity = 1\nvolume = 0.16\ntexture_volume = 0.035\n",
+    configIni: "# GODMODS premium crowd engine settings\n# enabled and ambience: 0=off, 1=on. Package activation is controlled by GODMODS Manager.\n# bed: stadium-open-air, stadium-intimate, stadium-night, stadium-cup-final\n# texture: none or one of the four beds (must differ from bed)\n# intensity: 0=calm, 1=normal, 2=tense, 3=peak\n# volume and texture_volume: 0.0-1.0\nenabled = 1\nambience = 1\nbed = stadium-open-air\ntexture = none\nintensity = 1\nvolume = 0.16\ntexture_volume = 0.035\n",
     assets: [
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-open-air.wav", filename: "stadium-open-air.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-intimate.wav", filename: "stadium-intimate.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-night.wav", filename: "stadium-night.wav" },
       { source: "content/originals/generated/GOD-ATMOSPHERE-PREMIUM/beds/stadium-cup-final.wav", filename: "stadium-cup-final.wav" }
     ],
-    readme: "# GOD ATMOSPHERE — Premium Crowd Engine\n\nThis package installs an original Sider 3.5 crowd engine and four premium synthesized 18-second PCM WAV ambience beds: Open Air, Intimate Ground, Night Match and Cup Final. Choose one primary bed and optionally add a quieter secondary texture. The engine restarts each bed with Sider's documented audio completion callback and scales both layers using the selected calm/normal/tense/peak intensity.\n\nCopy `godmods_atmosphere_matchday.lua` into `Sider/modules` and add `lua.module = \"godmods_atmosphere_matchday.lua\"` under the Extension modules section of `sider.ini`. The module does not edit `sider.ini`, replace commentary, use LiveCPK or hook undocumented game memory. Launch Sider with the PES 2017 game folder as its working directory so relative config and asset paths resolve.\n\nEdit `GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini`. It is disabled by default: set `enabled = 1` to opt in. Select `bed` from the four documented IDs; set `texture` to `none` or a different bed. Set `intensity` to 0 (calm), 1 (normal), 2 (tense) or 3 (peak). Volumes are 0.0–1.0. Set `ambience = 0` to stop both loops. Invalid values are ignored and unknown bed names fall back safely.\n\nThe engine deliberately does not trigger the 25 club stingers or goal/half-time/full-time cues: team IDs and match-event signals still require target-patch evidence. This is a source-verified runtime module, not a claim of in-game audio compatibility. Test loop continuity, commentary balance and long-session stability on the exact PES 2017 + YosfX + Sider setup before enabling it for normal play."
+    readme: "# GOD ATMOSPHERE — Premium Crowd Engine\n\nThis package installs an original Sider 3.5 crowd engine and four premium synthesized 18-second PCM WAV ambience beds: Open Air, Intimate Ground, Night Match and Cup Final. Choose one primary bed and optionally add a quieter secondary texture. The engine restarts each bed with Sider's documented audio completion callback and scales both layers using the selected calm/normal/tense/peak intensity.\n\nDo not copy the department Lua source into `Sider/modules` or add a separate `lua.module` line. GODMODS Manager installs the shared `GODMODS_Loader.lua` and registers the single Sider entry when the first GODMODS package is installed. The module does not replace commentary, use LiveCPK or hook undocumented game memory. Launch Sider with the PES 2017 game folder as its working directory so relative config and asset paths resolve.\n\nEdit `content/GODMODS/Audio/GOD-ATMOSPHERE-MATCHDAY/audio.ini`. It starts enabled when installed. Use the GODMODS Manager package switch to turn the engine off without removing its files. Set `ambience = 0` to silence it while leaving the package installed. Select `bed` from the four documented IDs; set `texture` to `none` or a different bed. Set `intensity` to 0 (calm), 1 (normal), 2 (tense) or 3 (peak). Volumes are 0.0–1.0. Set `ambience = 0` to stop both loops. Invalid values are ignored and unknown bed names fall back safely.\n\nThe engine deliberately does not trigger the 25 club stingers or goal/half-time/full-time cues: team IDs and match-event signals still require target-patch evidence. This is a source-verified runtime module, not a claim of in-game audio compatibility. Test loop continuity, commentary balance and long-session stability on the exact PES 2017 + YosfX + Sider setup before relying on it during normal play."
   },
 ];
 

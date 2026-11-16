@@ -5,8 +5,9 @@ import {
   Package, Play, RefreshCw, Settings, ShieldCheck, Shirt, SlidersHorizontal,
   Sparkles, Users, Waves
 } from "lucide-react";
-import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport } from "../electron/preload";
+import type { DdsComparison, DdsTexture, GameStatus, InstalledModule, LibraryPackage, ModulePreview, PitchInventory, PitchLogReport, ResourceScanSummary } from "../electron/preload";
 import DepartmentCatalogue from "./components/DepartmentCatalogue";
+import packageJson from "../package.json";
 
 const navigation = [
   { label: "Overview", icon: LayoutDashboard, group: "WORKSPACE" },
@@ -66,6 +67,9 @@ export default function App() {
   const [generatedPitch, setGeneratedPitch] = useState<{ id: string; output: string } | null>(null);
   const [pitchLog, setPitchLog] = useState<{ fileName: string; report: PitchLogReport } | null>(null);
   const [pitchLogBusy, setPitchLogBusy] = useState(false);
+  const [resourceScan, setResourceScan] = useState<ResourceScanSummary | null>(null);
+  const [resourceScanBusy, setResourceScanBusy] = useState(false);
+  const [resourceExportBusy, setResourceExportBusy] = useState(false);
   const [profiles, setProfiles] = useState<Array<{ id: string; name: string; createdAt: string; enabledLuaModules: string[] }>>([]);
   const [profileBusy, setProfileBusy] = useState(false);
   const refresh = useCallback((): Promise<void> => {
@@ -146,6 +150,13 @@ export default function App() {
     catch (error) { setNotice(error instanceof Error ? error.message : "Could not open the selected community source."); }
   };
 
+  const openProjectPackages = async (projectName: string) => {
+    setLibrarySearch(projectName.replace(/^GOD\s+/i, "").toLowerCase());
+    setLibraryCategory("all");
+    setActive("Modules");
+    await scanLibrary();
+  };
+
   const scanLibrary = async () => {
     if (libraryBusy) return;
     setLibraryBusy(true);
@@ -153,17 +164,35 @@ export default function App() {
     catch (error) { setNotice(error instanceof Error ? error.message : "Library scan failed."); }
     finally { setLibraryBusy(false); }
   };
+  const togglePackage = async (packageId: string, enabled: boolean) => {
+    if (moduleActionBusy) return;
+    setModuleActionBusy(packageId);
+    try {
+      await window.nextgen.setPackageLuaEnabled(packageId, enabled);
+      await scanLibrary();
+      await refresh();
+      setNotice((enabled ? "Enabled " : "Disabled ") + packageId + ". Installed files were left in place.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not change this package's activation state.");
+    } finally {
+      setModuleActionBusy(null);
+    }
+  };
+
   const previewLibraryPackage = async (packageId: string) => {
-    try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setNotice("Library package revalidated. Review all target changes before installation."); } }
+    try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setActive("Modules"); setNotice("Library package revalidated. Review its files and automatic shared dependencies before installation."); } }
     catch (error) { setNotice(error instanceof Error ? error.message : "Could not preview library package."); }
   };
   const installPreviewedModule = async () => {
-    if (!modulePreview || modulePreview.missingDependencies.length || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
+    if (!modulePreview || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
+    const unavailableDependencies = modulePreview.missingDependencies.filter(id => !libraryPackages.some(item => item.id === id && item.valid));
+    if (unavailableDependencies.length) { setNotice("Required dependency package unavailable or invalid: " + unavailableDependencies.join(", ")); return; }
     const replacements = modulePreview.files.filter(file => file.action === "replace").map(file => file.target);
     const summary = [
       "Install " + modulePreview.name + " v" + modulePreview.version + "?",
       "",
       "Files to add: " + modulePreview.files.filter(file => file.action === "add").length,
+      "Shared dependencies to install automatically: " + modulePreview.missingDependencies.length,
       "Existing files to replace: " + replacements.length,
       ...replacements.map(file => "  • " + file),
       "",
@@ -215,7 +244,7 @@ export default function App() {
     setModuleActionBusy(module.id);
     try {
       const result = await window.nextgen.setPackageLuaEnabled(module.id, enabled);
-      setNotice(module.id + (enabled ? " enabled" : " disabled") + " as a package. " + (result.changed ? "Sider configuration backed up and updated." : "Sider configuration already matched."));
+      setNotice(module.id + (result.enabled ? " is ON." : " is OFF. Installed files remain in place."));
       await refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Could not change package activation."); }
     finally { setModuleActionBusy(null); }
@@ -235,6 +264,27 @@ export default function App() {
       await refresh();
     } catch (error) { setNotice(error instanceof Error ? error.message : "Module uninstall failed."); }
     finally { setModuleActionBusy(null); }
+  };
+  const scanGameResources = async () => {
+    if (resourceScanBusy) return;
+    setResourceScanBusy(true);
+    try {
+      const report = await window.nextgen.scanGameResources();
+      setResourceScan(report);
+      setNotice("Read-only PES resource scan complete: " + report.filesScanned.toLocaleString() + " files indexed. No game files were changed.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "PES resource scan failed.");
+    } finally { setResourceScanBusy(false); }
+  };
+  const exportResourceInventory = async () => {
+    if (resourceExportBusy) return;
+    setResourceExportBusy(true);
+    try {
+      const file = await window.nextgen.exportResourceInventory();
+      if (file) setNotice("Resource inventory exported: " + file);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not export resource inventory.");
+    } finally { setResourceExportBusy(false); }
   };
   const analyzePitchLog = async () => {
     if (pitchLogBusy) return;
@@ -281,7 +331,7 @@ export default function App() {
           </div>
         ))}
         <div className="sidebar-bottom">
-          <div className="build-label"><span className="status-dot" /> GODMODS MANAGER <span>0.1.0</span></div>
+          <div className="build-label"><span className="status-dot" /> GODMODS MANAGER <span>v{packageJson.version}</span></div>
           <div className="sidebar-foot"><ShieldCheck size={15} /> SAFE INSTALLATION ENGINE</div>
         </div>
       </aside>
@@ -321,7 +371,7 @@ export default function App() {
           </> : active === "Stadiums & Turf" ? <section className="page-placeholder">
             <div className="eyebrow">STADIUM SERVER · LIVECPK</div><h1>PITCH BUILDER</h1>
             <p>Inventory a Stadium Server pitch folder, map one exact resource to a replacement, then package it as a validated installable module.</p>
-            <DepartmentCatalogue departmentId="stadiums" onOpenSource={sourceId => void openContentSource(sourceId)} />
+            <DepartmentCatalogue packages={libraryPackages} packagesBusy={libraryBusy || Boolean(moduleActionBusy)} canTogglePackage={Boolean(status?.gameDirectory)} onScanPackages={() => void scanLibrary()} onPreviewPackage={id => void previewLibraryPackage(id)} onTogglePackage={(id, enabled) => void togglePackage(id, enabled)} departmentId="stadiums" onOpenSource={sourceId => void openContentSource(sourceId)} onFindPackage={name => void openProjectPackages(name)} />
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">STEP 01 · SOURCE INVENTORY</div><h3>Scan stadium resources</h3></div><span className="coming-tag">{pitchInventory ? pitchInventory.fileCount+" FILES" : "NOT SCANNED"}</span></div>
               <p>Choose the stadium folder containing <code>common/bg/model/bg/pitch</code>. The scan is read-only, hashes files and does not modify the stadium.</p>
@@ -345,7 +395,7 @@ export default function App() {
           </section> : active === "Graphics" ? <section className="page-placeholder">
             <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
             <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
-            <DepartmentCatalogue departmentId="graphics" onOpenSource={sourceId => void openContentSource(sourceId)} />
+            <DepartmentCatalogue packages={libraryPackages} packagesBusy={libraryBusy || Boolean(moduleActionBusy)} canTogglePackage={Boolean(status?.gameDirectory)} onScanPackages={() => void scanLibrary()} onPreviewPackage={id => void previewLibraryPackage(id)} onTogglePackage={(id, enabled) => void togglePackage(id, enabled)} departmentId="graphics" onOpenSource={sourceId => void openContentSource(sourceId)} onFindPackage={name => void openProjectPackages(name)} />
             <div className="dds-toolbar">
               <button className="primary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("original"); if (result) { setOriginalDds(result); setDdsComparison(null); setNotice("Original DDS inspected. Choose a replacement to compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect original DDS."); } finally { setDdsBusy(false); } }}><FolderOpen size={15}/> CHOOSE ORIGINAL DDS</button>
               <button className="secondary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("replacement"); if (result) { setReplacementDds(result); setDdsComparison(null); setNotice("Replacement DDS inspected. Review the preview and compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect replacement DDS."); } finally { setDdsBusy(false); } }}>{ddsBusy ? "INSPECTING..." : "CHOOSE REPLACEMENT DDS"}</button>
@@ -392,10 +442,10 @@ export default function App() {
               <div className="integrity-row"><span>New files / replacements</span><b>{modulePreview.files.filter(file => file.action === "add").length} / {modulePreview.files.filter(file => file.action === "replace").length}</b></div>
               <div className="integrity-note"><b>After installation</b>{modulePreview.deployment.manualSteps.map((step, index) => <div key={index}>{index + 1}. {step}</div>)}</div>
               {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill safe-pill"}>{file.action.toUpperCase()}</b></div>)}
-              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {modulePreview.missingDependencies.join(", ")}</div>}
+              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Required dependencies will be installed automatically: {modulePreview.missingDependencies.join(", ")}. The GODMODS master loader is registered once in Sider.</div>}
               {modulePreview.conflicts.length > 0 && <div className="integrity-note">Conflicts: {modulePreview.conflicts.join(", ")}</div>}
               {modulePreview.alreadyInstalled && <div className="integrity-note">This module ID is already installed. Upgrade/reinstall is not supported yet.</div>}
-              <div className="dds-toolbar"><button className="primary-button" disabled={busy || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0 || modulePreview.alreadyInstalled || modulePreview.files.length === 0} onClick={() => void installPreviewedModule()}>APPROVE & INSTALL MODULE</button><button className="secondary-button" onClick={() => setModulePreview(null)}>CANCEL REVIEW</button></div>
+              <div className="dds-toolbar"><button className="primary-button" disabled={busy || modulePreview.missingDependencies.some(id => !libraryPackages.some(item => item.id === id && item.valid)) || modulePreview.conflicts.length > 0 || modulePreview.alreadyInstalled || modulePreview.files.length === 0} onClick={() => void installPreviewedModule()}>APPROVE & INSTALL MODULE</button><button className="secondary-button" onClick={() => setModulePreview(null)}>CANCEL REVIEW</button></div>
               <div className="dds-note">Existing target files are backed up only after explicit approval. The installer rechecks package hashes and target ownership before applying changes.</div>
             </div>}
             {filteredLibraryPackages.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>{libraryPackages.length ? "No matching packages" : "Your library is empty"}</h3><p>{libraryPackages.length ? "Try another search or category." : "No packages are bundled yet. Scan your own package collection."}</p></div></div> :
@@ -415,9 +465,9 @@ export default function App() {
                 <div className="integrity-row"><span>Installed</span><b>{new Date(module.installedAt).toLocaleString()}</b></div>
                 <div className="integrity-row"><span>Lua extensions</span><b>{module.luaModules.length}</b></div>
                 <div className="integrity-row"><span>Dependencies</span><b>{module.dependencies.length ? module.dependencies.join(", ") : "NONE"}</b></div>
-                {module.luaModules.length > 0 && module.files.every(file => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(file)) && <div className="action-row">
-                  <div className="action-copy"><strong>Package activation</strong><span>Lua-only package · changes all its Lua registrations together</span></div>
-                  <button className="small-action" disabled={!siderReady || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.luaModules.every(name => status?.luaModules.includes(name)))}>{moduleActionBusy === module.id ? "SAVING" : module.luaModules.every(name => status?.luaModules.includes(name)) ? "DISABLE PACKAGE" : "ENABLE PACKAGE"}</button>
+                {module.files.some(file => file.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini")) && <div className="action-row">
+                  <div className="action-copy"><strong>Package activation</strong><span>{module.enabled ? "ON · feature callbacks active" : "OFF · installed files are preserved"}</span></div>
+                  <button className="small-action" disabled={!status?.gameDirectory || moduleActionBusy !== null} onClick={() => void setPackageLuaEnabled(module, !module.enabled)}>{moduleActionBusy === module.id ? "SAVING..." : module.enabled ? "TURN OFF" : "TURN ON"}</button>
                 </div>}
                 {module.luaModules.length > 0 ? module.luaModules.map(name => {
                   const enabled = status?.luaModules.includes(name) ?? false;
@@ -475,7 +525,25 @@ export default function App() {
             <div className="notice"><span className="notice-mark">i</span>The manager keeps game-folder settings and installation journals locally. It does not change Windows registry entries or game files merely by opening this page.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : active === "Diagnostics" ? <section className="page-placeholder">
-            <div className="eyebrow">RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
+            <div className="eyebrow">PES 2017 RESOURCE DISCOVERY · READ ONLY</div><h1>GAME RESOURCE INVENTORY</h1>
+            <p>Scan the selected PES 2017 installation to fingerprint actual stadium, pitch, kit and player resource files. This is the evidence base for building real resource mappings—not an automatic compatibility claim.</p>
+            <div className="panel pitch-panel">
+              <div className="panel-heading"><div><div className="eyebrow">LOCAL INSTALLATION · SHA-256 INVENTORY</div><h3>Scan PES 2017 resources</h3></div><span className="coming-tag">{resourceScan ? "INVENTORY READY" : "NOT SCANNED"}</span></div>
+              <p>The scan is read-only, skips symbolic links and indexes supported files with SHA-256 and DDS header diagnostics. Large compressed CPK/FPK containers are not unpacked.</p>
+              <div className="action-row">
+                <button className="primary-button" disabled={resourceScanBusy || !ready} onClick={() => void scanGameResources()}><FolderOpen size={15}/>{resourceScanBusy ? "SCANNING GAME FILES..." : "SCAN SELECTED PES 2017 FOLDER"}</button>
+                <button className="secondary-button" disabled={!resourceScan || resourceExportBusy} onClick={() => void exportResourceInventory()}>{resourceExportBusy ? "EXPORTING..." : "EXPORT INVENTORY JSON"}</button>
+              </div>
+              {resourceScan && <>
+                <div className="integrity-row"><span>Game root</span><b>{resourceScan.rootLabel}</b></div>
+                <div className="integrity-row"><span>Files fingerprinted</span><b>{resourceScan.filesScanned.toLocaleString()}</b></div>
+                <div className="integrity-row"><span>Skipped symbolic links</span><b>{resourceScan.skippedSymlinks}</b></div>
+                <div className="integrity-row"><span>Scan limit reached</span><b>{resourceScan.limitReached ? "YES — scan is partial" : "NO"}</b></div>
+                {Object.entries(resourceScan.summary).map(([category,count]) => <div className="integrity-row" key={category}><span>{category.replaceAll("-", " ")}</span><b>{count.toLocaleString()}</b></div>)}
+                <p className="integrity-note">Export this JSON and share it for exact mapping work. File presence and hashes do not establish UV/material compatibility or in-game rendering.</p>
+              </>}
+            </div>
+            <div className="eyebrow" style={{marginTop:22}}>RUNTIME EVIDENCE · SIDER LOGS</div><h1>PITCH RESOURCE TRACE</h1>
             <p>Inspect Sider log evidence for references to Stadium Server pitch resources. This is a log parser—not a claim that a texture rendered correctly in PES.</p>
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">LIVECPK · RESOURCE OBSERVABILITY</div><h3>Analyze Sider log</h3></div><span className="coming-tag">{pitchLog ? "REPORT READY" : "AWAITING LOG"}</span></div>
@@ -501,7 +569,7 @@ export default function App() {
             <div className="notice"><span className="notice-mark">i</span>For a meaningful capture: back up the stadium, start Sider, launch PES, enter one target stadium, play long enough to load the pitch, exit, then analyze the resulting log. Compare logs before and after a one-resource replacement. Keep the original log for audit.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : ["Kits & Equipment", "Players", "Audio & Atmosphere", "Gameplay"].includes(active) ? <section className="page-placeholder">
-            <DepartmentCatalogue departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void openContentSource(sourceId)} />
+            <DepartmentCatalogue packages={libraryPackages} packagesBusy={libraryBusy || Boolean(moduleActionBusy)} canTogglePackage={Boolean(status?.gameDirectory)} onScanPackages={() => void scanLibrary()} onPreviewPackage={id => void previewLibraryPackage(id)} onTogglePackage={(id, enabled) => void togglePackage(id, enabled)} departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void openContentSource(sourceId)} onFindPackage={name => void openProjectPackages(name)} />
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>

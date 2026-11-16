@@ -27,7 +27,7 @@
     "preview:dds": "node tools/dds-preview.mjs",
     "sign:package": "node tools/sign-package-release.mjs",
     "mods:build-original": "node tools/build-original-mods.mjs && node tools/build-god-turf-stadiumserver.mjs && npm run audit:god-turf && npm run mods:build-kits && npm run mods:build-faces && npm run mods:build-visuals && npm run mods:build-stadiums && npm run mods:build-atmosphere && npm run mods:build-gameplay && npm run mods:build-cinematic && npm run mods:build-natural",
-    "mods:build-packs": "node tools/build-pes2017-modules.mjs",
+    "mods:build-packs": "node tools/build-pes2017-modules.mjs && node tools/build-godmods-master-loader.mjs",
     "mods:verify-packs": "node tools/verify-built-modules.mjs",
     "mods:check-lua": "node tools/check-lua-syntax.mjs",
     "mods:build-kits": "node tools/build-god-kits-material-lab.mjs",
@@ -42,7 +42,9 @@
     "inventory:stadium-resources": "node tools/stadium-resource-inventory.mjs",
     "validate:god-kits-mapping": "node tools/god-kits-mapping.mjs",
     "validate:god-faces-mapping": "node tools/god-faces-mapping.mjs",
-    "validate:godmods-integration": "node tools/godmods-integration-gate.mjs"
+    "validate:godmods-integration": "node tools/godmods-integration-gate.mjs",
+    "portable:win": "npm run build && npm run portable:win:package",
+    "portable:win:package": "npx electron-builder --win dir --publish never && node tools/package-portable-release.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -80,27 +82,17 @@
     "win": {
       "target": [
         {
-          "target": "nsis",
+          "target": "dir",
           "arch": [
             "x64"
           ]
         }
       ]
     },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "GODMODS Manager",
-      "uninstallDisplayName": "GODMODS Manager",
-      "installerLanguages": [
-        "en_US"
-      ]
-    },
-    "artifactName": "GODMODS-Manager-${version}-Setup.${ext}",
+    "artifactName": "GODMODS-Manager-${version}-Portable.${ext}",
     "asarUnpack": [
-      "dist-electron/electron/dds-worker.cjs"
+      "dist-electron/electron/dds-worker.cjs",
+      "tools/pes2017-resource-audit.mjs"
     ]
   }
 }

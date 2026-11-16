@@ -1,8 +1,10 @@
-import type { DdsComparison, DdsTexture, GameStatus, PitchInventory, PitchLogReport, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
+import type { DdsComparison, DdsTexture, GameStatus, PitchInventory, PitchLogReport, ResourceScanSummary, InstalledModule, LibraryPackage, ModulePreview, SiderSyncResult, UninstallResult } from "./preload";
 declare global {
   interface Window {
     nextgen: {
       analyzeSiderPitchLog: () => Promise<{ fileName: string; report: PitchLogReport } | null>;
+      scanGameResources: () => Promise<ResourceScanSummary>;
+      exportResourceInventory: () => Promise<string | null>;
       scanPitchFolder: () => Promise<PitchInventory | null>;
       choosePitchReplacement: (inventoryPath: string) => Promise<string | null>;
       buildPitchModule: (args: { inventoryPath: string; moduleId: string; moduleName: string }) => Promise<{ moduleId: string; files: number; output: string } | null>;
@@ -16,7 +18,7 @@ declare global {
       listInstalledModules: () => Promise<InstalledModule[]>;
       uninstallModule: (moduleId: string) => Promise<UninstallResult>;
       setLuaModuleEnabled: (moduleName: string, enabled: boolean) => Promise<SiderSyncResult>;
-      setPackageLuaEnabled: (moduleId: string, enabled: boolean) => Promise<SiderSyncResult>;
+      setPackageLuaEnabled: (moduleId: string, enabled: boolean) => Promise<{ enabled: boolean }>;
       applyLuaActivationProfile: (enabledModuleNames: string[]) => Promise<SiderSyncResult>;
       syncSiderModules: () => Promise<SiderSyncResult>;
       launchSider: () => Promise<{ ok: boolean; message: string }>;

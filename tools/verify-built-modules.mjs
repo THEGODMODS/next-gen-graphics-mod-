@@ -27,7 +27,24 @@ for (const dir of dirs) {
     if (ids.has(manifest.id)) throw new Error("duplicate package ID");
     ids.add(manifest.id);
     if (manifest.game?.title !== "PES 2017" || manifest.game?.sider !== ">=3.5.0 <4.0.0") throw new Error("unexpected game/Sider target");
-    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0) throw new Error("package must contain a Lua module, README, and optional game-root INI");
+    if (manifest.id === "thegodmods.core-loader") {
+      if (manifest.deployment?.strategy !== "lua" || manifest.files?.length !== 0 || manifest.luaModules?.length !== 1 || manifest.luaModules[0].moduleName !== "GODMODS_Loader.lua") throw new Error("master loader must be the single Sider Lua deployment package");
+      const entry = manifest.luaModules[0];
+      const relative = entry.source.replaceAll("\\\\", "/");
+      if (relative.startsWith("/") || relative.split("/").includes("..")) throw new Error("unsafe master loader payload path");
+      const loaderPath = path.resolve(packageRoot, relative);
+      if (!loaderPath.startsWith(packageRoot + path.sep)) throw new Error("master loader escapes package");
+      const stat = await lstat(loaderPath);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw new Error("master loader payload is not a regular file");
+      const bytes = await readFile(loaderPath);
+      if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) throw new Error("master loader SHA-256 mismatch");
+      const source = bytes.toString("utf8");
+      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(feature.config)") || !source.includes("is_enabled = function()") || !source.includes("feature_module.stop")) throw new Error("master loader orchestration/activation contract missing");
+      luaCount += 1;
+      packageCount += 1;
+      continue;
+    }
+    if (manifest.deployment?.strategy !== "direct" || (manifest.deployment?.manualSteps?.length ?? 0) !== 0 || ![3, 4, 7, 8].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README, activation marker and optional configuration/assets");
     if (manifest.license?.id !== "THEGODMODS-ORIGINAL-1.0" || manifest.license?.redistributionAllowed !== true) throw new Error("first-party rights metadata missing");
     for (const item of manifest.files) {
       const relative = item.source.replaceAll("\\", "/");
@@ -39,34 +56,34 @@ for (const dir of dirs) {
       const bytes = await readFile(payloadPath);
       const digest = createHash("sha256").update(bytes).digest("hex");
       if (digest !== item.sha256) throw new Error("payload hash mismatch: " + item.source);
-      if (!item.target.startsWith("content/GODMODS/") && !item.target.startsWith("GODMODS/Gameplay/") && !item.target.startsWith("GODMODS/Graphics/") && !item.target.startsWith("GODMODS/Stadiums/") && !item.target.startsWith("GODMODS/Audio/")) throw new Error("package files must install under the existing PES 2017 content folder or GODMODS game-root config folder");
+      if (!item.target.startsWith("content/GODMODS/")) throw new Error("all GODMODS package payloads and configuration must remain inside PES 2017/content/GODMODS");
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
-        if (manifest.category === "gameplay" && (!lua.includes('config_path = ctx.sider_dir ..') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
-        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
-        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("ctx.sider_dir") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
+        if (manifest.category === "gameplay" && (!lua.includes('config_path = "content\\\\GODMODS') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
+        if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
+        if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
         if (!readme.startsWith("# ") || readme.length < 80) throw new Error("installed README is missing or incomplete");
-      } else if (item.target.startsWith("GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
         gameplayIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["brightness", "sharpness", "shadow_softness", "reflection"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
         graphicsIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
         const ini = bytes.toString("utf8");
         for (const key of ["timeofday", "weather", "season"]) if (!new RegExp("^" + key + "\\s*=\\s*[01]$", "m").test(ini)) throw new Error("stadium INI missing valid " + key);
         stadiumIniCount += 1;
-      } else if (item.target.startsWith("GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
+      } else if (item.target.startsWith("content/GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
         const ini = bytes.toString("utf8");
         for (const key of ["enabled", "ambience", "volume", "texture_volume"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
         for (const key of ["enabled", "ambience"]) {
@@ -109,6 +126,9 @@ for (const dir of dirs) {
         if (dataBytes === null) throw new Error("WAV data chunk is missing");
         if (dataBytes % blockAlign !== 0) throw new Error("WAV data chunk size is inconsistent");
         audioAssetCount += 1;
+      } else if (item.target.endsWith("/enabled.ini")) {
+        const ini = bytes.toString("utf8");
+        if (!/^enabled\s*=\s*1\s*$/m.test(ini)) throw new Error("package activation marker must default to enabled = 1");
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
@@ -118,16 +138,16 @@ for (const dir of dirs) {
     failures.push(dir.name + ": " + (error instanceof Error ? error.message : String(error)));
   }
 }
-if (packageCount !== 18) failures.push("Expected 18 original content-folder packages, found " + packageCount);
-if (luaCount !== 18) failures.push("Expected 18 original installable Lua modules, found " + luaCount);
-if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
-if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
-if (stadiumIniCount !== 7) failures.push("Expected 7 editable game-root stadium INI files, found " + stadiumIniCount);
-if (audioIniCount !== 1) failures.push("Expected 1 editable game-root audio INI file, found " + audioIniCount);
+if (packageCount !== 19) failures.push("Expected 18 department packages plus one master-loader package, found " + packageCount);
+if (luaCount !== 19) failures.push("Expected 18 department Lua sources plus one master Sider loader, found " + luaCount);
+if (gameplayIniCount !== 3) failures.push("Expected 3 editable content/GODMODS gameplay INI files, found " + gameplayIniCount);
+if (graphicsIniCount !== 7) failures.push("Expected 7 editable content/GODMODS graphics INI files, found " + graphicsIniCount);
+if (stadiumIniCount !== 7) failures.push("Expected 7 editable content/GODMODS stadium INI files, found " + stadiumIniCount);
+if (audioIniCount !== 1) failures.push("Expected 1 editable content/GODMODS audio INI file, found " + audioIniCount);
 if (audioAssetCount !== 4) failures.push("Expected 4 original installable WAV audio assets, found " + audioAssetCount);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log("Verified " + packageCount + " original THEGODMODS PES 2017 packages, " + luaCount + " Lua modules, " + packageCount + " READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
+  console.log("Verified " + (packageCount - 1) + " original THEGODMODS department packages plus one master loader, " + luaCount + " Lua sources/runtime modules and " + (packageCount - 1) + " READMEs and " + graphicsIniCount + " graphics INIs, " + gameplayIniCount + " gameplay INIs and " + stadiumIniCount + " stadium INIs, " + audioIniCount + " audio INI and " + audioAssetCount + " WAV assets.");
 }

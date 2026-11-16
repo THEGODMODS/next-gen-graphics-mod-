@@ -42,7 +42,7 @@ jobs:
           }
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: TypeScript validation
         run: npm run typecheck
@@ -64,17 +64,17 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Build Windows NSIS installer
-        run: npx electron-builder --win nsis --publish never
+      - name: Build GODMODS portable package
+        run: npm run portable:win:package
 
       - name: Generate SHA-256 checksums
         shell: pwsh
         run: |
-          $installers = Get-ChildItem release -Filter *.exe -File
-          if (-not $installers -or $installers.Count -eq 0) {
-            throw "No Windows installer was produced."
+          $archives = Get-ChildItem release/portable -Filter *.zip -File
+          if (-not $archives -or $archives.Count -eq 0) {
+            throw "No GODMODS portable ZIP was produced."
           }
-          $lines = foreach ($file in $installers) {
+          $lines = foreach ($file in $archives) {
             $hash = (Get-FileHash $file.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
             "$hash  $($file.Name)"
           }
@@ -85,7 +85,7 @@ jobs:
         with:
           name: pes2017-nextgen-release-${{ github.ref_name }}
           path: |
-            release/*.exe
+            release/portable/*.zip
             release/SHA256SUMS.txt
           if-no-files-found: error
           retention-days: 30
@@ -99,18 +99,18 @@ jobs:
           $notes = @"
           ## GODMODS Manager — $tag
 
-          **Draft release candidate.** Review and test the installer on a clean Windows machine and a backed-up PES 2017 + Sider installation before publishing.
+          **Portable package.** Extract the ZIP, copy the complete GODMODS folder into PES 2017/content, then launch GODMODS Tool/GODMODS Manager.exe. No Windows setup wizard is used.
 
           ### Verification
           - TypeScript validation
           - Native Node ESM smoke tests
           - Unit tests
           - Production build
-          - Windows NSIS installer build
+          - Windows portable ZIP build
           - SHA-256 checksum file
 
           ### Important
           A successful CI run does not prove in-game compatibility. This application release does not imply that every catalogue mod pack is mapped or verified in-game. Test the manager, installation, rollback and exact PES 2017 + patch + Sider setup before publishing. Do not claim compatibility beyond the tested configuration.
           "@
           Set-Content release/RELEASE-NOTES.md $notes -Encoding utf8
-          gh release create $tag (Get-ChildItem release -Filter *.exe | ForEach-Object { $_.FullName }) release/SHA256SUMS.txt release/RELEASE-NOTES.md --draft --verify-tag --title "GODMODS Manager $tag" --notes-file release/RELEASE-NOTES.md
+          gh release create $tag (Get-ChildItem release/portable -Filter *.zip | ForEach-Object { $_.FullName }) release/SHA256SUMS.txt release/RELEASE-NOTES.md --draft --verify-tag --title "GODMODS Manager $tag" --notes-file release/RELEASE-NOTES.md

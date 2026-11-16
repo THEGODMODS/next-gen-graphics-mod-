@@ -22,11 +22,16 @@ let libraryPackages = new Map<string, string>();
 let selectedDds: { original: string | null; replacement: string | null } = { original: null, replacement: null };
 let selectedPitchInventory: Awaited<ReturnType<typeof pitchService.scan>> | null = null;
 let selectedPitchReplacement: string | null = null;
+let selectedResourceInventory: unknown = null;
 let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string } =
   { status: "not-needed", files: [], message: "No recovery required." };
 
 const stateDirectory = () => path.join(app.getPath("userData"), "manager-state");
 const settingsPath = () => path.join(app.getPath("userData"), "manager-settings.json");
+// Portable release stores content beside the GODMODS Tool folder, outside app.asar.
+const distributionRoot = () => app.isPackaged
+  ? path.resolve(path.dirname(app.getPath("exe")), "..")
+  : app.getAppPath();
 
 async function findFirst(directory: string, names: string[]): Promise<string | null> {
   for (const name of names) {
@@ -140,6 +145,47 @@ function registerIpc() {
     const logPath = picked.filePaths[0];
     return ddsService.analyzeLog(logPath, app.getAppPath());
   });
+  ipcMain.handle("resources:scan-game", async event => {
+    assertTrustedSender(event);
+    if (!gameDirectory) throw new Error("Select your PES 2017 game folder before scanning resources.");
+    const reportPath = path.join(stateDirectory(), "resource-inventory.json");
+    await fsp.mkdir(stateDirectory(), { recursive: true });
+    await fsp.rm(reportPath, { force: true });
+    const auditScript = app.isPackaged
+      ? path.join(process.resourcesPath, "app.asar.unpacked", "tools", "pes2017-resource-audit.mjs")
+      : path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs");
+    const child = spawn(process.execPath, [auditScript, "scan", gameDirectory, reportPath], {
+      windowsHide: true,
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }
+    });
+    let stderr = "";
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", chunk => { stderr += String(chunk); });
+    const exitCode = await new Promise<number>((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", code => resolve(code ?? 1));
+    });
+    if (exitCode !== 0) throw new Error(stderr.trim() || "Resource scanner exited with code " + exitCode + ".");
+    const report = JSON.parse(await fsp.readFile(reportPath, "utf8"));
+    selectedResourceInventory = report;
+    return {
+      rootLabel: report.rootLabel, generatedAt: report.generatedAt,
+      filesScanned: report.filesScanned, skippedSymlinks: report.skippedSymlinks,
+      limitReached: report.limitReached, summary: report.summary
+    };
+  });
+  ipcMain.handle("resources:export-inventory", async event => {
+    assertTrustedSender(event);
+    if (!selectedResourceInventory) throw new Error("Run a resource scan before exporting the inventory.");
+    const picked = await dialog.showSaveDialog(mainWindow!, {
+      title: "Export GODMODS PES 2017 resource inventory",
+      defaultPath: "GODMODS-PES2017-Resource-Inventory.json",
+      filters: [{ name: "JSON inventory", extensions: ["json"] }]
+    });
+    if (picked.canceled || !picked.filePath) return null;
+    await fsp.writeFile(picked.filePath, JSON.stringify(selectedResourceInventory, null, 2), "utf8");
+    return picked.filePath;
+  });
   ipcMain.handle("pitch:scan", async event => {
     assertTrustedSender(event);
     const picked = await dialog.showOpenDialog(mainWindow!, { title: "Select Stadium Server stadium folder", properties: ["openDirectory"] });
@@ -202,7 +248,7 @@ function registerIpc() {
     assertTrustedSender(event);
     // Prefer the first-party GODMODS packages bundled with the installed app.
     // Fall back to a user-selected folder for community/local modules.
-    const bundledRoot = path.join(app.getAppPath(), "content", "packs");
+    const bundledRoot = path.join(distributionRoot(), "content", "packs");
     let root: string;
     try {
       const bundledStat = await fsp.stat(bundledRoot);
@@ -216,7 +262,7 @@ function registerIpc() {
     const entries = await fsp.readdir(root, { withFileTypes: true });
     const installed = await new JournalStore(stateDirectory()).read();
     const installedIds = new Set(installed.modules.map(item => item.id));
-    const results: Array<{id:string;name:string;version:string;category:string;description:string;valid:boolean;errors:string[];files:number;missingDependencies:string[];conflicts:string[];alreadyInstalled:boolean}> = [];
+    const results: Array<{id:string;name:string;version:string;category:string;description:string;valid:boolean;errors:string[];files:number;missingDependencies:string[];conflicts:string[];alreadyInstalled:boolean;enabled:boolean}> = [];
     const next = new Map<string,string>();
     for (const entry of entries.filter(item => item.isDirectory() && !item.isSymbolicLink()).slice(0, 200)) {
       const packageRoot = path.join(root, entry.name);
@@ -226,7 +272,7 @@ function registerIpc() {
         if (!stat.isFile() || stat.isSymbolicLink()) continue;
         const validation = parseModuleManifest(await fsp.readFile(manifestPath, "utf8"));
         if (!validation.valid || !validation.manifest) {
-          results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Manifest validation failed.", valid: false, errors: validation.errors, files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false });
+          results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Manifest validation failed.", valid: false, errors: validation.errors, files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false, enabled: false });
           continue;
         }
         const manifest = validation.manifest;
@@ -243,12 +289,48 @@ function registerIpc() {
           } catch (error) { errors.push(file.source + ": " + (error instanceof Error ? error.message : "invalid payload")); }
         }
         const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
-        const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+        const conflicts: string[] = [];
+        for (const id of manifest.conflicts) {
+          const conflictingRecord = installed.modules.find(item => item.id === id);
+          if (!conflictingRecord) continue;
+          const marker = conflictingRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+          let conflictEnabled = true;
+          if (marker && gameDirectory) {
+            try {
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+            } catch { conflictEnabled = false; }
+          }
+          if (conflictEnabled) conflicts.push(id);
+        }
+        for (const installedRecord of installed.modules) {
+          if (!installedRecord.conflicts?.includes(manifest.id) || conflicts.includes(installedRecord.id)) continue;
+          const marker = installedRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+          let conflictEnabled = true;
+          if (marker && gameDirectory) {
+            try {
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+            } catch { conflictEnabled = false; }
+          }
+          if (conflictEnabled) conflicts.push(installedRecord.id);
+        }
         const alreadyInstalled = installedIds.has(manifest.id);
+        let enabled = true;
+        if (alreadyInstalled) {
+          const installedRecord = installed.modules.find(item => item.id === manifest.id);
+          const marker = installedRecord?.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+          if (marker && gameDirectory) {
+            try {
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              enabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+            } catch { enabled = false; }
+          }
+        }
         if (next.has(manifest.id)) errors.push("Duplicate module ID in library."); else next.set(manifest.id, packageRoot);
-        results.push({ id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category, description: manifest.description, valid: errors.length === 0, errors, files: payloads.length, missingDependencies, conflicts, alreadyInstalled });
+        results.push({ id: manifest.id, name: manifest.name, version: manifest.version, category: manifest.category, description: manifest.description, valid: errors.length === 0, errors, files: payloads.length, missingDependencies, conflicts, alreadyInstalled, enabled });
       } catch (error) {
-        results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Could not inspect package.", valid: false, errors: [error instanceof Error ? error.message : "Unknown package error."], files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false });
+        results.push({ id: entry.name, name: entry.name, version: "—", category: "other", description: "Could not inspect package.", valid: false, errors: [error instanceof Error ? error.message : "Unknown package error."], files: 0, missingDependencies: [], conflicts: [], alreadyInstalled: false, enabled: false });
       }
     }
     libraryPackages = next;
@@ -274,7 +356,32 @@ function registerIpc() {
     const journal = await new JournalStore(stateDirectory()).read();
     const installedIds = new Set(journal.modules.map(item => item.id));
     const missingDependencies = manifest.dependencies.filter(id => !installedIds.has(id));
-    const conflicts = manifest.conflicts.filter(id => installedIds.has(id));
+    const conflicts: string[] = [];
+    for (const id of manifest.conflicts) {
+      const conflictingRecord = journal.modules.find(item => item.id === id);
+      if (!conflictingRecord) continue;
+      const marker = conflictingRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      let conflictEnabled = true;
+      if (marker) {
+        try {
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+        } catch { conflictEnabled = false; }
+      }
+      if (conflictEnabled) conflicts.push(id);
+    }
+    for (const installedRecord of journal.modules) {
+      if (!installedRecord.conflicts?.includes(manifest.id) || conflicts.includes(installedRecord.id)) continue;
+      const marker = installedRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      let conflictEnabled = true;
+      if (marker) {
+        try {
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+        } catch { conflictEnabled = false; }
+      }
+      if (conflictEnabled) conflicts.push(installedRecord.id);
+    }
     const alreadyInstalled = installedIds.has(manifest.id);
     const gameRoot = await fsp.realpath(gameDirectory);
     const files = [];
@@ -328,40 +435,79 @@ function registerIpc() {
     const manifest = validation.manifest;
     if (manifest.id !== selected.id || manifest.version !== selected.version) throw new Error("Package changed after preview. Preview it again.");
     const installer = new ModuleInstaller(gameDirectory, stateDirectory());
-    const installed = await installer.install(selected.root, manifest, {
-      approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
-    });
-    // Content-folder packages deliberately leave Sider registration to the user.
-    // Only legacy packages that explicitly declare luaModules use manager sync.
-    if (manifest.luaModules.length === 0) return installed;
+    const initialJournal = await new JournalStore(stateDirectory()).read();
+    const installedIds = new Set(initialJournal.modules.map(item => item.id));
+    const newlyInstalledDependencies: string[] = [];
+    const visiting = new Set<string>();
+    const ensureDependency = async (dependencyId: string): Promise<void> => {
+      if (installedIds.has(dependencyId)) return;
+      if (visiting.has(dependencyId)) throw new Error("Circular package dependency detected: " + dependencyId);
+      const dependencyRoot = libraryPackages.get(dependencyId);
+      if (!dependencyRoot) throw new Error("Required GODMODS dependency is missing from the bundled library: " + dependencyId);
+      visiting.add(dependencyId);
+      const dependencyRaw = await fsp.readFile(path.join(dependencyRoot, "module.json"), "utf8");
+      const dependencyValidation = parseModuleManifest(dependencyRaw);
+      if (!dependencyValidation.valid || !dependencyValidation.manifest || dependencyValidation.manifest.id !== dependencyId) {
+        throw new Error("Required dependency package is invalid: " + dependencyId);
+      }
+      const dependencyManifest = dependencyValidation.manifest;
+      for (const nestedDependency of dependencyManifest.dependencies) await ensureDependency(nestedDependency);
+      await installer.install(dependencyRoot, dependencyManifest, {
+        approvedOverwriteTargets: [...dependencyManifest.files.map(file => normalizeSafeRelativePath(file.target)), ...dependencyManifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
+      });
+      installedIds.add(dependencyId);
+      newlyInstalledDependencies.push(dependencyId);
+      visiting.delete(dependencyId);
+    };
+
+    let productInstalled = false;
     try {
-      await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
-      return installed;
-    } catch (syncError) {
-      // Compensate the committed file transaction if Sider registration cannot be made safe.
-      try {
-        await installer.uninstall(manifest.id);
+      for (const dependencyId of manifest.dependencies) await ensureDependency(dependencyId);
+      const installed = await installer.install(selected.root, manifest, {
+        approvedOverwriteTargets: [...manifest.files.map(file => normalizeSafeRelativePath(file.target)), ...manifest.luaModules.map(module => normalizeSafeRelativePath("modules/" + module.moduleName))]
+      });
+      productInstalled = true;
+      if (manifest.luaModules.length > 0 || newlyInstalledDependencies.length > 0) {
         await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+      }
+      return installed;
+    } catch (installError) {
+      try {
+        if (productInstalled) await installer.uninstall(manifest.id);
+        for (const dependencyId of [...newlyInstalledDependencies].reverse()) await installer.uninstall(dependencyId);
+        if (manifest.luaModules.length > 0 || newlyInstalledDependencies.length > 0) {
+          await new SiderConfigManager(gameDirectory, stateDirectory()).syncInstalledModules();
+        }
       } catch (rollbackError) {
-        throw new Error("Files were installed but Sider synchronization failed, and automatic compensation was incomplete. Keep the manager state/backups intact and run recovery before launching PES 2017. Sync error: " +
-          (syncError instanceof Error ? syncError.message : String(syncError)) + "; compensation error: " +
+        throw new Error("GODMODS installation failed and automatic dependency rollback was incomplete. Keep manager state/backups intact and run recovery before launching PES 2017. Install error: " +
+          (installError instanceof Error ? installError.message : String(installError)) + "; rollback error: " +
           (rollbackError instanceof Error ? rollbackError.message : String(rollbackError)));
       }
-      throw new Error("Installation was rolled back because Sider configuration could not be synchronized: " +
-        (syncError instanceof Error ? syncError.message : String(syncError)));
+      throw installError;
     }
   });
   ipcMain.handle("modules:list-installed", async event => {
     assertTrustedSender(event);
-    return new JournalStore(stateDirectory()).read().then(journal => journal.modules.map(module => ({
-      id: module.id, version: module.version, installedAt: module.installedAt,
-      dependencies: module.dependencies ?? [],
-      files: module.files.map(file => file.target),
-      backupCount: module.files.filter(file => Boolean(file.backupPath)).length,
-      luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
-        .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
-        .map(target => target.slice(8)),
-    })));
+    const journal = await new JournalStore(stateDirectory()).read();
+    return Promise.all(journal.modules.map(async module => {
+      const marker = module.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      let enabled = true;
+      if (marker && gameDirectory) {
+        try {
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          enabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+        } catch { enabled = false; }
+      }
+      return {
+        id: module.id, version: module.version, installedAt: module.installedAt, enabled,
+        dependencies: module.dependencies ?? [],
+        files: module.files.map(file => file.target),
+        backupCount: module.files.filter(file => Boolean(file.backupPath)).length,
+        luaModules: module.files.map(file => file.target.replace(/\\/g, "/"))
+          .filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target))
+          .map(target => target.slice(8)),
+      };
+    }));
   });
   ipcMain.handle("modules:uninstall", async (event, moduleId: unknown) => {
     assertTrustedSender(event);
@@ -377,13 +523,8 @@ function registerIpc() {
     assertTrustedSender(event);
     if (typeof moduleId !== "string" || !/^[a-z0-9][a-z0-9._-]*$/.test(moduleId) || typeof enabled !== "boolean") throw new Error("Invalid package activation request.");
     if (!gameDirectory) throw new Error("Select your PES 2017 folder first.");
-    const journal = await new JournalStore(stateDirectory()).read();
-    const module = journal.modules.find(item => item.id === moduleId);
-    if (!module) throw new Error("That package is not installed.");
-    const targets = module.files.map(file => file.target.replace(/\\/g, "/"));
-    const luaNames = targets.filter(target => /^modules\/[A-Za-z0-9_-][A-Za-z0-9_.-]*\.lua$/i.test(target)).map(target => target.slice("modules/".length));
-    if (!luaNames.length || luaNames.length !== targets.length) throw new Error("Package-wide activation is currently supported only for Lua-only packages. Direct and LiveCPK assets require a separate reversible file-activation adapter.");
-    return new SiderConfigManager(gameDirectory, stateDirectory()).setLuaModulesEnabled(luaNames, enabled);
+    await new ModuleInstaller(gameDirectory, stateDirectory()).setPackageEnabled(moduleId, enabled);
+    return { enabled };
   });
   ipcMain.handle("modules:apply-lua-profile", async (event, enabledModuleNames: unknown) => {
     assertTrustedSender(event);

@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   windows-quality:
-    name: Windows validation and installer
+    name: Windows source, module and app validation
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,9 +23,9 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
       - name: Install pinned Lua parser
-        run: npm install --no-save --package-lock=false --ignore-scripts luaparse@0.3.1
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund luaparse@0.3.1
       - name: Build original GODMODS source assets
         run: npm run mods:build-original
       - name: Build installable GODMODS Sider modules
@@ -34,20 +34,6 @@ jobs:
         run: npm run mods:verify-packs
       - name: Parse every generated Sider Lua module (Lua 5.1)
         run: npm run mods:check-lua
-      - name: Upload installable GODMODS module packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: thegodmods-installable-modules-${{ github.sha }}
-          path: content/packs/**
-          if-no-files-found: error
-          retention-days: 30
-      - name: Upload generated original GODMODS content
-        uses: actions/upload-artifact@v4
-        with:
-          name: thegodmods-original-content-${{ github.sha }}
-          path: content/originals/generated/**
-          if-no-files-found: error
-          retention-days: 30
       - name: GODMODS cross-department source regression
         run: npm run audit:godmods-final
       - name: TypeScript validation
@@ -83,12 +69,3 @@ jobs:
         run: npm test
       - name: Production build
         run: npm run build
-      - name: Build Windows NSIS installer
-        run: npx electron-builder --win nsis --publish never
-      - name: Upload Windows test installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: pes2017-nextgen-windows-${{ github.sha }}
-          path: release/*.exe
-          if-no-files-found: error
-          retention-days: 14

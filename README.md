@@ -55,7 +55,7 @@ See [GOD STADIUMS resource mapping](docs/GOD_STADIUMS_RESOURCE_MAPPING.md) for t
 - `npm test` — run automated tests.
 - `npm run build` — run the complete production build.
 
-The Windows quality workflow builds a test installer artifact. A successful CI build is not proof of in-game compatibility; each department still requires controlled testing on the exact PES 2017 + YosfX + Sider setup.
+The Windows quality workflow validates source assets, package manifests, Lua syntax, TypeScript, tests and the production app; it does not publish a portable ZIP. The portable package is generated separately with `npm run portable:win` only after the release gates are approved. Extract the resulting archive and copy the complete GODMODS folder into PES 2017/content/. It contains the portable manager, generated content, validated package library, the single master Lua loader and README. A successful CI build is not proof of in-game compatibility; each department still requires controlled testing on the exact PES 2017 + YosfX + Sider setup.
 
 ## Safety
 

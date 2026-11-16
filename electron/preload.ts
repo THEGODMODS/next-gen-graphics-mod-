@@ -4,6 +4,7 @@ export type DdsTexture = { file: string; width: number; height: number; format: 
 export type DdsComparison = { compatibleForPixelComparison: true; width: number; height: number; format: string; analyzedMip: 0; pixelsCompared: number; changedPixelPercent: number; channels: Record<string, { meanAbsoluteError: number; rootMeanSquareError: number; maximumAbsoluteError: number }>; limitations: string[] };
 export type PitchInventoryRecord = { path: string; extension?: string; bytes?: number; sha256?: string; kind?: string; warning?: string; dds?: { valid: boolean; format?: string; width?: number; height?: number; errors?: string[] } };
 export type PitchInventory = { schemaVersion: 1; stadiumFolder: string; stadiumRoot: string; subtree: string; fileCount: number; records: PitchInventoryRecord[] };
+export type ResourceScanSummary = { rootLabel: string; generatedAt: string; filesScanned: number; skippedSymlinks: number; limitReached: boolean; summary: Record<string, number> };
 export type PitchLogReport = { schemaVersion: 1; totalLines: number; scannedLines: number; truncated: boolean; matchedLines: number; uniqueResources: number; issueLines: number; positiveLines: number; references: Array<{path:string;occurrences:number;issueOccurrences:number;positiveOccurrences:number}>; evidence: Array<{line:number;classification:"issue"|"positive"|"unclassified";text:string}>; limitations: string[] };
 export type RecoveryStatus = { status: "not-needed" | "recovered" | "blocked"; files: string[]; message: string };
 export type ModulePreview = {
@@ -13,8 +14,8 @@ export type ModulePreview = {
   dependencies: string[]; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean;
   files: Array<{ source: string; target: string; action: "add" | "replace" }>;
 };
-export type LibraryPackage = { id: string; name: string; version: string; category: string; description: string; valid: boolean; errors: string[]; files: number; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean };
-export type InstalledModule = { id: string; version: string; installedAt: string; dependencies: string[]; files: string[]; backupCount: number; luaModules: string[]; };
+export type LibraryPackage = { id: string; name: string; version: string; category: string; description: string; valid: boolean; errors: string[]; files: number; missingDependencies: string[]; conflicts: string[]; alreadyInstalled: boolean; enabled: boolean };
+export type InstalledModule = { id: string; version: string; installedAt: string; enabled: boolean; dependencies: string[]; files: string[]; backupCount: number; luaModules: string[]; };
 export type UninstallResult = { removed: string[]; restored: string[]; preservedModified: string[]; siderSyncWarning: string | null };
 export type SiderSyncResult = { registeredRoots: string[]; registeredLuaModules: string[]; changed: boolean; backupPath: string | null };
 export type GameStatus = {
@@ -23,6 +24,8 @@ export type GameStatus = {
 };
 const api = {
   analyzeSiderPitchLog: (): Promise<{fileName:string;report:PitchLogReport} | null> => ipcRenderer.invoke("sider:analyze-pitch-log"),
+  scanGameResources: (): Promise<ResourceScanSummary> => ipcRenderer.invoke("resources:scan-game"),
+  exportResourceInventory: (): Promise<string | null> => ipcRenderer.invoke("resources:export-inventory"),
   scanPitchFolder: (): Promise<PitchInventory | null> => ipcRenderer.invoke("pitch:scan"),
   choosePitchReplacement: (inventoryPath: string): Promise<string | null> => ipcRenderer.invoke("pitch:choose-replacement", inventoryPath),
   buildPitchModule: (args: { inventoryPath: string; moduleId: string; moduleName: string }): Promise<{ moduleId: string; files: number; output: string } | null> => ipcRenderer.invoke("pitch:build", args),
@@ -36,7 +39,7 @@ const api = {
   listInstalledModules: (): Promise<InstalledModule[]> => ipcRenderer.invoke("modules:list-installed"),
   uninstallModule: (moduleId: string): Promise<UninstallResult> => ipcRenderer.invoke("modules:uninstall", moduleId),
   setLuaModuleEnabled: (moduleName: string, enabled: boolean): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:set-lua-enabled", moduleName, enabled),
-  setPackageLuaEnabled: (moduleId: string, enabled: boolean): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:set-package-lua-enabled", moduleId, enabled),
+  setPackageLuaEnabled: (moduleId: string, enabled: boolean): Promise<{ enabled: boolean }> => ipcRenderer.invoke("modules:set-package-lua-enabled", moduleId, enabled),
   applyLuaActivationProfile: (enabledModuleNames: string[]): Promise<SiderSyncResult> => ipcRenderer.invoke("modules:apply-lua-profile", enabledModuleNames),
   syncSiderModules: (): Promise<SiderSyncResult> => ipcRenderer.invoke("sider:sync-installed-modules"),
   launchSider: (): Promise<{ ok: boolean; message: string }> => ipcRenderer.invoke("sider:launch"),

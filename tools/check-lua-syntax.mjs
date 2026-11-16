@@ -19,8 +19,8 @@ for (const entry of entries) {
   }
 }
 
-if (files.length !== 18) {
-  throw new Error(`Expected 18 generated Lua modules, found ${files.length}`);
+if (files.length !== 19) {
+  throw new Error(`Expected 18 department Lua sources plus one unified master loader, found ${files.length}`);
 }
 
 const failures = [];
@@ -37,5 +37,5 @@ if (failures.length) {
   console.error(failures.join("\n"));
   process.exitCode = 1;
 } else {
-  console.log(`Lua 5.1 syntax validation passed for all ${files.length} generated Sider modules.`);
+  console.log(`Lua 5.1 syntax validation passed for all ${files.length} generated Lua sources and the unified Sider master loader.`);
 }
