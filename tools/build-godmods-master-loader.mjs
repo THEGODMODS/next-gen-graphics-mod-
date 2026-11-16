@@ -89,7 +89,6 @@ const loader = [
   "        if not initialized then log(\"GODMODS: feature init failed \" .. feature.id .. \": \" .. tostring(init_error)) end",
   "      end",
   "    end",
-  "  end",
   "  log(\"GODMODS master loader initialized\")",
   "end",
   "",
