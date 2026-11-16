@@ -1,7 +1,23 @@
 import { describe, expect, it } from "vitest";
-const validateIntegrationEvidence = async (evidence) => {
-  const gate = await import("../tools/godmods-integration-gate.mjs");
-  return gate.validateIntegrationEvidence(evidence);
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const gatePath = fileURLToPath(new URL("../tools/godmods-integration-gate.mjs", import.meta.url));
+const validateIntegrationEvidence = (evidence) => {
+  const dir = mkdtempSync(join(tmpdir(), "godmods-integration-gate-"));
+  try {
+    const input = join(dir, "evidence.json");
+    writeFileSync(input, JSON.stringify(evidence), "utf8");
+    const result = spawnSync(process.execPath, [gatePath, input], { encoding: "utf8" });
+    if (result.error) throw result.error;
+    if (!result.stdout) throw new Error(result.stderr || "Integration gate produced no report");
+    return JSON.parse(result.stdout);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 };
 
 const hash = "a".repeat(64);
@@ -38,7 +54,7 @@ const validEvidence = () => ({
 });
 
 describe("GODMODS final integration evidence gate", () => {
-  it("accepts a complete evidence set without authorizing deployment", async () => {
+  it("accepts a complete evidence set without authorizing deployment", () => {
     const report = await validateIntegrationEvidence(validEvidence());
     expect(report.status).toBe("integration-evidence-valid");
     expect(report.inGameEvidenceComplete).toBe(true);
@@ -46,7 +62,7 @@ describe("GODMODS final integration evidence gate", () => {
     expect(report.deploymentAuthorized).toBe(false);
     expect(report.coverage.gameplayFullMatchRuns).toBe(3);
   });
-  it("blocks guessed or missing target and resource bindings", async () => {
+  it("blocks guessed or missing target and resource bindings", () => {
     const evidence = validEvidence();
     evidence.target.executableSha256 = "not-a-hash";
     evidence.mappings.stadiumsTurf[0].targetPath = "../../original.dds";
@@ -57,7 +73,7 @@ describe("GODMODS final integration evidence gate", () => {
     expect(report.issues).toContain("mappings.stadiumsTurf[0].targetPath must be a safe relative path");
     expect(report.issues).toContain("audio.routes[0] must identify the exact event and evidence");
   });
-  it("requires repeatable full-match evidence, a colour-managed host and tested rollback", async () => {
+  it("requires repeatable full-match evidence, a colour-managed host and tested rollback", () => {
     const evidence = validEvidence();
     evidence.gameplay.runs.pop();
     evidence.graphics.inputTransfer = "";
