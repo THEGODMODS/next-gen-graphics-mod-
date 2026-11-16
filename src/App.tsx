@@ -51,6 +51,7 @@ export default function App() {
   const [installedModules, setInstalledModules] = useState<InstalledModule[]>([]);
   const [libraryPackages, setLibraryPackages] = useState<LibraryPackage[]>([]);
   const [libraryBusy, setLibraryBusy] = useState(false);
+  const libraryScanAttempted = useRef(false);
   const [librarySearch, setLibrarySearch] = useState("");
   const [libraryCategory, setLibraryCategory] = useState("all");
   const [moduleActionBusy, setModuleActionBusy] = useState<string | null>(null);
@@ -159,11 +160,24 @@ export default function App() {
 
   const scanLibrary = async () => {
     if (libraryBusy) return;
+    libraryScanAttempted.current = true;
     setLibraryBusy(true);
-    try { const packages = await window.nextgen.scanModuleLibrary(); setLibraryPackages(packages); setNotice("Library scan complete: " + packages.length + " package folder(s) inspected. Payload hashes were checked."); }
-    catch (error) { setNotice(error instanceof Error ? error.message : "Library scan failed."); }
-    finally { setLibraryBusy(false); }
+    try {
+      const packages = await window.nextgen.scanModuleLibrary();
+      setLibraryPackages(packages);
+      setNotice("Built-in GODMODS library scanned: " + packages.length + " package folder(s) inspected; payload hashes checked.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Library scan failed.");
+    } finally {
+      setLibraryBusy(false);
+    }
   };
+
+  // Automatically expose the bundled installable packages when a content department is opened.
+  useEffect(() => {
+    const contentDepartments = ["Graphics", "Stadiums & Turf", "Kits & Equipment", "Players", "Audio & Atmosphere", "Gameplay"];
+    if (contentDepartments.includes(active) && !libraryScanAttempted.current && !libraryBusy) void scanLibrary();
+  }, [active]);
   const togglePackage = async (packageId: string, enabled: boolean) => {
     if (moduleActionBusy) return;
     setModuleActionBusy(packageId);
