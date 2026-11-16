@@ -1,32 +1,44 @@
-const fs = require("node:fs/promises");
 const path = require("node:path");
-const { pathToFileURL } = require("node:url");
-const MAX_FILE_BYTES = 512 * 1024 * 1024;
-const MAX_PREVIEW_BYTES = 24 * 1024 * 1024;
-async function readSafe(filePath) {
-  const resolved = path.resolve(filePath), stat = await fs.lstat(resolved);
-  if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("DDS input must be a regular file, not a symbolic link.");
-  if (stat.size > MAX_FILE_BYTES) throw new Error("DDS exceeds the 512 MiB input safety limit.");
-  return { file: resolved, buffer: await fs.readFile(resolved) };
+const { Worker } = require("node:worker_threads");
+const { app } = require("electron");
+
+let nextTaskId = 0;
+function runWorker(task) {
+  return new Promise((resolve, reject) => {
+    const id = ++nextTaskId;
+    const workerPath = app.isPackaged
+      ? path.join(process.resourcesPath, "app.asar.unpacked", "dist-electron", "electron", "dds-worker.cjs")
+      : path.join(__dirname, "dds-worker.cjs");
+    const worker = new Worker(workerPath);
+    let settled = false;
+    const finish = (error, value) => {
+      if (settled) return;
+      settled = true;
+      void worker.terminate();
+      if (error) reject(error);
+      else resolve(value);
+    };
+    worker.once("message", message => {
+      if (!message || message.id !== id) return finish(new Error("Background worker returned an invalid response."));
+      if (!message.ok) return finish(new Error(message.error || "Background task failed."));
+      finish(null, message.result);
+    });
+    worker.once("error", error => finish(error));
+    worker.once("exit", code => {
+      if (!settled && code !== 0) finish(new Error("Background worker exited unexpectedly (" + code + ")."));
+      else if (!settled) finish(new Error("Background worker exited without returning a result."));
+    });
+    worker.postMessage({ id, task });
+  });
 }
-async function loadTools(root) {
-  const tools = path.join(root, "tools");
-  const [preview, inspect, compare] = await Promise.all([
-    import(pathToFileURL(path.join(tools, "dds-preview.mjs")).href),
-    import(pathToFileURL(path.join(tools, "dds-inspect.mjs")).href),
-    import(pathToFileURL(path.join(tools, "dds-compare.mjs")).href)
-  ]);
-  return { preview, inspect, compare };
-}
+
 async function inspect(filePath, root) {
-  const source = await readSafe(filePath), tools = await loadTools(root);
-  const analysis = tools.inspect.analyzeDds(source.buffer), preview = tools.preview.ddsToPng(source.buffer);
-  if (preview.png.length > MAX_PREVIEW_BYTES) throw new Error("Decoded PNG preview exceeds the 24 MiB desktop transfer limit. Use a smaller texture for in-app preview.");
-  return { ...analysis, file: source.file, previewMode: preview.previewMode, previewBase64: preview.png.toString("base64") };
+  return runWorker({ operation: "inspect-dds", filePath, root });
 }
 async function compare(originalPath, replacementPath, root) {
-  const [original, replacement] = await Promise.all([readSafe(originalPath), readSafe(replacementPath)]);
-  const tools = await loadTools(root);
-  return tools.compare.compareDds(original.buffer, replacement.buffer);
+  return runWorker({ operation: "compare-dds", originalPath, replacementPath, root });
 }
-module.exports = { inspect, compare };
+async function analyzeLog(filePath, root) {
+  return runWorker({ operation: "analyze-sider-log", filePath, root });
+}
+module.exports = { inspect, compare, analyzeLog };

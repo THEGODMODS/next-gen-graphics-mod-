@@ -1,8 +1,8 @@
 {
-  "name": "pes2017-nextgen-manager",
+  "name": "godmods-manager",
   "version": "0.1.0",
   "private": true,
-  "description": "THEGODMODS PES 2017 Next Gen Graphics Manager",
+  "description": "GODMODS Manager — premium PES 2017 mod management",
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "predev": "tsc -p electron && node tools/copy-electron-assets.mjs",
@@ -65,7 +65,7 @@
   },
   "build": {
     "appId": "com.thegodmods.pes2017nextgen",
-    "productName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
+    "productName": "GODMODS Manager",
     "directories": {
       "output": "release"
     },
@@ -92,12 +92,15 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "THEGODMODS PES 2017 Next Gen Manager",
-      "uninstallDisplayName": "THEGODMODS PES 2017 Next Gen Graphics Manager",
+      "shortcutName": "GODMODS Manager",
+      "uninstallDisplayName": "GODMODS Manager",
       "installerLanguages": [
         "en_US"
       ]
     },
-    "artifactName": "THEGODMODS-PES2017-NextGen-Manager-${version}-Setup.${ext}"
+    "artifactName": "GODMODS-Manager-${version}-Setup.${ext}",
+    "asarUnpack": [
+      "dist-electron/electron/dds-worker.cjs"
+    ]
   }
 }

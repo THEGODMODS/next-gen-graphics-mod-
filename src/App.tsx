@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, AudioLines, BarChart3, ChevronRight, CloudDownload,
   Disc3, FolderOpen, Gamepad2, Gauge, HardDrive, LayoutDashboard, Monitor,
@@ -41,6 +41,9 @@ export default function App() {
   const [active, setActive] = useState("Overview");
   const [status, setStatus] = useState<GameStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  const [folderBusy, setFolderBusy] = useState(false);
+  const [launchBusy, setLaunchBusy] = useState(false);
+  const refreshFlight = useRef<Promise<void> | null>(null);
   const [siderSyncBusy, setSiderSyncBusy] = useState(false);
   const [notice, setNotice] = useState("Select your PES 2017 folder to begin.");
   const [modulePreview, setModulePreview] = useState<ModulePreview | null>(null);
@@ -65,11 +68,24 @@ export default function App() {
   const [pitchLogBusy, setPitchLogBusy] = useState(false);
   const [profiles, setProfiles] = useState<Array<{ id: string; name: string; createdAt: string; enabledLuaModules: string[] }>>([]);
   const [profileBusy, setProfileBusy] = useState(false);
-  const refresh = useCallback(async () => {
+  const refresh = useCallback((): Promise<void> => {
+    if (refreshFlight.current) return refreshFlight.current;
     setBusy(true);
-    try { const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]); setStatus(nextStatus); setInstalledModules(modules); if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message); }
-    catch { setNotice("Unable to read installation status."); }
-    finally { setBusy(false); }
+    const task = (async () => {
+      try {
+        const [nextStatus, modules] = await Promise.all([window.nextgen.getStatus(), window.nextgen.listInstalledModules()]);
+        setStatus(nextStatus);
+        setInstalledModules(modules);
+        if (nextStatus.startupRecovery.status !== "not-needed") setNotice(nextStatus.startupRecovery.message);
+      } catch (error) {
+        setNotice(error instanceof Error ? error.message : "Unable to read installation status.");
+      } finally {
+        refreshFlight.current = null;
+        setBusy(false);
+      }
+    })();
+    refreshFlight.current = task;
+    return task;
   }, []);
 
   useEffect(() => { void refresh(); }, [refresh]);
@@ -78,15 +94,23 @@ export default function App() {
     try { const saved = window.localStorage.getItem("thegodmods.profiles.v1"); if (saved) { const parsed: unknown = JSON.parse(saved); if (Array.isArray(parsed)) setProfiles(parsed.filter(item => item && typeof item.id === "string" && typeof item.name === "string" && Array.isArray(item.enabledLuaModules))); } } catch { setNotice("Saved profiles could not be read. Existing game files were not changed."); }
   }, []);
 
-  const persistProfiles = (next: typeof profiles) => { setProfiles(next); window.localStorage.setItem("thegodmods.profiles.v1", JSON.stringify(next)); };
+  const persistProfiles = (next: typeof profiles) => {
+    try {
+      window.localStorage.setItem("thegodmods.profiles.v1", JSON.stringify(next));
+      setProfiles(next);
+      return true;
+    } catch {
+      setNotice("Profiles could not be saved in local app storage. Check available disk space and storage permissions.");
+      return false;
+    }
+  };
   const createProfile = () => {
     const name = window.prompt("Name this PES 2017 setup profile:");
     if (!name || !name.trim()) return;
     const managedLuaModules = new Set(installedModules.flatMap(module => module.luaModules));
     const enabledLuaModules = (status?.luaModules ?? []).filter(name => managedLuaModules.has(name));
     const profile = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, name: name.trim().slice(0, 48), createdAt: new Date().toISOString(), enabledLuaModules: [...enabledLuaModules] };
-    persistProfiles([...profiles, profile]);
-    setNotice(`Saved profile “${profile.name}” with ${enabledLuaModules.length} active Sider Lua module(s).`);
+    if (persistProfiles([...profiles, profile])) setNotice(`Saved profile “${profile.name}” with ${enabledLuaModules.length} active Sider Lua module(s).`);
   };
   const applyProfile = async (profile: typeof profiles[number]) => {
     if (!siderReady || profileBusy) return;
@@ -102,11 +126,24 @@ export default function App() {
   };
 
   const chooseFolder = async () => {
-    const selected = await window.nextgen.chooseGameDirectory();
-    if (selected) {
-      await refresh();
-      setNotice("Game folder selected. Review the detected components below.");
+    if (folderBusy) return;
+    setFolderBusy(true);
+    try {
+      const selected = await window.nextgen.chooseGameDirectory();
+      if (selected) {
+        await refresh();
+        setNotice("Game folder selected. Review the detected components below.");
+      }
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Could not select the PES 2017 folder.");
+    } finally {
+      setFolderBusy(false);
     }
+  };
+
+  const openContentSource = async (sourceId: string) => {
+    try { await window.nextgen.openContentSource(sourceId); }
+    catch (error) { setNotice(error instanceof Error ? error.message : "Could not open the selected community source."); }
   };
 
   const scanLibrary = async () => {
@@ -207,9 +244,19 @@ export default function App() {
     finally { setPitchLogBusy(false); }
   };
   const launchSider = async () => {
-    const result = await window.nextgen.launchSider();
-    setNotice(result.message);
+    if (launchBusy) return;
+    setLaunchBusy(true);
+    try {
+      const result = await window.nextgen.launchSider();
+      setNotice(result.message);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Sider could not be launched.");
+    } finally {
+      setLaunchBusy(false);
+    }
   };
+
+  const filteredLibraryPackages = useMemo(() => libraryPackages.filter(item => (libraryCategory === "all" || item.category === libraryCategory) && (item.name + " " + item.id + " " + item.description).toLowerCase().includes(librarySearch.toLowerCase())), [libraryPackages, libraryCategory, librarySearch]);
 
   const ready = Boolean(status?.gameExecutable);
   const siderReady = Boolean(status?.siderExecutable && status?.siderIni);
@@ -218,8 +265,8 @@ export default function App() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark"><span>G</span></div>
-          <div><div className="brand-name">THEGODMODS</div><div className="brand-sub">PES 2017 NEXT GEN MANAGER</div></div>
+          <div className="brand-mark" aria-label="GODMODS"><span>G</span></div>
+          <div><div className="brand-name">GODMODS</div><div className="brand-sub">MANAGER · PES 2017</div></div>
         </div>
         <div className="sidebar-rule" />
         {["WORKSPACE", "CONTENT", "MANAGEMENT", "SYSTEM"].map(group => (
@@ -234,25 +281,25 @@ export default function App() {
           </div>
         ))}
         <div className="sidebar-bottom">
-          <div className="build-label"><span className="status-dot" /> DEVELOPMENT BUILD <span>0.1.0</span></div>
+          <div className="build-label"><span className="status-dot" /> GODMODS MANAGER <span>0.1.0</span></div>
           <div className="sidebar-foot"><ShieldCheck size={15} /> SAFE INSTALLATION ENGINE</div>
         </div>
       </aside>
 
       <main className="main">
         <header className="topbar">
-          <div className="breadcrumb">PES 2017 <span>/</span> {active.toUpperCase()}</div>
-          <div className="top-actions"><div className="connection"><span className={ready ? "status-dot" : "status-dot muted"} />{ready ? "GAME DETECTED" : "GAME NOT LINKED"}</div><button className="icon-button" title="Refresh status" disabled={busy} onClick={() => void refresh()}><RefreshCw size={16} /></button><div className="avatar">NG</div></div>
+          <div className="breadcrumb">GODMODS MANAGER <span>/</span> {active.toUpperCase()}</div>
+          <div className="top-actions"><div className="connection"><span className={ready ? "status-dot" : "status-dot muted"} />{ready ? "GAME DETECTED" : "GAME NOT LINKED"}</div><button className="icon-button" title="Refresh status" disabled={busy} onClick={() => void refresh()}><RefreshCw size={16} /></button><button className="avatar" type="button" title="Open manager settings" aria-label="Open manager settings" onClick={() => setActive("Settings")}>G</button></div>
         </header>
 
         <div className="content">
           {active === "Overview" ? <>
             <section className="hero">
               <div className="hero-copy">
-                <div className="eyebrow"><span className="eyebrow-line" /> THEGODMODS · PREMIUM EDITION · EAFC 27 INSPIRED</div>
+                <div className="eyebrow"><span className="eyebrow-line" /> GODMODS MANAGER · THE NEXT MATCHDAY STANDARD</div>
                 <h1>THE NEXT<br /><em>GENERATION</em><br />OF PES 2017.</h1>
                 <p>Six departments. One premium ecosystem. Upgrade the look, feel and atmosphere of every match—with safe, transparent mod management.</p>
-                <div className="hero-actions"><button className="primary-button" onClick={chooseFolder}><FolderOpen size={17} /> {ready ? "CHANGE GAME FOLDER" : "LOCATE PES 2017"}</button><button className="secondary-button" onClick={() => setActive("Modules")}>EXPLORE MODULES <ChevronRight size={16} /></button></div>
+                <div className="hero-actions"><button className="primary-button" disabled={folderBusy} onClick={() => void chooseFolder()}><FolderOpen size={17} /> {ready ? "CHANGE GAME FOLDER" : "LOCATE PES 2017"}</button><button className="secondary-button" onClick={() => setActive("Modules")}>EXPLORE MODULES <ChevronRight size={16} /></button></div>
               </div>
               <div className="hero-art"><div className="hero-tag">MORE REALISM.<br />MORE IMMERSION.<br />MORE FOOTBALL.</div><div className="hero-index">THEGODMODS <span>/</span> 2017</div></div>
               <div className="hero-footer"><span>BUILT FOR PES 2017 · INSPIRED BY THE NEXT GENERATION</span><span>MODULAR. REVERSIBLE. YOURS.</span></div>
@@ -267,14 +314,14 @@ export default function App() {
             </div>
 
             <div className="lower-grid">
-              <section className="panel"><div className="panel-heading"><div><div className="eyebrow">QUICK ACTIONS</div><h3>Control centre</h3></div><BarChart3 size={18} /></div><div className="action-row"><div className="action-icon"><FolderOpen size={18} /></div><div className="action-copy"><strong>Locate game folder</strong><span>Connect your PES 2017 installation</span></div><button className="small-action" onClick={chooseFolder}>SELECT</button></div><div className="action-row"><div className="action-icon"><SlidersHorizontal size={18} /></div><div className="action-copy"><strong>Register installed modules</strong><span>Back up and sync LiveCPK roots and Lua extensions</span></div><button className="small-action" disabled={!siderReady || busy || siderSyncBusy} onClick={syncSiderModules}>{siderSyncBusy ? "SYNCING" : "SYNC"}</button></div><div className="action-row"><div className="action-icon"><Play size={18} /></div><div className="action-copy"><strong>Launch Sider</strong><span>Start the runtime companion</span></div><button className="small-action" disabled={!siderReady} onClick={launchSider}>LAUNCH</button></div><div className="action-row"><div className="action-icon"><CloudDownload size={18} /></div><div className="action-copy"><strong>Module library</strong><span>Scan and validate local module collections</span></div><button className="small-action" onClick={() => setActive("Modules")}>OPEN</button></div></section>
+              <section className="panel"><div className="panel-heading"><div><div className="eyebrow">QUICK ACTIONS</div><h3>Control centre</h3></div><BarChart3 size={18} /></div><div className="action-row"><div className="action-icon"><FolderOpen size={18} /></div><div className="action-copy"><strong>Locate game folder</strong><span>Connect your PES 2017 installation</span></div><button className="small-action" disabled={folderBusy} onClick={() => void chooseFolder()}>{folderBusy ? "OPENING" : "SELECT"}</button></div><div className="action-row"><div className="action-icon"><SlidersHorizontal size={18} /></div><div className="action-copy"><strong>Register installed modules</strong><span>Back up and sync LiveCPK roots and Lua extensions</span></div><button className="small-action" disabled={!siderReady || busy || siderSyncBusy} onClick={syncSiderModules}>{siderSyncBusy ? "SYNCING" : "SYNC"}</button></div><div className="action-row"><div className="action-icon"><Play size={18} /></div><div className="action-copy"><strong>Launch Sider</strong><span>Start the runtime companion</span></div><button className="small-action" disabled={!siderReady || launchBusy} onClick={() => void launchSider()}>{launchBusy ? "LAUNCHING" : "LAUNCH"}</button></div><div className="action-row"><div className="action-icon"><CloudDownload size={18} /></div><div className="action-copy"><strong>Module library</strong><span>Scan and validate local module collections</span></div><button className="small-action" onClick={() => setActive("Modules")}>OPEN</button></div></section>
               <section className="panel system-panel"><div className="panel-heading"><div><div className="eyebrow">INSTALLATION REPORT</div><h3>System integrity</h3></div><ShieldCheck size={18} /></div><div className="integrity-row"><span>Game executable</span><b className={ready ? "pill good-pill" : "pill"}>{ready ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Sider configuration</span><b className={siderReady ? "pill good-pill" : "pill"}>{siderReady ? "FOUND" : "PENDING"}</b></div><div className="integrity-row"><span>Automatic file cleanup</span><b className="pill safe-pill">DISABLED</b></div><div className="integrity-note"><ShieldCheck size={15} /> Unknown files and personal game data are never deleted automatically.</div></section>
             </div>
             <div className="notice"><span className="notice-mark">i</span>{notice}</div>
           </> : active === "Stadiums & Turf" ? <section className="page-placeholder">
             <div className="eyebrow">STADIUM SERVER · LIVECPK</div><h1>PITCH BUILDER</h1>
             <p>Inventory a Stadium Server pitch folder, map one exact resource to a replacement, then package it as a validated installable module.</p>
-            <DepartmentCatalogue departmentId="stadiums" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
+            <DepartmentCatalogue departmentId="stadiums" onOpenSource={sourceId => void openContentSource(sourceId)} />
             <div className="panel pitch-panel">
               <div className="panel-heading"><div><div className="eyebrow">STEP 01 · SOURCE INVENTORY</div><h3>Scan stadium resources</h3></div><span className="coming-tag">{pitchInventory ? pitchInventory.fileCount+" FILES" : "NOT SCANNED"}</span></div>
               <p>Choose the stadium folder containing <code>common/bg/model/bg/pitch</code>. The scan is read-only, hashes files and does not modify the stadium.</p>
@@ -298,7 +345,7 @@ export default function App() {
           </section> : active === "Graphics" ? <section className="page-placeholder">
             <div className="eyebrow">TEXTURE WORKBENCH · DDS</div><h1>GRAPHICS LAB</h1>
             <p>Inspect real DDS textures, preview decoded pixels and compare original versus replacement data before packaging.</p>
-            <DepartmentCatalogue departmentId="graphics" onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
+            <DepartmentCatalogue departmentId="graphics" onOpenSource={sourceId => void openContentSource(sourceId)} />
             <div className="dds-toolbar">
               <button className="primary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("original"); if (result) { setOriginalDds(result); setDdsComparison(null); setNotice("Original DDS inspected. Choose a replacement to compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect original DDS."); } finally { setDdsBusy(false); } }}><FolderOpen size={15}/> CHOOSE ORIGINAL DDS</button>
               <button className="secondary-button" disabled={ddsBusy} onClick={async () => { setDdsBusy(true); try { const result = await window.nextgen.chooseDds("replacement"); if (result) { setReplacementDds(result); setDdsComparison(null); setNotice("Replacement DDS inspected. Review the preview and compare."); } } catch (error) { setNotice(error instanceof Error ? error.message : "Could not inspect replacement DDS."); } finally { setDdsBusy(false); } }}>{ddsBusy ? "INSPECTING..." : "CHOOSE REPLACEMENT DDS"}</button>
@@ -319,10 +366,10 @@ export default function App() {
               <div className="panel-heading"><div><div className="eyebrow">COMMUNITY CONTENT DIRECTORY</div><h3>Find graphics, faces, kits & stadiums</h3></div><span className="coming-tag">PES 2017 SOURCES</span></div>
               <p>These are publisher/community catalogues, not files hosted by this app. Open a source, choose a PES 2017 download, and check its game version, author instructions and permissions before using it.</p>
               <div className="dds-grid">
-                <div className="panel"><div className="eyebrow">GRAPHICS · STADIUMS · FACES</div><h3>PES Modding</h3><p>Dedicated PES 2017 categories including graphics, patches, faces and stadium releases.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("pesmodding")}>BROWSE PES MODDING ↗</button></div>
-                <div className="panel"><div className="eyebrow">KITS · BALLS · BOOTS · STADIUMS</div><h3>ModdingWay</h3><p>Large PES 2017 mod index with category browsing and individual creator pages.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("moddingway")}>BROWSE MODDINGWAY ↗</button></div>
-                <div className="panel"><div className="eyebrow">VISUALS · GRAPHICS · TOOLS</div><h3>Nexus Mods</h3><p>Community submissions for PES 2017, including graphics and presentation mods.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("nexus")}>BROWSE NEXUS MODS ↗</button></div>
-                <div className="panel"><div className="eyebrow">PLAYER FACES</div><h3>ProFaceMods</h3><p>Community face library with a dedicated PES 2017 edition and external download links.</p><button className="small-action" onClick={() => void window.nextgen.openContentSource("profacemods")}>BROWSE FACE LIBRARY ↗</button></div>
+                <div className="panel"><div className="eyebrow">GRAPHICS · STADIUMS · FACES</div><h3>PES Modding</h3><p>Dedicated PES 2017 categories including graphics, patches, faces and stadium releases.</p><button className="small-action" onClick={() => void openContentSource("pesmodding")}>BROWSE PES MODDING ↗</button></div>
+                <div className="panel"><div className="eyebrow">KITS · BALLS · BOOTS · STADIUMS</div><h3>ModdingWay</h3><p>Large PES 2017 mod index with category browsing and individual creator pages.</p><button className="small-action" onClick={() => void openContentSource("moddingway")}>BROWSE MODDINGWAY ↗</button></div>
+                <div className="panel"><div className="eyebrow">VISUALS · GRAPHICS · TOOLS</div><h3>Nexus Mods</h3><p>Community submissions for PES 2017, including graphics and presentation mods.</p><button className="small-action" onClick={() => void openContentSource("nexus")}>BROWSE NEXUS MODS ↗</button></div>
+                <div className="panel"><div className="eyebrow">PLAYER FACES</div><h3>ProFaceMods</h3><p>Community face library with a dedicated PES 2017 edition and external download links.</p><button className="small-action" onClick={() => void openContentSource("profacemods")}>BROWSE FACE LIBRARY ↗</button></div>
               </div>
               <div className="panel" style={{marginTop:16}}>
                 <div className="eyebrow">FEATURED PES 2017 RELEASE · GRAPHICS + TURF</div>
@@ -331,7 +378,7 @@ export default function App() {
                 <div className="integrity-row"><span>Published file size</span><b>325.1 MB archive</b></div>
                 <div className="integrity-row"><span>Requirements listed by publisher</span><b>Sider · Superloader v2.8.0 · DpFileList Generator</b></div>
                 <p className="dds-note">Important: this is a third-party archive, not a manager-native package. CPK activation requires the external DpFileList workflow; the manager will not silently copy it into the game folder.</p>
-                <button className="primary-button" onClick={() => void window.nextgen.openContentSource("gfx-pitch-2026")}>VIEW RELEASE & DOWNLOAD OPTIONS ↗</button>
+                <button className="primary-button" onClick={() => void openContentSource("gfx-pitch-2026")}>VIEW RELEASE & DOWNLOAD OPTIONS ↗</button>
               </div>
               <div className="dds-note">Downloads remain on their publishers' websites. The manager does not claim ownership, guarantee compatibility, or redistribute third-party files.</div>
             </div>
@@ -351,8 +398,8 @@ export default function App() {
               <div className="dds-toolbar"><button className="primary-button" disabled={busy || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0 || modulePreview.alreadyInstalled || modulePreview.files.length === 0} onClick={() => void installPreviewedModule()}>APPROVE & INSTALL MODULE</button><button className="secondary-button" onClick={() => setModulePreview(null)}>CANCEL REVIEW</button></div>
               <div className="dds-note">Existing target files are backed up only after explicit approval. The installer rechecks package hashes and target ownership before applying changes.</div>
             </div>}
-            {libraryPackages.filter(item => (libraryCategory === "all" || item.category === libraryCategory) && (item.name + " " + item.id + " " + item.description).toLowerCase().includes(librarySearch.toLowerCase())).length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>{libraryPackages.length ? "No matching packages" : "Your library is empty"}</h3><p>{libraryPackages.length ? "Try another search or category." : "No packages are bundled yet. Scan your own package collection."}</p></div></div> :
-              libraryPackages.filter(item => (libraryCategory === "all" || item.category === libraryCategory) && (item.name + " " + item.id + " " + item.description).toLowerCase().includes(librarySearch.toLowerCase())).map(item => <div className="panel library-card" key={item.id}>
+            {filteredLibraryPackages.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>{libraryPackages.length ? "No matching packages" : "Your library is empty"}</h3><p>{libraryPackages.length ? "Try another search or category." : "No packages are bundled yet. Scan your own package collection."}</p></div></div> :
+              filteredLibraryPackages.map(item => <div className="panel library-card" key={item.id}>
                 <div className="panel-heading"><div><div className="eyebrow">{item.category.toUpperCase()} · VERSION {item.version}</div><h3>{item.name}</h3></div><span className="coming-tag">{!item.valid ? "INVALID" : item.alreadyInstalled ? "INSTALLED" : item.conflicts.length ? "CONFLICT" : item.missingDependencies.length ? "DEPENDENCIES MISSING" : "HASHES VERIFIED"}</span></div>
                 <p>{item.description}</p><div className="integrity-row"><span>Module ID</span><b>{item.id}</b></div><div className="integrity-row"><span>Payload files</span><b>{item.files}</b></div>
                 {item.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {item.missingDependencies.join(", ")}</div>}
@@ -393,7 +440,7 @@ export default function App() {
             {profiles.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Disc3 size={24}/></div><div><h3>No saved profiles yet</h3><p>Save your current Sider Lua setup to create your first profile.</p></div></div> : profiles.map(profile => <div className="panel library-card" key={profile.id}>
               <div className="panel-heading"><div><div className="eyebrow">LOCAL PROFILE · {new Date(profile.createdAt).toLocaleDateString()}</div><h3>{profile.name}</h3></div><span className="coming-tag">{profile.enabledLuaModules.length} LUA MODULES</span></div>
               <p>{profile.enabledLuaModules.length ? profile.enabledLuaModules.join(" · ") : "No Lua modules enabled in this profile."}</p>
-              <div className="dds-toolbar"><button className="primary-button" disabled={!siderReady || profileBusy} onClick={() => void applyProfile(profile)}>{profileBusy ? "APPLYING..." : "APPLY PROFILE"}</button><button className="secondary-button" onClick={() => persistProfiles(profiles.filter(item => item.id !== profile.id))}>DELETE PROFILE</button></div>
+              <div className="dds-toolbar"><button className="primary-button" disabled={!siderReady || profileBusy} onClick={() => void applyProfile(profile)}>{profileBusy ? "APPLYING..." : "APPLY PROFILE"}</button><button className="secondary-button" onClick={() => { if (window.confirm(`Delete the local profile “${profile.name}”? This does not change Sider or game files.`)) persistProfiles(profiles.filter(item => item.id !== profile.id)); }}>DELETE PROFILE</button></div>
             </div>)}
             <div className="notice"><span className="notice-mark">i</span>Profiles currently manage Sider Lua activation only. Direct-file and LiveCPK package activation is not yet reversible, so those assets are never silently toggled by a profile.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
@@ -454,14 +501,14 @@ export default function App() {
             <div className="notice"><span className="notice-mark">i</span>For a meaningful capture: back up the stadium, start Sider, launch PES, enter one target stadium, play long enough to load the pitch, exit, then analyze the resulting log. Compare logs before and after a one-resource replacement. Keep the original log for audit.</div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16}/></button>
           </section> : ["Kits & Equipment", "Players", "Audio & Atmosphere", "Gameplay"].includes(active) ? <section className="page-placeholder">
-            <DepartmentCatalogue departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void window.nextgen.openContentSource(sourceId)} />
+            <DepartmentCatalogue departmentId={active === "Kits & Equipment" ? "kits" : active === "Players" ? "players" : active === "Audio & Atmosphere" ? "audio" : "gameplay"} onOpenSource={sourceId => void openContentSource(sourceId)} />
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section> : <section className="page-placeholder">
             <div className="eyebrow">NEXT GEN MODULE SYSTEM</div><h1>{active.toUpperCase()}</h1><p>{categoryCopy[active] ?? "Manage your PES 2017 Next Gen environment."}</p>
             <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>Module system is being built</h3><p>This section will become operational as the package engine, validation, install transactions and rollback system are implemented. No fake install controls here.</p></div><span className="coming-tag">IN DEVELOPMENT</span></div>
             <button className="secondary-button back-button" onClick={() => setActive("Overview")}>BACK TO OVERVIEW <ChevronRight size={16} /></button>
           </section>}
-          <footer className="app-footer"><span>PES 2017 NEXT GEN <b>·</b> DEVELOPMENT BUILD</span><span>BUILT BY THEGODMODS</span></footer>
+          <footer className="app-footer"><span>GODMODS MANAGER <b>·</b> PES 2017</span><span>BUILT BY THEGODMODS</span></footer>
         </div>
       </main>
     </div>
