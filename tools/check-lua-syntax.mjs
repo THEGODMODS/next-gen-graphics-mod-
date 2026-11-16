@@ -19,8 +19,8 @@ for (const entry of entries) {
   }
 }
 
-if (files.length !== 14) {
-  throw new Error(`Expected 14 generated Lua modules, found ${files.length}`);
+if (files.length !== 18) {
+  throw new Error(`Expected 18 generated Lua modules, found ${files.length}`);
 }
 
 const failures = [];
