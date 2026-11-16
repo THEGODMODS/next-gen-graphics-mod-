@@ -38,7 +38,8 @@ describe("GODMODS final integration evidence gate", () => {
   it("accepts a complete evidence set without authorizing deployment", () => {
     const report = validateIntegrationEvidence(validEvidence());
     expect(report.status).toBe("integration-evidence-valid");
-    expect(report.inGameVerified).toBe(true);
+    expect(report.inGameEvidenceComplete).toBe(true);
+    expect(report.inGameVerified).toBe(false);
     expect(report.deploymentAuthorized).toBe(false);
     expect(report.coverage.gameplayFullMatchRuns).toBe(3);
   });

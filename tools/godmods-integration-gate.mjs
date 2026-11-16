@@ -111,7 +111,8 @@ export function validateIntegrationEvidence(evidence) {
     status: valid ? "integration-evidence-valid" : "blocked",
     evidenceValid: valid,
     deploymentAuthorized: false,
-    inGameVerified: valid,
+    inGameEvidenceComplete: valid,
+    inGameVerified: false,
     target: {
       gameBuild: target.gameBuild || null,
       patch: [target.patchName, target.patchVersion].filter(nonEmpty).join(" ") || null,
