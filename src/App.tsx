@@ -165,16 +165,19 @@ export default function App() {
     finally { setLibraryBusy(false); }
   };
   const previewLibraryPackage = async (packageId: string) => {
-    try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setNotice("Library package revalidated. Review all target changes before installation."); } }
+    try { const result = await window.nextgen.previewModule(packageId); if (result) { setModulePreview(result); setActive("Modules"); setNotice("Library package revalidated. Review its files and automatic shared dependencies before installation."); } }
     catch (error) { setNotice(error instanceof Error ? error.message : "Could not preview library package."); }
   };
   const installPreviewedModule = async () => {
-    if (!modulePreview || modulePreview.missingDependencies.length || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
+    if (!modulePreview || modulePreview.conflicts.length || modulePreview.alreadyInstalled) return;
+    const unavailableDependencies = modulePreview.missingDependencies.filter(id => !libraryPackages.some(item => item.id === id && item.valid));
+    if (unavailableDependencies.length) { setNotice("Required dependency package unavailable or invalid: " + unavailableDependencies.join(", ")); return; }
     const replacements = modulePreview.files.filter(file => file.action === "replace").map(file => file.target);
     const summary = [
       "Install " + modulePreview.name + " v" + modulePreview.version + "?",
       "",
       "Files to add: " + modulePreview.files.filter(file => file.action === "add").length,
+      "Shared dependencies to install automatically: " + modulePreview.missingDependencies.length,
       "Existing files to replace: " + replacements.length,
       ...replacements.map(file => "  • " + file),
       "",
@@ -424,10 +427,10 @@ export default function App() {
               <div className="integrity-row"><span>New files / replacements</span><b>{modulePreview.files.filter(file => file.action === "add").length} / {modulePreview.files.filter(file => file.action === "replace").length}</b></div>
               <div className="integrity-note"><b>After installation</b>{modulePreview.deployment.manualSteps.map((step, index) => <div key={index}>{index + 1}. {step}</div>)}</div>
               {modulePreview.files.map(file => <div className="integrity-row" key={file.target}><span>{file.target}</span><b className={file.action === "replace" ? "pill" : "pill safe-pill"}>{file.action.toUpperCase()}</b></div>)}
-              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Missing dependencies: {modulePreview.missingDependencies.join(", ")}</div>}
+              {modulePreview.missingDependencies.length > 0 && <div className="integrity-note">Required dependencies will be installed automatically: {modulePreview.missingDependencies.join(", ")}. The GODMODS master loader is registered once in Sider.</div>}
               {modulePreview.conflicts.length > 0 && <div className="integrity-note">Conflicts: {modulePreview.conflicts.join(", ")}</div>}
               {modulePreview.alreadyInstalled && <div className="integrity-note">This module ID is already installed. Upgrade/reinstall is not supported yet.</div>}
-              <div className="dds-toolbar"><button className="primary-button" disabled={busy || modulePreview.missingDependencies.length > 0 || modulePreview.conflicts.length > 0 || modulePreview.alreadyInstalled || modulePreview.files.length === 0} onClick={() => void installPreviewedModule()}>APPROVE & INSTALL MODULE</button><button className="secondary-button" onClick={() => setModulePreview(null)}>CANCEL REVIEW</button></div>
+              <div className="dds-toolbar"><button className="primary-button" disabled={busy || modulePreview.missingDependencies.some(id => !libraryPackages.some(item => item.id === id && item.valid)) || modulePreview.conflicts.length > 0 || modulePreview.alreadyInstalled || modulePreview.files.length === 0} onClick={() => void installPreviewedModule()}>APPROVE & INSTALL MODULE</button><button className="secondary-button" onClick={() => setModulePreview(null)}>CANCEL REVIEW</button></div>
               <div className="dds-note">Existing target files are backed up only after explicit approval. The installer rechecks package hashes and target ownership before applying changes.</div>
             </div>}
             {filteredLibraryPackages.length === 0 ? <div className="coming-panel"><div className="coming-icon"><Package size={24} /></div><div><h3>{libraryPackages.length ? "No matching packages" : "Your library is empty"}</h3><p>{libraryPackages.length ? "Try another search or category." : "No packages are bundled yet. Scan your own package collection."}</p></div></div> :
