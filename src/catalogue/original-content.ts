@@ -62,10 +62,10 @@ export const originalContentProjects: OriginalContentProject[] = [
   },
   {
     id: "thegodmods.god-stadiums", name: "GOD STADIUMS", department: "stadiums", productLine: "Stadiums & Turf",
-    productionState: "brief-ready",
-    goal: "Original stadium presentation add-ons such as adboards, lighting and atmosphere modules, kept separate from stadium geometry owned by others.",
+    productionState: "tooling-prototype",
+    goal: "Original stadium presentation add-ons such as adboards and fascia artwork, kept separate from stadium geometry owned by others.",
     styleDirection: "Authentic matchday presentation, coherent sponsor-neutral or properly licensed branding and stable stadium identity.",
-    deliverables: ["Individually mapped stadium presentation modules", "Stadium Server compatibility notes", "Per-stadium previews and uninstall manifests"],
+    deliverables: ["Ten original 2048×512 LED-board vector masters", "Four original 2048×256 fascia/ribbon masters", "Ten matchday art-direction profiles and SHA-256 manifest", "Verified stadium resource mapping and per-stadium export tools as the next integration gate"],
     assetRequirements: ["Original adboard artwork or licensed brand assets", "Verified stadium IDs and resource paths", "DDS exports and source files", "Stadium Server/Sider test logs"],
     acceptanceChecks: ["Correct stadium identity and resource mapping", "No unlicensed sponsor/club marks", "No cross-stadium resource leakage", "Uninstall restores original resources"],
     rightsPolicy: "Club marks, sponsor logos and stadium imagery require permission or must be replaced with original generic artwork.",
