@@ -33,6 +33,7 @@ describe("GOD WEATHER and GOD MATCHDAY Sider profiles", () => {
         expect(lua).toContain('ctx.register("set_conditions_for_replay", apply)');
         expect(lua).toContain("changed.weather = settings.weather");
         expect(lua).toContain("changed.season = settings.season");
+        expect(lua).toContain("changed.weather_effects = 2");
         expect(ini).toMatch(new RegExp("timeofday = " + profile.values[0]));
         expect(ini).toMatch(new RegExp("weather = " + profile.values[1]));
         expect(ini).toMatch(new RegExp("season = " + profile.values[2]));
