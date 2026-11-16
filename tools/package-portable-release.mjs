@@ -17,22 +17,25 @@ await mkdir(tool, { recursive: true });
 await cp(unpacked, tool, { recursive: true });
 await cp(path.join(root, "content"), path.join(godmods, "content"), { recursive: true });
 
-// Expose the actual packaged Lua payloads for documented manual Sider setup.
+// Only the unified master loader is installed into Sider; department Lua sources remain in content/GODMODS.
 const modules = path.join(godmods, "modules");
 await mkdir(modules, { recursive: true });
 const packsRoot = path.join(root, "content", "packs");
+let loaderCount = 0;
 for (const pack of await readdir(packsRoot, { withFileTypes: true })) {
   if (!pack.isDirectory() || pack.isSymbolicLink()) continue;
   const packRoot = path.join(packsRoot, pack.name);
   const manifest = JSON.parse(await readFile(path.join(packRoot, "module.json"), "utf8"));
-  for (const entry of manifest.files ?? []) {
-    if (typeof entry.source !== "string" || !entry.source.toLowerCase().endsWith(".lua")) continue;
+  for (const entry of manifest.luaModules ?? []) {
+    if (entry.moduleName !== "GODMODS_Loader.lua") throw new Error("Unexpected non-master Lua module in portable package.");
     const source = path.resolve(packRoot, entry.source);
     const payloadRoot = path.resolve(packRoot, "payload");
-    if (!source.startsWith(payloadRoot + path.sep)) throw new Error("Lua module path escapes its package payload.");
-    await cp(source, path.join(modules, path.basename(source)));
+    if (!source.startsWith(payloadRoot + path.sep)) throw new Error("Master loader path escapes its package payload.");
+    await cp(source, path.join(modules, entry.moduleName));
+    loaderCount += 1;
   }
 }
+if (loaderCount !== 1) throw new Error("Portable package must contain exactly one GODMODS master Lua loader.");
 
 const readme = [
   "GODMODS MANAGER — PORTABLE PACKAGE",
@@ -49,7 +52,7 @@ const readme = [
   "MANUAL SIDER MODULE INSTALLATION",
   "The modules folder contains the single GODMODS_Loader.lua entry point.",
   "The manager installs and registers this one module automatically when you install your first GODMODS product.",
-  "For manual recovery, copy modules\\GODMODS_Loader.lua into Sider\\modules and add lua.module = GODMODS_Loader.lua under Extension modules in sider.ini.",
+  "For manual recovery, copy modules\\\\GODMODS_Loader.lua into Sider\\\\modules and add lua.module = GODMODS_Loader.lua under Extension modules in sider.ini.",
   "",
   "A successful archive build does not prove every asset is mapped or verified in PES 2017."
 ].join("\r\n") + "\r\n";
