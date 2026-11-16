@@ -18,7 +18,7 @@ declare global {
       listInstalledModules: () => Promise<InstalledModule[]>;
       uninstallModule: (moduleId: string) => Promise<UninstallResult>;
       setLuaModuleEnabled: (moduleName: string, enabled: boolean) => Promise<SiderSyncResult>;
-      setPackageLuaEnabled: (moduleId: string, enabled: boolean) => Promise<SiderSyncResult>;
+      setPackageLuaEnabled: (moduleId: string, enabled: boolean) => Promise<{ enabled: boolean }>;
       applyLuaActivationProfile: (enabledModuleNames: string[]) => Promise<SiderSyncResult>;
       syncSiderModules: () => Promise<SiderSyncResult>;
       launchSider: () => Promise<{ ok: boolean; message: string }>;
