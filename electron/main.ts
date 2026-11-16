@@ -27,6 +27,10 @@ let startupRecovery: { status: "not-needed" | "recovered" | "blocked"; files: st
 
 const stateDirectory = () => path.join(app.getPath("userData"), "manager-state");
 const settingsPath = () => path.join(app.getPath("userData"), "manager-settings.json");
+// Portable release stores content beside the GODMODS Tool folder, outside app.asar.
+const distributionRoot = () => app.isPackaged
+  ? path.resolve(path.dirname(app.getPath("exe")), "..")
+  : app.getAppPath();
 
 async function findFirst(directory: string, names: string[]): Promise<string | null> {
   for (const name of names) {
@@ -202,7 +206,7 @@ function registerIpc() {
     assertTrustedSender(event);
     // Prefer the first-party GODMODS packages bundled with the installed app.
     // Fall back to a user-selected folder for community/local modules.
-    const bundledRoot = path.join(app.getAppPath(), "content", "packs");
+    const bundledRoot = path.join(distributionRoot(), "content", "packs");
     let root: string;
     try {
       const bundledStat = await fsp.stat(bundledRoot);
