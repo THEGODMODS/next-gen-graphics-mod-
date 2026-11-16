@@ -357,7 +357,7 @@ export class ModuleInstaller {
       const temporary = target + ".nextgen-" + randomUUID() + ".tmp";
       const rollback = target + ".nextgen-rollback-" + randomUUID() + ".tmp";
       const previous = await fs.readFile(target, "utf8");
-      const next = "# GODMODS per-product activation state\\nenabled = " + (enabled ? "1" : "0") + "\\n";
+      const next = "# GODMODS per-product activation state\nenabled = " + (enabled ? "1" : "0") + "\\n";
       try {
         await fs.writeFile(temporary, next, { encoding: "utf8", flag: "wx" });
         await fs.rename(temporary, target);
