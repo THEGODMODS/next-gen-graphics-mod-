@@ -326,7 +326,7 @@ export class ModuleInstaller {
       const stat = await fs.lstat(target);
       if (stat.isSymbolicLink() || !stat.isFile() || !marker.sha256 || !(await verifySha256(target, marker.sha256))) return true;
       return /^\s*enabled\s*=\s*1\s*$/mi.test(await fs.readFile(target, "utf8"));
-    } catch { return false; }
+    } catch { return true; }
   }
 
   /** Change only a package's managed activation marker; payload files stay untouched. */
