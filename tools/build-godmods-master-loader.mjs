@@ -39,7 +39,9 @@ const featureLua = features.map(feature => [
   "    id = " + luaQuote(feature.id) + ",",
   "    name = " + luaQuote(feature.name) + ",",
   "    config = " + luaQuote(feature.config) + ",",
-  "    source = " + luaLongString(feature.source),
+  "    factory = function()",
+  feature.source.replace(/\nreturn M\s*$/, "\nreturn M;"),
+  "    end",
   "  }"
 ].join("\n")).join(",\n");
 
@@ -65,11 +67,7 @@ const loader = [
   "",
   "function M.init(ctx)",
   "  for _, feature in ipairs(features) do",
-  "    local chunk, load_error = loadstring(feature.source, \"@\" .. feature.id)",
-  "    if not chunk then",
-  "      log(\"GODMODS: failed to compile \" .. feature.id .. \": \" .. tostring(load_error))",
-  "    else",
-  "      local ok, module = pcall(chunk)",
+  "    local ok, module = pcall(feature.factory)",
   "      if not ok or type(module) ~= \"table\" or type(module.init) ~= \"function\" then",
   "        log(\"GODMODS: invalid feature module \" .. feature.id .. \": \" .. tostring(module))",
   "      else",
@@ -91,7 +89,6 @@ const loader = [
   "        if not initialized then log(\"GODMODS: feature init failed \" .. feature.id .. \": \" .. tostring(init_error)) end",
   "      end",
   "    end",
-  "  end",
   "  log(\"GODMODS master loader initialized\")",
   "end",
   "",
