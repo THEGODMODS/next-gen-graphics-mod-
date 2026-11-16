@@ -13,6 +13,8 @@ export interface InstalledModuleRecord {
   installedAt: string;
   /** Optional for journals created before dependency-aware removal. */
   dependencies?: string[];
+  /** Conflict IDs are retained so activation can enforce mutually exclusive profiles. */
+  conflicts?: string[];
   files: ManagedFileRecord[];
 }
 export interface PendingTransactionFile {
