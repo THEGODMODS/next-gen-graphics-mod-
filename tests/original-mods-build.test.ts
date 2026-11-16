@@ -46,6 +46,8 @@ describe("THEGODMODS original six-department asset build", () => {
     const turfAudit = await execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/god-turf-qa.mjs"), path.join(dir, "GOD-TURF")]);
     expect(JSON.parse(turfAudit.stdout).ddsAssets).toBe(27);
     expect(JSON.parse(turfAudit.stdout).sidecarAssets).toBe(27);
+    await writeFile(path.join(dir, "GOD-TURF", "textures", "natural-cut-albedo.dds"), "tampered");
+    await expect(execFileAsync(process.execPath, [path.resolve(process.cwd(), "tools/god-turf-qa.mjs"), path.join(dir, "GOD-TURF")])).rejects.toThrow();
     const turfPack = JSON.parse(await readFile(path.join(dir, "GOD-TURF", "pack.json"), "utf8"));
     expect(turfPack.textures).toHaveLength(9);
     expect(turfPack.assets).toHaveLength(27);
