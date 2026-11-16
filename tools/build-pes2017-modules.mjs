@@ -194,7 +194,7 @@ async function writePackage(definition) {
   ];
   // Per-product marker is independent of installation: OFF keeps all assets in place.
   const activationSource = "payload/enabled.ini";
-  const activationBytes = text("# GODMODS per-product activation state\\nenabled = 1\\n");
+  const activationBytes = text("# GODMODS per-product activation state\nenabled = 1\n");
   await writeFile(path.join(root, activationSource), activationBytes);
   files.push({ source: activationSource, target: installRoot + "enabled.ini", sha256: sha256(activationBytes) });
   for (const asset of definition.assets || []) {
