@@ -39,7 +39,7 @@ for (const dir of dirs) {
       const bytes = await readFile(loaderPath);
       if (createHash("sha256").update(bytes).digest("hex") !== entry.sha256) throw new Error("master loader SHA-256 mismatch");
       const source = bytes.toString("utf8");
-      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(feature.config)") || !source.includes("is_enabled = function()") || !source.includes("feature_module.stop")) throw new Error("master loader orchestration/activation contract missing");
+      if (!source.includes("function M.init(ctx)") || !source.includes("GODMODS master loader initialized") || !source.includes("config_exists(feature.config)") || !source.includes("is_enabled = function()") || !source.includes("feature_module.stop") || !source.includes("local active = {}") || !source.includes("local blocked = {}") || !source.includes("skipped conflicting enabled profile")) throw new Error("master loader orchestration/activation/conflict contract missing");
       luaCount += 1;
       packageCount += 1;
       continue;
