@@ -318,13 +318,13 @@ export class ModuleInstaller {
     });
   }
 
-  private async isRecordEnabled(root: string, record: { files: Array<{ target: string }> }): Promise<boolean> {
+  private async isRecordEnabled(root: string, record: { files: Array<{ target: string; sha256?: string }> }): Promise<boolean> {
     const marker = record.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
     if (!marker) return true; // Legacy managed Lua modules remain active until explicitly migrated.
     const target = resolveInsideRoot(root, normalizeSafeRelativePath(marker.target));
     try {
       const stat = await fs.lstat(target);
-      if (stat.isSymbolicLink() || !stat.isFile()) return false;
+      if (stat.isSymbolicLink() || !stat.isFile() || !marker.sha256 || !(await verifySha256(target, marker.sha256))) return true;
       return /^\s*enabled\s*=\s*1\s*$/mi.test(await fs.readFile(target, "utf8"));
     } catch { return false; }
   }
