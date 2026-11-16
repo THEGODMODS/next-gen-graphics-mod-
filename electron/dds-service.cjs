@@ -1,11 +1,15 @@
 const path = require("node:path");
 const { Worker } = require("node:worker_threads");
+const { app } = require("electron");
 
 let nextTaskId = 0;
 function runWorker(task) {
   return new Promise((resolve, reject) => {
     const id = ++nextTaskId;
-    const worker = new Worker(path.join(__dirname, "dds-worker.cjs"));
+    const workerPath = app.isPackaged
+      ? path.join(process.resourcesPath, "app.asar.unpacked", "dist-electron", "electron", "dds-worker.cjs")
+      : path.join(__dirname, "dds-worker.cjs");
+    const worker = new Worker(workerPath);
     let settled = false;
     const finish = (error, value) => {
       if (settled) return;

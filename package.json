@@ -98,6 +98,9 @@
         "en_US"
       ]
     },
-    "artifactName": "GODMODS-Manager-${version}-Setup.${ext}"
+    "artifactName": "GODMODS-Manager-${version}-Setup.${ext}",
+    "asarUnpack": [
+      "dist-electron/electron/dds-worker.cjs"
+    ]
   }
 }
