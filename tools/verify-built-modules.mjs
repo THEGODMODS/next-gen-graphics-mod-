@@ -60,11 +60,11 @@ for (const dir of dirs) {
       if (item.target.endsWith(".lua")) {
         const lua = bytes.toString("utf8");
         if (!lua.includes("function M.init(ctx)") || !lua.includes("return M")) throw new Error("Lua module structure missing");
-        if (manifest.category === "gameplay" && (!lua.includes('config_path = "GODMODS') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
+        if (manifest.category === "gameplay" && (!lua.includes('config_path = "content\\\\GODMODS') || !lua.includes("io.open(config_path") || !lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_match_time"'))) throw new Error("gameplay module must read its game-root INI and register match setup hooks");
         if (manifest.category === "graphics" && (!lua.includes("gfx.brightness") || !lua.includes("gfx.sharpness") || !lua.includes("io.open(config_path"))) throw new Error("graphics module must use documented gfx controls and read its game-root INI");
         if (manifest.category === "stadiums" && (!lua.includes('ctx.register("set_conditions"') || !lua.includes("changed.weather") || !lua.includes("io.open(config_path"))) throw new Error("stadium module must use documented conditions event and read its game-root INI");
         if (manifest.category === "gameplay" && (!lua.includes("gameplay[key] = settings[key]") || !lua.includes("ball_weight") || !lua.includes("ball_bounce"))) throw new Error("gameplay module does not apply the documented gameplay library controls");
-        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
+        if (manifest.category === "audio" && (!lua.includes('ctx.register("set_home_team"') || !lua.includes('ctx.register("set_away_team"') || !lua.includes("audio.new") || !lua.includes("set_volume") || !lua.includes("when_done") || !lua.includes("start_loop") || !lua.includes("stadium-open-air") || !lua.includes("stadium-intimate") || !lua.includes("stadium-night") || !lua.includes("stadium-cup-final") || !lua.includes('config_path = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes('asset_root = "content\\\\GODMODS\\\\Audio\\\\') || !lua.includes("GOD-ATMOSPHERE-MATCHDAY") || !lua.includes("io.open(config_path"))) throw new Error("audio module must run layered continuous ambience, handle both team-selection events and use documented Sider audio APIs with game-root-relative paths");
         luaCount += 1;
       } else if (item.target.endsWith("/README.md")) {
         const readme = bytes.toString("utf8");
@@ -137,10 +137,10 @@ for (const dir of dirs) {
 }
 if (packageCount !== 19) failures.push("Expected 18 department packages plus one master-loader package, found " + packageCount);
 if (luaCount !== 19) failures.push("Expected 18 department Lua sources plus one master Sider loader, found " + luaCount);
-if (gameplayIniCount !== 3) failures.push("Expected 3 editable game-root gameplay INI files, found " + gameplayIniCount);
-if (graphicsIniCount !== 7) failures.push("Expected 7 editable game-root graphics INI files, found " + graphicsIniCount);
-if (stadiumIniCount !== 7) failures.push("Expected 7 editable game-root stadium INI files, found " + stadiumIniCount);
-if (audioIniCount !== 1) failures.push("Expected 1 editable game-root audio INI file, found " + audioIniCount);
+if (gameplayIniCount !== 3) failures.push("Expected 3 editable content/GODMODS gameplay INI files, found " + gameplayIniCount);
+if (graphicsIniCount !== 7) failures.push("Expected 7 editable content/GODMODS graphics INI files, found " + graphicsIniCount);
+if (stadiumIniCount !== 7) failures.push("Expected 7 editable content/GODMODS stadium INI files, found " + stadiumIniCount);
+if (audioIniCount !== 1) failures.push("Expected 1 editable content/GODMODS audio INI file, found " + audioIniCount);
 if (audioAssetCount !== 4) failures.push("Expected 4 original installable WAV audio assets, found " + audioAssetCount);
 if (failures.length) {
   console.error(failures.join("\n"));
