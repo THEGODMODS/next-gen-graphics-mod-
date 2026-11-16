@@ -12,7 +12,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "content", "packs");
+const OUT = path.resolve(process.argv[2] || path.join(ROOT, "content", "packs"));
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const text = (value) => Buffer.from(value.replace(/\r\n/g, "\n"), "utf8");
 
