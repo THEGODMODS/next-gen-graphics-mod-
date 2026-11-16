@@ -15,7 +15,7 @@ The profiles use Sider 3.5's documented `set_conditions` and `set_conditions_for
 
 ## Important compatibility boundary
 
-Sider 3.5's documented weather values are fine and rain. These packages do not claim snow, fog, wet-surface shaders, puddles, spray, dynamic lighting, or weather simulation. Rain selection does not by itself prove that falling rain effects or wet materials render on every patch/stadium. Those require separate verified resources and in-game checks.
+Sider 3.5's documented weather values are fine and rain. These packages do not claim snow, fog, wet-surface shaders, puddles, spray, dynamic lighting, or weather simulation. Rain profiles set Sider 3.5's documented `weather_effects = 2` flag to request falling rain. Actual rain rendering still requires an in-game check on the target patch/stadium. Wet pitch materials, puddles, spray and reflections require separate verified resources and are not included.
 
 All seven stadium-condition profiles (the three existing GOD STADIUMS presets plus these four) are declared mutually exclusive in their manifests. Enable only one condition module at a time. The modules are optional; they do not edit the user's `sider.ini`, stadium files, CPKs, or executable. The user adds the module entry manually and can remove it to roll back.
 
