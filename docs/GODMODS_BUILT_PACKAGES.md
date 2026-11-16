@@ -7,7 +7,7 @@ THEGODMODS enhances PES 2017 while preserving the user's existing patch, stadium
 The library currently builds **18 department packages** behind one shared Sider 3.5 runtime entry point:
 
 - **Graphics (7):** GOD NATURAL, GOD CINEMATIC, GOD VISUALS Broadcast, EA FC 27 Inspired, eFootball 27 Inspired, UFL Inspired and ISS Pure.
-- **Stadium conditions (7):** Summer Day, Night Match, Rainy Evening, Fine Day, Rain Day, Rain Night and Winter Night.
+- **Matchday conditions (7):** three stadium profiles (Summer Day, Night Match, Rainy Evening) and four weather profiles (Fine Day, Rain Day, Rain Night, Winter Night).
 - **Gameplay (3):** Balanced Simulation, Grounded Match and Quick Transition. Sider 3.5 labels gameplay controls experimental; these remain opt-in and require match testing.
 - **Audio (1):** GOD ATMOSPHERE Continuous Matchday Crowd, using four original synthesized ambience beds with editable volume and profile settings.
 
