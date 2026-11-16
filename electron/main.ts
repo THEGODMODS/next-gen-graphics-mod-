@@ -310,7 +310,7 @@ function registerIpc() {
           if (marker && gameDirectory) {
             try {
               const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
-              conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+              conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
             } catch { conflictEnabled = false; }
           }
           if (conflictEnabled) conflicts.push(installedRecord.id);
@@ -377,7 +377,7 @@ function registerIpc() {
       if (marker) {
         try {
           const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
-          conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+          conflictEnabled = /^\s*enabled\s*=\s*1\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
         } catch { conflictEnabled = false; }
       }
       if (conflictEnabled) conflicts.push(installedRecord.id);
