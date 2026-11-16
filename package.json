@@ -91,7 +91,8 @@
     },
     "artifactName": "GODMODS-Manager-${version}-Portable.${ext}",
     "asarUnpack": [
-      "dist-electron/electron/dds-worker.cjs"
+      "dist-electron/electron/dds-worker.cjs",
+      "tools/pes2017-resource-audit.mjs"
     ]
   }
 }

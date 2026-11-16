@@ -151,7 +151,9 @@ function registerIpc() {
     const reportPath = path.join(stateDirectory(), "resource-inventory.json");
     await fsp.mkdir(stateDirectory(), { recursive: true });
     await fsp.rm(reportPath, { force: true });
-    const auditScript = path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs");
+    const auditScript = app.isPackaged
+      ? path.join(process.resourcesPath, "app.asar.unpacked", "tools", "pes2017-resource-audit.mjs")
+      : path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs");
     const child = spawn(process.execPath, [auditScript, "scan", gameDirectory, reportPath], {
       windowsHide: true,
       env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }
