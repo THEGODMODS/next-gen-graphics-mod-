@@ -3,9 +3,9 @@ import { ArrowUpRight, BadgeCheck, Blocks, Search, ShieldCheck, Sparkles } from 
 import { getDepartment } from "../catalogue/departments";
 import { getGeneratedAssetStatus, getOriginalContentProject } from "../catalogue/original-content";
 
-type Props = { departmentId: string; onOpenSource: (sourceId: string) => void };
+type Props = { departmentId: string; onOpenSource: (sourceId: string) => void; onFindPackage: (projectName: string) => void };
 
-export default function DepartmentCatalogue({ departmentId, onOpenSource }: Props) {
+export default function DepartmentCatalogue({ departmentId, onOpenSource, onFindPackage }: Props) {
   const department = getDepartment(departmentId);
   const [view, setView] = useState<"originals" | "third-party">("originals");
   const [search, setSearch] = useState("");
@@ -49,7 +49,7 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
               <div><b>Preview plan</b><ul>{brief.previewPlan.map(value => <li key={value}>{value}</li>)}</ul></div>
             </div>
             <b>Rights policy</b><p>{brief.rightsPolicy}</p>
-            <b>Install status</b><p>{generated ? "Original source assets are generated and included in the Windows build pipeline, but they are not yet approved for one-click PES installation. Target conversion, resource mapping, compatibility, package validation, rollback tests and real-game evidence must pass first." : "No downloadable payload is approved. Installation remains locked until real assets, rights, compatibility, package hashes, rollback tests and real-game evidence pass release gates."}</p>
+            <b>Install status</b><p>{generated ? "Source assets are generated. This does not prove a manager-ready package exists or that the assets are mapped to PES resources. Check the local module library for a separately built, validated package." : "No downloadable payload is approved. Installation remains locked until real assets, rights, compatibility, package hashes, rollback tests and real-game evidence pass release gates."}</p><button className="secondary-button" type="button" onClick={() => onFindPackage(item.name)}>FIND PACKAGE IN MODULE LIBRARY</button>
           </div>;
         })()}
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching original projects</b><span>Try a different search.</span></div>}
@@ -60,6 +60,6 @@ export default function DepartmentCatalogue({ departmentId, onOpenSource }: Prop
         <div className="catalogue-card-foot"><span><ShieldCheck size={14}/> Not verified by THEGODMODS</span><button onClick={() => onOpenSource(item.id)}>VISIT SOURCE <ArrowUpRight size={13}/></button></div>
       </article>) : <div className="catalogue-empty"><Blocks size={22}/><b>No matching third-party sources</b><span>Try a different search.</span></div>}
     </div>}
-    <div className="catalogue-release-note"><ShieldCheck size={15}/><span><b>{selectedCategory === "All" ? "Installation is locked until verification." : selectedCategory + " · discovery filter active."}</b> Catalogue listings and project concepts are not installable packages. A real release must have a version-pinned package, verified SHA-256, clear publisher/licence, PES 2017 compatibility and a tested install/rollback path.</span></div>
+    <div className="catalogue-release-note"><ShieldCheck size={15}/><span><b>{selectedCategory === "All" ? "Installation is locked until verification." : selectedCategory + " · discovery filter active."}</b> Project cards are not installable packages. Use “Find package” to scan the local module library; only a package that passes manifest, hash, dependency and conflict checks can proceed to installation review.</span></div>
   </section>;
 }
