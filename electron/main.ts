@@ -303,6 +303,18 @@ function registerIpc() {
           }
           if (conflictEnabled) conflicts.push(id);
         }
+        for (const installedRecord of installed.modules) {
+          if (!installedRecord.conflicts?.includes(manifest.id) || conflicts.includes(installedRecord.id)) continue;
+          const marker = installedRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+          let conflictEnabled = true;
+          if (marker && gameDirectory) {
+            try {
+              const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+              conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+            } catch { conflictEnabled = false; }
+          }
+          if (conflictEnabled) conflicts.push(installedRecord.id);
+        }
         const alreadyInstalled = installedIds.has(manifest.id);
         let enabled = true;
         if (alreadyInstalled) {
@@ -357,6 +369,18 @@ function registerIpc() {
         } catch { conflictEnabled = false; }
       }
       if (conflictEnabled) conflicts.push(id);
+    }
+    for (const installedRecord of journal.modules) {
+      if (!installedRecord.conflicts?.includes(manifest.id) || conflicts.includes(installedRecord.id)) continue;
+      const marker = installedRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      let conflictEnabled = true;
+      if (marker) {
+        try {
+          const markerPath = path.join(gameDirectory, ...marker.target.replace(/\\/g, "/").split("/"));
+          conflictEnabled = /^\\s*enabled\\s*=\\s*1\\s*$/mi.test(await fsp.readFile(markerPath, "utf8"));
+        } catch { conflictEnabled = false; }
+      }
+      if (conflictEnabled) conflicts.push(installedRecord.id);
     }
     const alreadyInstalled = installedIds.has(manifest.id);
     const gameRoot = await fsp.realpath(gameDirectory);
