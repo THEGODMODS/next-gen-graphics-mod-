@@ -16,7 +16,8 @@ const source = path.join(root, "content", "originals", "generated", "GOD-TURF");
 const target = path.join(source, "stadium-server-layout", "common", "bg", "model", "bg", "pitch", "GODMODS");
 const variants = [
   "natural-cut", "stadium-emerald", "heritage-worn",
-  "cool-climate", "sunlit-hybrid", "matchday-striped"
+  "cool-climate", "sunlit-hybrid", "matchday-striped",
+  "broadcast-cut", "natural-pro", "hybrid-elite"
 ];
 const maps = ["albedo", "normal-source", "roughness-source"];
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
@@ -39,7 +40,7 @@ const manifest = {
   schemaVersion: 1,
   id: "thegodmods.god-turf-stadium-server-layout",
   title: "GOD TURF Premium — Stadium Server Additive Asset Layout",
-  version: "0.3.0",
+  version: "0.4.0",
   ownership: "THEGODMODS original procedural artwork",
   targetLayout: "common/bg/model/bg/pitch/GODMODS/<variant>/",
   installationMode: "additive-sidecar-assets",
@@ -60,7 +61,7 @@ await writeFile(path.join(target, "README.md"), [
   "This folder mirrors the conventional PES 2017 Stadium Server subtree:",
   "`common/bg/model/bg/pitch/`.",
   "",
-  "The six GODMODS-authored surface variants are stored below `GODMODS/<variant>/` so they do not collide with existing pitch files. The package is an additive asset library; it does not overwrite or replace any existing stadium resource.",
+  "The nine GODMODS-authored surface variants are stored below `GODMODS/<variant>/` so they do not collide with existing pitch files. The package is an additive asset library; it does not overwrite or replace any existing stadium resource.",
   "",
   "Important: PES only renders resources requested by the stadium model/material. These variant filenames are not assumed to be referenced by every stadium. Do not rename them over an existing file or claim they are active in-game until a stadium's actual material/resource references have been identified and a controlled virtual-overlay test succeeds.",
   "",
