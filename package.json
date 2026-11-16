@@ -40,7 +40,8 @@
     "mods:build-natural": "node tools/build-god-natural-premium.mjs",
     "audit:god-turf": "node tools/god-turf-qa.mjs",
     "inventory:stadium-resources": "node tools/stadium-resource-inventory.mjs",
-    "validate:god-kits-mapping": "node tools/god-kits-mapping.mjs"
+    "validate:god-kits-mapping": "node tools/god-kits-mapping.mjs",
+    "validate:god-faces-mapping": "node tools/god-faces-mapping.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
