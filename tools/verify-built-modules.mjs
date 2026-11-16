@@ -44,7 +44,7 @@ for (const dir of dirs) {
       packageCount += 1;
       continue;
     }
-    if (manifest.deployment?.strategy !== "direct" || (manifest.deployment?.manualSteps?.length ?? 0) !== 0 || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README and optional configuration/assets");
+    if (manifest.deployment?.strategy !== "direct" || (manifest.deployment?.manualSteps?.length ?? 0) !== 0 || ![3, 4, 7, 8].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README, activation marker and optional configuration/assets");
     if (manifest.license?.id !== "THEGODMODS-ORIGINAL-1.0" || manifest.license?.redistributionAllowed !== true) throw new Error("first-party rights metadata missing");
     for (const item of manifest.files) {
       const relative = item.source.replaceAll("\\", "/");
@@ -126,6 +126,9 @@ for (const dir of dirs) {
         if (dataBytes === null) throw new Error("WAV data chunk is missing");
         if (dataBytes % blockAlign !== 0) throw new Error("WAV data chunk size is inconsistent");
         audioAssetCount += 1;
+      } else if (item.target.endsWith("/enabled.ini")) {
+        const ini = bytes.toString("utf8");
+        if (!/^enabled\\s*=\\s*1\\s*$/m.test(ini)) throw new Error("package activation marker must default to enabled = 1");
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
