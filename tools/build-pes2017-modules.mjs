@@ -100,6 +100,7 @@ function conditionsModule(name, values, configFolder) {
     "  changed.timeofday = settings.timeofday",
     "  changed.weather = settings.weather",
     "  changed.season = settings.season",
+    "  if settings.weather == 1 then changed.weather_effects = 2 end",
     "  return changed",
     "end",
     "function M.init(ctx)",
