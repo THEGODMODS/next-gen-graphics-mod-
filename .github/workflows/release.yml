@@ -58,7 +58,7 @@ jobs:
           $remoteTag = git ls-remote --tags origin "refs/tags/$tag"
           if ($LASTEXITCODE -ne 0) { throw "Could not check whether release tag $tag already exists." }
           if ($remoteTag) {
-            git fetch origin "refs/tags/$tag:refs/tags/$tag"
+            git fetch origin "refs/tags/${tag}:refs/tags/${tag}"
             if ($LASTEXITCODE -ne 0) { throw "Could not fetch existing release tag $tag." }
             $tagCommit = git rev-parse "$tag^{commit}"
             if ($tagCommit -ne $env:GITHUB_SHA) {
