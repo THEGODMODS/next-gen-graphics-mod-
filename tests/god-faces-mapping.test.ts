@@ -21,7 +21,7 @@ const evidence = () => ({
   player: { playerId: "roster-id-confirmed", teamId: "team-id-confirmed", rosterFile: "database/roster.bin", rosterSha256: "c".repeat(64), faceAssignmentEvidence: "assignment cross-checked against installed roster" },
   face: texture("face-resource", "skin detail"),
   hair: texture("hair-resource", "hair detail"),
-  safety: { outputPath: "GODMODS/Players/face-resource/", originalsUntouched: true, backupReference: "backup outside game directory", collisionChecked: true }
+  safety: { outputPath: "GODMODS/Players/face-resource/face-detail.dds", originalsUntouched: true, backupReference: "backup outside game directory", collisionChecked: true }
 });
 async function run(data: unknown) {
   const dir = await mkdtemp(path.join(os.tmpdir(), "god-faces-map-")); dirs.push(dir);
