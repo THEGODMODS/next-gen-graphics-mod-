@@ -38,6 +38,7 @@ for (const dir of dirs.sort((a, b) => a.name.localeCompare(b.name))) {
   // Keep department Lua source alongside the product in the PES content tree.
   luaEntry.target = "content/GODMODS/" + manifest.category + "/" + dir.name + "/" + path.basename(luaEntry.source);
   manifest.dependencies = [...new Set([...(manifest.dependencies || []), coreId])];
+  manifest.deployment = { strategy: "direct", manualSteps: [] };
 
   for (const item of manifest.files) {
     if (!item.target.endsWith("/README.md")) continue;
@@ -49,6 +50,7 @@ for (const dir of dirs.sort((a, b) => a.name.localeCompare(b.name))) {
     const revised = paragraphs.join("\n\n") +
       "\n\nThe GODMODS master loader is installed and registered automatically as a dependency. This product is activated by its installed configuration file; no separate Lua module entry is required.\n";
     await writeFile(readmePath, revised, "utf8");
+    await writeFile(path.join(packageRoot, "README.md"), revised, "utf8");
     item.sha256 = hash(Buffer.from(revised.replace(/\r\n/g, "\n"), "utf8"));
   }
   await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");

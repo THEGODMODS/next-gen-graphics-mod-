@@ -44,7 +44,7 @@ for (const dir of dirs) {
       packageCount += 1;
       continue;
     }
-    if (manifest.deployment?.strategy !== "direct" || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README and optional configuration/assets");
+    if (manifest.deployment?.strategy !== "direct" || (manifest.deployment?.manualSteps?.length ?? 0) !== 0 || ![2, 3, 6, 7].includes(manifest.files?.length) || manifest.luaModules?.length !== 0 || !manifest.dependencies?.includes("thegodmods.core-loader")) throw new Error("department package must depend on the single master loader and contain its source, README and optional configuration/assets");
     if (manifest.license?.id !== "THEGODMODS-ORIGINAL-1.0" || manifest.license?.redistributionAllowed !== true) throw new Error("first-party rights metadata missing");
     for (const item of manifest.files) {
       const relative = item.source.replaceAll("\\", "/");
