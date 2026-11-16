@@ -24,8 +24,9 @@ describe("GOD ATMOSPHERE premium crowd engine", () => {
   });
 
   it("is disabled by default and validates all editable controls", () => {
+    expect(lua).toContain("runtime_enabled = 0");
     expect(lua).toContain("enabled = 0");
-    expect(lua).toContain("next_settings = { enabled = 0");
+    expect(lua).toContain("next_settings = { runtime_enabled = 0, enabled = 0");
     expect(lua).toContain("value >= 0 and value <= 1");
     expect(lua).toContain("value >= 0 and value <= 3");
     expect(lua).toContain("valid_bed(raw, false)");
@@ -37,6 +38,6 @@ describe("GOD ATMOSPHERE premium crowd engine", () => {
     expect(lua).toContain("if slot.sound == sound then");
     expect(lua).toContain("slot.sound = nil");
     expect(lua).toContain("if sound then sound:finish() end");
-    expect(lua).toContain("if settings.enabled == 0 or settings.ambience == 0 then stop_loop(base_loop); stop_loop(texture_loop); return end");
+    expect(lua).toContain("if settings.runtime_enabled == 0 or settings.enabled == 0 or settings.ambience == 0 then stop_loop(base_loop); stop_loop(texture_loop); return end");
   });
 });

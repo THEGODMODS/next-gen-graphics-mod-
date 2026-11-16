@@ -14,7 +14,8 @@ The generated `godmods_atmosphere_matchday.lua` module:
 - Supports four manually selected intensity levels: calm, normal, tense and peak.
 - Restarts a loop after its WAV completes and prevents a stopped sound's stale completion callback from restarting it.
 - Reads a game-root INI and validates every editable setting.
-- Is disabled by default; the user must set `enabled = 1` to opt in.
+- Is disabled by default; the user must set both `runtime_enabled = 1` and `enabled = 1` to opt in after verifying the exact Sider 3.5 runtime.
+- All installed packages now default to `enabled = 0`; graphics and experimental gameplay memory writes additionally require `runtime_enabled = 1` in their own INI files.
 - Stops both layers when ambience is disabled at a team-setup notification.
 
 ## Configuration

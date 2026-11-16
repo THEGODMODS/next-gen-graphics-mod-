@@ -29,8 +29,10 @@ for (const entry of entries.filter(item => item.isDirectory() && item.name !== C
   const luaEntry = manifest.files.find(item => item.target.toLowerCase().endsWith(".lua"));
   const activationEntry = manifest.files.find(item => item.target.toLowerCase().endsWith("/enabled.ini"));
   if (!luaEntry || !activationEntry) throw new Error("Package " + manifest.id + " is missing its Lua source or enabled.ini marker.");
+  const packageFolder = path.posix.basename(path.posix.dirname(activationEntry.target));
+  const source = await readFile(path.join(packageRoot, luaEntry.source), "utf8");
   features.push({ id: manifest.id, name: manifest.name, config: activationEntry.target,
-    source: await readFile(path.join(packageRoot, luaEntry.source), "utf8") });
+    source: source.replace(/\bconfigFolder\b/g, luaQuote(packageFolder)) });
 }
 if (features.length !== 18) throw new Error("Expected 18 department Lua features; found " + features.length + ".");
 
@@ -48,6 +50,7 @@ const featureLua = features.map(feature => [
 const loader = [
   "-- THEGODMODS unified PES 2017 / Sider 3.5 runtime",
   "-- Activation contract: config_exists(feature.config) gates each feature callback.",
+  "-- Sider 3.5 does not expose pcall in module environments.",
   "local M = {}",
   "local features = {",
   featureLua,
@@ -67,26 +70,26 @@ const loader = [
   "",
   "function M.init(ctx)",
   "  for _, feature in ipairs(features) do",
-  "    local ok, module = pcall(feature.factory)",
-  "      if not ok or type(module) ~= \"table\" or type(module.init) ~= \"function\" then",
-  "        log(\"GODMODS: invalid feature module \" .. feature.id .. \": \" .. tostring(module))",
-  "      else",
-  "        local feature_config = feature.config",
-  "        local feature_module = module",
-  "        local feature_ctx = {",
+  "    local module = feature.factory()",
+  "    if type(module) ~= \"table\" or type(module.init) ~= \"function\" then",
+  "      log(\"GODMODS: invalid feature module \" .. feature.id)",
+  "    else",
+  "      local feature_config = feature.config",
+  "      local feature_module = module",
+  "      local feature_ctx = {",
   "          is_enabled = function() return config_exists(feature_config) end,",
   "          register = function(event_name, callback)",
   "            ctx.register(event_name, function(...)",
   "              if not config_exists(feature_config) then",
-  "                if type(feature_module.stop) == \"function\" then pcall(feature_module.stop) end",
+  "                if type(feature_module.stop) == \"function\" then feature_module.stop() end",
   "                return nil",
   "              end",
   "              return callback(...)",
   "            end)",
   "          end",
-  "        }",
-  "        local initialized, init_error = pcall(module.init, feature_ctx)",
-  "        if not initialized then log(\"GODMODS: feature init failed \" .. feature.id .. \": \" .. tostring(init_error)) end",
+  "      }",
+  "      module.init(feature_ctx)",
+
   "      end",
   "    end",
   "  log(\"GODMODS master loader initialized\")",

@@ -71,13 +71,15 @@ for (const dir of dirs) {
         if (!readme.startsWith("# ") || readme.length < 80) throw new Error("installed README is missing or incomplete");
       } else if (item.target.startsWith("content/GODMODS/Gameplay/") && item.target.endsWith("/gameplay.ini")) {
         const ini = bytes.toString("utf8");
-        const requiredKeys = ["match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
+        const requiredKeys = ["runtime_enabled", "match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
+        if (Number(ini.match(/^runtime_enabled\s*=\s*(\d+)/m)?.[1]) !== 0) throw new Error("gameplay runtime_enabled must default to 0");
         gameplayIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
         const ini = bytes.toString("utf8");
-        const requiredKeys = ["brightness", "sharpness", "shadow_softness", "reflection"];
+        const requiredKeys = ["runtime_enabled", "brightness", "sharpness", "shadow_softness", "reflection"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
+        if (Number(ini.match(/^runtime_enabled\s*=\s*(\d+)/m)?.[1]) !== 0) throw new Error("graphics runtime_enabled must default to 0");
         graphicsIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
         const ini = bytes.toString("utf8");
@@ -85,10 +87,11 @@ for (const dir of dirs) {
         stadiumIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Audio/") && item.target.endsWith("/audio.ini")) {
         const ini = bytes.toString("utf8");
-        for (const key of ["enabled", "ambience", "volume", "texture_volume"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
-        for (const key of ["enabled", "ambience"]) {
+        for (const key of ["runtime_enabled", "enabled", "ambience", "volume", "texture_volume"]) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("audio INI missing valid " + key);
+        for (const key of ["runtime_enabled", "enabled", "ambience"]) {
           const value = Number(ini.match(new RegExp("^" + key + "\\s*=\\s*([-+]?\\d+(?:\\.\\d+)?)$", "m"))?.[1]);
           if (![0, 1].includes(value)) throw new Error("audio INI " + key + " must be 0 or 1");
+          if (key !== "ambience" && value !== 0) throw new Error("audio " + key + " must default to 0");
         }
         for (const key of ["volume", "texture_volume"]) {
           const value = Number(ini.match(new RegExp("^" + key + "\\s*=\\s*([-+]?\\d+(?:\\.\\d+)?)$", "m"))?.[1]);
@@ -128,7 +131,7 @@ for (const dir of dirs) {
         audioAssetCount += 1;
       } else if (item.target.endsWith("/enabled.ini")) {
         const ini = bytes.toString("utf8");
-        if (!/^enabled\s*=\s*1\s*$/m.test(ini)) throw new Error("package activation marker must default to enabled = 1");
+        if (!/^enabled\s*=\s*0\s*$/m.test(ini)) throw new Error("package activation marker must default to disabled = 0");
       } else {
         throw new Error("unexpected package payload target: " + item.target);
       }
