@@ -65,7 +65,15 @@ Never edit original CPKs, game binaries, option files or the user's Stadium Serv
 
 Only distribute original assets or content for which redistribution permission has been obtained. Third-party tools and mods remain subject to their own licenses.
 
-## GOD WEATHER + GOD MATCHDAY\n\nFour original Sider 3.5 match-condition packages cover fine day, rain day, rain night and winter night. They use documented PES 2017 condition values only; no unsupported snow, fog or wet-surface shader behavior is claimed. See [GOD WEATHER + GOD MATCHDAY](docs/GOD_WEATHER_MATCHDAY.md).\n\n## GOD TURF Premium Surface Lab\n\nNine original pitch surface families provide 27 DDS maps (albedo, normal source and roughness source) in an additive Stadium Server sidecar layout. Exact stadium material/resource binding remains evidence-gated. See [GOD TURF Premium](docs/GOD_TURF_PREMIUM.md).\n\n## GOD FACES Premium Appearance Lab
+## GOD WEATHER + GOD MATCHDAY
+
+Four original Sider 3.5 match-condition packages cover fine day, rain day, rain night and winter night. They use documented PES 2017 condition values only; no unsupported snow, fog or wet-surface shader behavior is claimed. See [GOD WEATHER + GOD MATCHDAY](docs/GOD_WEATHER_MATCHDAY.md).
+
+## GOD TURF Premium Surface Lab
+
+Nine original pitch surface families provide 27 DDS maps (albedo, normal source and roughness source) in an additive Stadium Server sidecar layout. Exact stadium material/resource binding remains evidence-gated. See [GOD TURF Premium](docs/GOD_TURF_PREMIUM.md).
+
+## GOD FACES Premium Appearance Lab
 
 The first GOD FACES source release builds five neutral skin-detail profiles and four hair-fibre profiles (27 DDS source maps total) with SHA-256 manifests. These are original microdetail overlays, not replacement faces, player likenesses, meshes or roster assignments. UV/material mapping and in-game validation on the exact YosfX setup remain required before any LiveCPK integration. See [GOD FACES Premium Lab](docs/GOD_FACES_PREMIUM_LAB.md).
 
