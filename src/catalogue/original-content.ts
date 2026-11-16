@@ -125,6 +125,28 @@ export const originalContentProjects: OriginalContentProject[] = [
     acceptanceChecks: ["Lua/config syntax and schema validation", "No unmanaged executable modification", "Repeatable scenario results across declared builds", "Disable/uninstall restores original behavior"],
     rightsPolicy: "Code and configuration must be original or licensed; do not redistribute proprietary game executables or protected data.",
     previewPlan: ["Parameter change summary", "Scenario comparison", "Match footage from declared build", "Compatibility and known-issues panel"]
+  },
+  {
+    id: "thegodmods.god-weather", name: "GOD WEATHER", department: "stadiums", productLine: "Stadiums & Turf",
+    productionState: "tooling-prototype",
+    goal: "Optional PES 2017 match-condition presets built only on the documented Sider 3.5 weather, time-of-day and season controls.",
+    styleDirection: "Matchday-specific condition combinations with conservative defaults, explicit mutual exclusion and no invented weather simulation.",
+    deliverables: ["Four original Sider condition packages", "Editable per-profile INI files", "Replay-condition handling", "Compatibility guide and package hashes"],
+    assetRequirements: ["Documented Sider 3.5 event/API behavior", "Validated 0/1 values for day/night, fine/rain and summer/winter", "Lua 5.1-compatible module source", "Exact PES 2017 + Sider target record"],
+    acceptanceChecks: ["All profiles use only documented values", "Only one condition profile can be active", "Replay conditions follow the same selected profile", "No snow, fog, wet-shader or rain-particle claim without evidence", "Manual disable and rollback remain safe"],
+    rightsPolicy: "Original Lua and configuration only; no game binaries, proprietary shaders or extracted game assets.",
+    previewPlan: ["Fine daytime", "Rainy daytime", "Rainy night", "Winter night", "In-game condition comparison on declared build"]
+  },
+  {
+    id: "thegodmods.god-matchday", name: "GOD MATCHDAY", department: "stadiums", productLine: "Stadiums & Turf",
+    productionState: "tooling-prototype",
+    goal: "A coherent original matchday presentation system that pairs sponsor-neutral stadium artwork with optional, documented match-condition profiles.",
+    styleDirection: "Broadcast Elite, European Night, Golden Hour, Cup Final, Heritage Classic, Rain Match, Natural Pitchside, Impact, GOD Signature and Minimal Neutral.",
+    deliverables: ["Ten original LED-board art directions", "Four fascia/ribbon masters", "Matchday profile metadata", "Optional winter-night conditions package and reversible setup notes"],
+    assetRequirements: ["THEGODMODS-authored vector masters", "Verified stadium texture resource inventory before export", "Target DDS dimensions, channels and mip requirements", "Sider 3.5 conditions reference"],
+    acceptanceChecks: ["All artwork masters are original and sponsor-neutral", "No stadium resource filename or material is guessed", "No existing stadium files are overwritten", "One match-condition profile at a time", "In-game stadium mapping is verified before release claims"],
+    rightsPolicy: "Original vector artwork and Lua/config sources only; no unlicensed club, league or sponsor marks.",
+    previewPlan: ["Ten art-direction board previews", "Fascia/ribbon set", "Verified stadium texture before/after", "Matchday conditions on/off comparison"]
   }
 ];
 
@@ -146,7 +168,9 @@ const generatedAssetStatus: Record<string, GeneratedAssetStatus> = {
   "GOD STADIUMS": { summary: "Ten original 2048×512 LED board vector masters, four 2048×256 fascia masters, matchday art-direction data and SHA-256 manifest, alongside the optional Sider conditions adapter.", files: ["boards/*.svg", "fascia/*.svg", "profiles/matchday-art-direction.json", "manifest.json", "sider/modules/godmods_conditions.lua"], readiness: "Original source artwork generated; stadium-specific texture export, resource mapping and in-game verification remain required. No lighting injector or stadium overlay is claimed." },
   "GOD KITS": { summary: "Four original fabric families with 12 DDS source maps: diffuse weave overlays, normal and roughness sources. This improves existing kits worn by players; it does not create new kits.", files: ["materials/*-diffuse-overlay.dds", "materials/*-normal-source.dds", "materials/*-roughness-source.dds", "materials/material-library.json"], readiness: "Material source layers generated. Apply as masked layers to existing kit UV textures; confirm kit shader channels and texture path mappings before any automated installation." },
   "GOD FACES": { summary: "Four procedural skin-tone textures and one hair-detail texture.", files: ["textures/*-detail-source.dds", "textures/procedural-hair-detail-source.dds"], readiness: "Generic texture sources generated; no face meshes, player likenesses or roster IDs included." },
-  "GOD GAMEPLAY": { summary: "Five original premium simulation profiles, eight repeatable offline gameplay scenarios, bounded Sider gameplay-library settings and a SHA-256 manifest.", files: ["profiles/*.ini", "profiles.json", "qa/scenario-matrix.json", "manifest.json", "README.md", "sider/modules/godmods_gameplay.lua"], readiness: "Profile sidecars are generated and disabled by default. Existing Sider adapter uses experimental controls; offline scenario testing and real PES 2017 verification remain mandatory." }
+  "GOD GAMEPLAY": { summary: "Five original premium simulation profiles, eight repeatable offline gameplay scenarios, bounded Sider gameplay-library settings and a SHA-256 manifest.", files: ["profiles/*.ini", "profiles.json", "qa/scenario-matrix.json", "manifest.json", "README.md", "sider/modules/godmods_gameplay.lua"], readiness: "Profile sidecars are generated and disabled by default. Existing Sider adapter uses experimental controls; offline scenario testing and real PES 2017 verification remain mandatory." },
+  "GOD WEATHER": { summary: "Four original Sider 3.5 match-condition packages for fine day, rain day, rain night and winter night.", files: ["content/packs/GOD-WEATHER-*/module.json", "content/packs/GOD-WEATHER-*/payload/*.lua", "content/packs/GOD-WEATHER-*/payload/stadium.ini"], readiness: "Uses documented PES 2017 day/night, fine/rain and summer/winter values only. Full weather effects and in-game behavior remain target-build verification tasks." },
+  "GOD MATCHDAY": { summary: "Ten original sponsor-neutral LED board art directions, four fascia/ribbon masters and optional matchday condition profile.", files: ["boards/*.svg", "fascia/*.svg", "profiles/matchday-art-direction.json", "content/packs/GOD-MATCHDAY-WINTER-NIGHT/*"], readiness: "Artwork source is generated. Stadium-specific DDS export, material/resource mapping and in-game presentation remain unverified." }
 };
 export function getGeneratedAssetStatus(name: string): GeneratedAssetStatus | undefined {
   return generatedAssetStatus[name];
