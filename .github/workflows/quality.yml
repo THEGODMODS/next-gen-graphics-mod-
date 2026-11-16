@@ -67,7 +67,8 @@ jobs:
           './tools/godmods-gameplay-qa.mjs',
           './tools/godmods-lut-qa.mjs',
           './tools/godmods-final-regression.mjs',
-          './tools/godmods-atmosphere-engine.mjs'
+          './tools/godmods-atmosphere-engine.mjs',
+          './tools/godmods-integration-gate.mjs'
           ].map((file) => import(file)))"
       - name: Syntax-check asset generators
         run: |
@@ -75,6 +76,9 @@ jobs:
           node --check tools/build-premium-upgrades.mjs
           node --check tools/build-pes2017-modules.mjs
           node --check tools/godmods-atmosphere-engine.mjs
+          node --check tools/godmods-integration-gate.mjs
+          node --check tools/god-kits-mapping.mjs
+          node --check tools/god-faces-mapping.mjs
       - name: Unit tests
         run: npm test
       - name: Production build
