@@ -192,6 +192,11 @@ async function writePackage(definition) {
     { source: payloadPath, target: installRoot + definition.moduleName, sha256: sha256(payload) },
     { source: readmePath, target: installRoot + "README.md", sha256: sha256(readme) }
   ];
+  // Per-product marker is independent of installation: OFF keeps all assets in place.
+  const activationSource = "payload/enabled.ini";
+  const activationBytes = text("# GODMODS per-product activation state\\nenabled = 1\\n");
+  await writeFile(path.join(root, activationSource), activationBytes);
+  files.push({ source: activationSource, target: installRoot + "enabled.ini", sha256: sha256(activationBytes) });
   for (const asset of definition.assets || []) {
     const assetBytes = await readFile(path.resolve(ROOT, asset.source));
     const assetSource = "payload/" + asset.filename;
