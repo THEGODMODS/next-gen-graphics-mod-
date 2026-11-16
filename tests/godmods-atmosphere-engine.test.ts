@@ -20,7 +20,7 @@ describe("GOD ATMOSPHERE premium crowd engine", () => {
     }
     expect(lua).toContain('texture = "none"');
     expect(lua).toContain("duplicate texture bed disabled");
-    expect(lua).toContain("slot.filename ~= settings.bed");
+    expect(lua).toContain("base_loop.filename ~= settings.bed");
   });
 
   it("is disabled by default and validates all editable controls", () => {
