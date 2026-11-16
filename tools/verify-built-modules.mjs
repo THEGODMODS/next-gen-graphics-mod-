@@ -88,7 +88,7 @@ for (const dir of dirs) {
         const byteRate = bytes.readUInt32LE(28);
         const blockAlign = bytes.readUInt16LE(32);
         const bitsPerSample = bytes.readUInt16LE(34);
-        if (format !== 1 || ![1, 2].includes(channels) || ![22050, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
+        if (format !== 1 || ![1, 2].includes(channels) || ![22050, 24000, 32000, 44100, 48000].includes(sampleRate) || bitsPerSample !== 16) throw new Error("WAV must be PCM 16-bit mono/stereo at a supported sample rate");
         if (blockAlign !== channels * bitsPerSample / 8 || byteRate !== sampleRate * blockAlign) throw new Error("WAV block alignment or byte rate is inconsistent");
         // RIFF chunks begin at byte 12. The fmt chunk header is 8 bytes;
         // data follows the complete fmt payload (not after its first 8 bytes).
