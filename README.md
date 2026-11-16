@@ -44,6 +44,7 @@ These are real GODMODS source deliverables, but generated assets are not automat
 
 - `npm run mods:build-original` — generate original department source assets, including the stadium artwork suite.
 - `npm run mods:build-stadiums` — independently generate GOD STADIUMS Elite artwork and manifest.
+- `npm run audit:god-turf` — verify all nine GOD TURF variants, 27 DDS maps and the additive Stadium Server sidecar.
 - `npm run mods:build-faces` — generate the standalone GOD FACES Premium Appearance Lab sidecar library.
 - `npm run mods:build-visuals` — generate eight GOD VISUALS Elite 33³ colour-grade LUTs and their integrity manifest.
 - `npm run mods:build-packs` — build the Sider add-on packages.
