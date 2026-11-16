@@ -11,7 +11,7 @@ on:
       release_tag:
         description: "Version tag to build (must match package.json)"
         required: true
-        default: "v0.2.0"
+        default: "v0.2.1"
         type: string
 
 permissions:
@@ -26,7 +26,7 @@ jobs:
     name: Validate and package Windows release
     runs-on: windows-latest
     env:
-      RELEASE_TAG: ${{ inputs.release_tag || 'v0.2.0' }}
+      RELEASE_TAG: ${{ inputs.release_tag || 'v0.2.1' }}
     steps:
       - name: Check out tagged source
         uses: actions/checkout@v4
