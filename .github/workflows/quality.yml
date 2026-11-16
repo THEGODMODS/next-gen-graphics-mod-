@@ -23,9 +23,9 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies
-        run: npm install
+        run: npm ci --no-audit --no-fund
       - name: Install pinned Lua parser
-        run: npm install --no-save --package-lock=false --ignore-scripts luaparse@0.3.1
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund luaparse@0.3.1
       - name: Build original GODMODS source assets
         run: npm run mods:build-original
       - name: Build installable GODMODS Sider modules
