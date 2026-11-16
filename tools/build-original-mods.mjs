@@ -257,7 +257,7 @@ async function buildSixDepartments(output) {
   }, null, 2) + "\n");
   await writeText(path.join(output, "GOD-TURF", "README.md"), "# GOD TURF — Premium Surface Lab\n\nNine original procedural pitch looks, each with albedo, derived tangent-space normal source and roughness source maps, all exported as RGBA8 DDS with full mip chains. The collection spans natural, broadcast-cut, hybrid and worn presentation styles. Normal/roughness maps are source maps only: verify target PES material shader and channel convention before use.\n");
   await writeText(path.join(output, "GOD-TURF", "surface-library.json"), JSON.stringify({ schemaVersion: 1, generator: "THEGODMODS procedural surface workshop", resolution: SIZE, format: "DDS RGBA8 mipmapped", variants: turfPremium.map(v => ({ ...v, maps: ["albedo", "normal-source", "roughness-source"] })) }, null, 2) + "\n");
-  await addProduct("GOD-TURF", "GOD TURF — Premium Nine-Surface Collection", "stadiums", turfFiles, ["Six original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
+  await addProduct("GOD-TURF", "GOD TURF — Premium Nine-Surface Collection", "stadiums", turfFiles, ["Nine original pitch surface variants, each with three source maps.", "Normal/roughness maps require verified target shader channel compatibility.", "No PES resource mapping is guessed."]);
 
   // Stadium presentation: original sponsor-neutral LED board artwork.
   const stadiumDir = path.join(output, "GOD-STADIUMS");
