@@ -309,6 +309,36 @@ export class ModuleInstaller {
     });
   }
 
+  /** Change only a package's managed activation marker; payload files stay untouched. */
+  async setPackageEnabled(moduleId: string, enabled: boolean): Promise<void> {
+    return withInstallLock(this.stateDirectory, async () => {
+      const root = await fs.realpath(this.managedRoot);
+      const journal = await this.journal.read();
+      if (journal.pendingTransaction) await this.rollbackPending(root, journal);
+      const moduleRecord = journal.modules.find(item => item.id === moduleId);
+      if (!moduleRecord) throw new Error("That GODMODS package is not installed.");
+      const marker = moduleRecord.files.find(file => file.target.replace(/\\/g, "/").toLowerCase().endsWith("/enabled.ini"));
+      if (!marker) throw new Error("This installed package has no independently switchable activation marker. Reinstall it from the current GODMODS library.");
+      const relative = normalizeSafeRelativePath(marker.target);
+      await assertNoSymlinkPath(root, relative, true);
+      const target = resolveInsideRoot(root, relative);
+      const stat = await fs.lstat(target);
+      if (stat.isSymbolicLink() || !stat.isFile()) throw new Error("Activation marker is not a regular file; package state was not changed.");
+      if (!(await verifySha256(target, marker.sha256))) throw new Error("Activation marker was edited outside GODMODS Manager. Restore it or reinstall the package before switching it.");
+      const temporary = target + ".nextgen-" + randomUUID() + ".tmp";
+      const next = "# GODMODS per-product activation state\\nenabled = " + (enabled ? "1" : "0") + "\\n";
+      try {
+        await fs.writeFile(temporary, next, { encoding: "utf8", flag: "wx" });
+        await fs.rename(temporary, target);
+        marker.sha256 = await sha256File(target);
+        await this.journal.write(journal);
+      } catch (error) {
+        await fs.rm(temporary, { force: true });
+        throw error;
+      }
+    });
+  }
+
   async uninstall(moduleId: string): Promise<UninstallResult> {
     return withInstallLock(this.stateDirectory, async () => {
       const root = await fs.realpath(this.managedRoot);
