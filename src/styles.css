@@ -170,6 +170,15 @@ url('/godmods-premium-backdrop.svg') center center/cover no-repeat;opacity:1}
 .catalogue-origin{color:#e4c27f;font-size:8px}
 .catalogue-state{border:1px solid #7f9f62;color:#c1daa8}
 .catalogue-state.external{border-color:#66747b;color:#b9c2c1}
+.catalogue-library-bar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:16px 0 0;padding:13px 15px;border:1px solid #ffffff1b;border-radius:6px;background:#ffffff08}
+.catalogue-library-bar>div{display:flex;flex-direction:column;gap:4px}
+.catalogue-library-bar b{color:#e9c77f;font-size:10px;letter-spacing:.08em}
+.catalogue-library-bar span{color:#aeb8b6;font-size:10px}
+.catalogue-state.installed{border-color:#6c9d78;color:#a9d7b1}
+.catalogue-state.ready{border-color:#9b8955;color:#e8d08c}
+.catalogue-state.blocked{border-color:#a55e57;color:#e7aaa4}
+.catalogue-package-warning{display:flex;align-items:center;gap:6px;color:#e8bd79!important;font-size:10px!important}
+.catalogue-card-foot button:disabled{opacity:.48;cursor:not-allowed}
 .catalogue-art{height:112px;border:1px solid #ffffff1a;border-radius:5px;background:linear-gradient(135deg,#27251d,#131819 70%)}
 .catalogue-art-mark{font-size:34px;color:#f5f3e9}
 .catalogue-art-mark span{color:#e5b75f}
