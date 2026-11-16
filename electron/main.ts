@@ -148,9 +148,23 @@ function registerIpc() {
   ipcMain.handle("resources:scan-game", async event => {
     assertTrustedSender(event);
     if (!gameDirectory) throw new Error("Select your PES 2017 game folder before scanning resources.");
-    const auditUrl = pathToFileURL(path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs")).href;
-    const { scanResourceRoot } = await import(auditUrl);
-    const report = await scanResourceRoot(gameDirectory);
+    const reportPath = path.join(stateDirectory(), "resource-inventory.json");
+    await fsp.mkdir(stateDirectory(), { recursive: true });
+    await fsp.rm(reportPath, { force: true });
+    const auditScript = path.join(app.getAppPath(), "tools", "pes2017-resource-audit.mjs");
+    const child = spawn(process.execPath, [auditScript, "scan", gameDirectory, reportPath], {
+      windowsHide: true,
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }
+    });
+    let stderr = "";
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", chunk => { stderr += String(chunk); });
+    const exitCode = await new Promise<number>((resolve, reject) => {
+      child.once("error", reject);
+      child.once("close", code => resolve(code ?? 1));
+    });
+    if (exitCode !== 0) throw new Error(stderr.trim() || "Resource scanner exited with code " + exitCode + ".");
+    const report = JSON.parse(await fsp.readFile(reportPath, "utf8"));
     selectedResourceInventory = report;
     return {
       rootLabel: report.rootLabel, generatedAt: report.generatedAt,
