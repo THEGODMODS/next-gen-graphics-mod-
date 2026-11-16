@@ -95,10 +95,9 @@ export async function auditGodTurf(input = DEFAULT_ROOT) {
   if (sidecarManifest.variants?.length !== VARIANTS.length || sidecarManifest.assets?.length !== VARIANTS.length * MAPS.length) {
     throw new Error("Stadium Server sidecar must contain all nine variants and 27 DDS assets.");
   }
-  const sidecarBase = path.join(sidecarRoot, "common", "bg", "model", "bg", "pitch");
   for (const item of sidecarManifest.assets) {
     if (!VARIANTS.includes(item.variant) || !MAPS.includes(item.map)) throw new Error("Unexpected sidecar variant or map.");
-    const { file, stat } = await regularFile(sidecarBase, item.file, "Stadium Server sidecar asset");
+    const { file, stat } = await regularFile(sidecarRoot, item.file, "Stadium Server sidecar asset");
     if (stat.size !== item.bytes || await hashFile(file) !== item.sha256) throw new Error("Sidecar hash or byte count mismatch: " + item.file);
     const sourceName = "textures/" + path.posix.basename(item.file);
     const sourceRecord = assets.get(sourceName);
