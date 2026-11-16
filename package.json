@@ -38,7 +38,8 @@
     "mods:build-gameplay": "node tools/build-god-gameplay-premium.mjs",
     "mods:build-cinematic": "node tools/build-god-cinematic-premium.mjs",
     "mods:build-natural": "node tools/build-god-natural-premium.mjs",
-    "audit:god-turf": "node tools/god-turf-qa.mjs"
+    "audit:god-turf": "node tools/god-turf-qa.mjs",
+    "inventory:stadium-resources": "node tools/stadium-resource-inventory.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
