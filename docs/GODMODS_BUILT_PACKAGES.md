@@ -22,7 +22,7 @@ Each department package contains its own Lua source, configuration and supportin
 5. The manager installs the shared master loader if needed, installs the selected package and synchronizes the single Sider module entry.
 6. Uninstall a department package from Modules to remove its configuration and deactivate that feature. The shared loader remains while other installed GODMODS products depend on it.
 
-For manual recovery only, copy `modules/GODMODS_Loader.lua` to `PES 2017/Sider/modules/` and add `lua.module = GODMODS_Loader.lua` under Extension modules in `sider.ini`. Do not add each department Lua source as a separate Sider entry.
+For manual recovery only, copy `modules/GODMODS_Loader.lua` to `PES 2017/modules/` and add `lua.module = GODMODS_Loader.lua` under Extension modules in `sider.ini`. Do not add each department Lua source as a separate Sider entry.
 
 ## Compatibility boundary
 

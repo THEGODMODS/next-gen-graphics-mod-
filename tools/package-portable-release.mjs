@@ -52,7 +52,7 @@ const readme = [
   "MANUAL SIDER MODULE INSTALLATION",
   "The modules folder contains the single GODMODS_Loader.lua entry point.",
   "The manager installs and registers this one module automatically when you install your first GODMODS product.",
-  "For manual recovery, copy modules\\\\GODMODS_Loader.lua into Sider\\\\modules and add lua.module = GODMODS_Loader.lua under Extension modules in sider.ini.",
+  "For manual recovery, copy modules\\\\GODMODS_Loader.lua into PES 2017\\\\modules and add lua.module = GODMODS_Loader.lua under Extension modules in sider.ini.",
   "",
   "A successful archive build does not prove every asset is mapped or verified in PES 2017."
 ].join("\r\n") + "\r\n";
