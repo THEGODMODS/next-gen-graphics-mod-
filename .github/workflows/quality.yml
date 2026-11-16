@@ -48,6 +48,8 @@ jobs:
           path: content/originals/generated/**
           if-no-files-found: error
           retention-days: 30
+      - name: GODMODS cross-department source regression
+        run: npm run audit:godmods-final
       - name: TypeScript validation
         run: npm run typecheck
       - name: Native Node ESM smoke test
@@ -60,7 +62,11 @@ jobs:
           './tools/pitch-inventory.mjs',
           './tools/pitch-module-builder.mjs',
           './tools/pes2017-resource-audit.mjs',
-          './tools/godmods-dds-compositor.mjs'
+          './tools/godmods-dds-compositor.mjs',
+          './tools/godmods-audio-qa.mjs',
+          './tools/godmods-gameplay-qa.mjs',
+          './tools/godmods-lut-qa.mjs',
+          './tools/godmods-final-regression.mjs'
           ].map((file) => import(file)))"
       - name: Syntax-check asset generators
         run: |

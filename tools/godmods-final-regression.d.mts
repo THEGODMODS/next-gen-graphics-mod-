@@ -1,0 +1,2 @@
+export interface GodmodsRegressionReport { schemaVersion: 1; generatedAt: string; target: string; status: string; sourceQaPassed: boolean; gameCompatibilityVerified: false; releaseReady: false; departments: Array<{id:string;name:string;sourceQa:boolean;gameIntegration:string;blocker:string}>; blockers: string[]; safety: string; }
+export function runGodmodsFinalRegression(generatedRoot?: string): Promise<GodmodsRegressionReport>;
