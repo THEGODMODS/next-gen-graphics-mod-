@@ -47,7 +47,9 @@ export const departments: DepartmentDefinition[] = [
     originals: [
       { name: "GOD TURF", focus: "Six original turf surface families with DDS source maps and an additive Stadium Server sidecar builder; exact stadium resource mapping remains in progress.", status: "in-development", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass", "eFootball Turf Styles"] },
       { name: "GOD STADIUMS", focus: "Original LED-board and fascia artwork with matchday art-direction profiles; stadium-specific texture export and resource mapping remain in progress.", status: "in-development", categories: ["Stadium Environments", "Adboards & LED Boards", "Stadium Lighting", "Stadium Server Modules"] },
-      { name: "GOD PITCH LAB", focus: "Our in-house pitch texture development line, built with the existing inventory and DDS validation tools.", status: "in-development", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass"] }
+      { name: "GOD PITCH LAB", focus: "Our in-house pitch texture development line, built with the existing inventory and DDS validation tools.", status: "in-development", categories: ["Turf & Pitch Textures", "Pitch Patterns & Wear", "Natural Grass"] },
+      { name: "GOD WEATHER", focus: "Four original Sider 3.5 match-condition presets for fine/rain, day/night and summer/winter; weather effects beyond the documented values remain unclaimed.", status: "in-development", categories: ["Stadium Environments", "Stadium Lighting"] },
+      { name: "GOD MATCHDAY", focus: "Original stadium art-direction themes paired with optional match-condition profiles; stadium-specific texture mapping and in-game presentation checks remain in progress.", status: "in-development", categories: ["Stadium Environments", "Adboards & LED Boards", "Stadium Lighting"] }
     ],
     thirdParty: [
       { id: "gfx-pitch-2026", name: "eFootball 2026 GFX & Pitch", focus: "Third-party graphics and pitch release", note: "External archive with publisher-listed requirements; CPK and loader workflows differ.", categories: ["Turf & Pitch Textures", "Natural Grass", "eFootball Turf Styles"] },
