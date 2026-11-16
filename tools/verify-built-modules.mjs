@@ -73,13 +73,13 @@ for (const dir of dirs) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["runtime_enabled", "match_minutes", "ball_weight", "ball_physics", "ball_bounce", "ball_friction", "ball_magnus", "shooting_power", "speed", "speed_global"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("gameplay INI missing valid " + key);
-        if (Number(ini.match(/^runtime_enabled\\s*=\\s*(\\d+)/m)?.[1]) !== 0) throw new Error("gameplay runtime_enabled must default to 0");
+        if (Number(ini.match(/^runtime_enabled\s*=\s*(\d+)/m)?.[1]) !== 0) throw new Error("gameplay runtime_enabled must default to 0");
         gameplayIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Graphics/") && item.target.endsWith("/graphics.ini")) {
         const ini = bytes.toString("utf8");
         const requiredKeys = ["runtime_enabled", "brightness", "sharpness", "shadow_softness", "reflection"];
         for (const key of requiredKeys) if (!new RegExp("^" + key + "\\s*=\\s*[-+]?\\d+(?:\\.\\d+)?$", "m").test(ini)) throw new Error("graphics INI missing valid " + key);
-        if (Number(ini.match(/^runtime_enabled\\s*=\\s*(\\d+)/m)?.[1]) !== 0) throw new Error("graphics runtime_enabled must default to 0");
+        if (Number(ini.match(/^runtime_enabled\s*=\s*(\d+)/m)?.[1]) !== 0) throw new Error("graphics runtime_enabled must default to 0");
         graphicsIniCount += 1;
       } else if (item.target.startsWith("content/GODMODS/Stadiums/") && item.target.endsWith("/stadium.ini")) {
         const ini = bytes.toString("utf8");
